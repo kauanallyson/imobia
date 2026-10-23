@@ -243,7 +243,7 @@ export const ferramentaPedidoDeDesconto = definir({
   async executar(contexto, { detalhe }) {
     const pendencia = await criarPendencia(contexto.session, {
       negocioId: contexto.negocio.id,
-      tipo: "pergunta_sem_resposta",
+      tipo: "pedido_desconto",
       descricao: `Pedido de desconto${detalhe ? `: ${detalhe}` : ""}`,
     });
     return {

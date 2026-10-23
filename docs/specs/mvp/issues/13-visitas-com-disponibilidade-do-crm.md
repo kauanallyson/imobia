@@ -4,17 +4,17 @@
 
 **Blocked by:** 09 (Assistente: primeiro atendimento)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Corretor cadastra janelas semanais e datas bloqueadas
-- [ ] Horários oferecidos ficam só dentro da disponibilidade, sem conflito com outras visitas, duram 60 minutos e não ultrapassam o fim da semana corrente
-- [ ] Sem horário disponível na semana corrente, o assistente orienta o cliente a falar com o corretor
-- [ ] Agendamento cria a visita com local padrão do empreendimento, envia localização e move o negócio para Visita agendada
-- [ ] Corretor altera o local de uma visita
-- [ ] Worker envia lembretes no dia anterior e na manhã da visita (teste com `setSystemTime`)
-- [ ] Cliente remarca e a visita é atualizada
-- [ ] "Fechar agora" leva o negócio direto a Coletando dados
-- [ ] Rodar o worker de novo no mesmo horário não reenvia lembretes
+- [x] Corretor cadastra janelas semanais e datas bloqueadas
+- [x] Horários oferecidos ficam só dentro da disponibilidade, sem conflito com outras visitas, duram 60 minutos e não ultrapassam o fim da semana corrente
+- [x] Sem horário disponível na semana corrente, o assistente orienta o cliente a falar com o corretor
+- [x] Agendamento cria a visita com local padrão do empreendimento, envia localização e move o negócio para Visita agendada
+- [x] Corretor altera o local de uma visita
+- [x] Worker envia lembretes no dia anterior e na manhã da visita (teste com `setSystemTime`)
+- [x] Cliente remarca e a visita é atualizada
+- [x] "Fechar agora" leva o negócio direto a Coletando dados
+- [x] Rodar o worker de novo no mesmo horário não reenvia lembretes
 
 ## Comments
 

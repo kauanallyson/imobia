@@ -615,6 +615,7 @@ export const tiposDePendencia = [
   "revisar_proposta",
   "pergunta_sem_resposta",
   "cliente_pediu_pessoa",
+  "pedido_desconto",
   "confirmar_assinatura",
   "confirmar_pagamento",
 ] as const;

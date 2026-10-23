@@ -49,6 +49,7 @@ export const rotuloDoTipo: Record<TipoDePendencia, string> = {
   revisar_proposta: "Revisar proposta",
   pergunta_sem_resposta: "Pergunta sem resposta",
   cliente_pediu_pessoa: "Cliente pediu uma pessoa",
+  pedido_desconto: "Pedido de desconto",
   confirmar_assinatura: "Confirmar assinatura",
   confirmar_pagamento: "Confirmar pagamento",
 };
@@ -211,6 +212,7 @@ export function textoDoAviso(pendencia: {
   const abertura: Record<TipoDePendencia, string> = {
     cliente_pediu_pessoa: `${pendencia.clienteNome} pediu para falar com você. O assistente pausou a conversa.`,
     pergunta_sem_resposta: `${pendencia.clienteNome} fez uma pergunta que não está na base de conhecimento.`,
+    pedido_desconto: `${pendencia.clienteNome} pediu desconto ou negociação de condições.`,
     revisar_proposta: `A proposta de ${pendencia.clienteNome} está pronta para a sua revisão.`,
     confirmar_assinatura: `${pendencia.clienteNome} enviou a proposta assinada: confirme a assinatura.`,
     confirmar_pagamento: `${pendencia.clienteNome} enviou o comprovante: confirme o pagamento.`,
