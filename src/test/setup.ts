@@ -10,6 +10,7 @@ process.env.APP_URL = "http://localhost:3000";
 process.env.EVOLUTION_API_URL = "http://evolution.test:8080";
 process.env.EVOLUTION_API_KEY = "chave-de-teste";
 process.env.EVOLUTION_WEBHOOK_SECRET = "segredo-de-teste-com-32-caracteres";
+process.env.OPENAI_API_KEY = "sk-teste";
 if (!new URL(testDatabaseUrl).pathname.endsWith("_test")) {
   throw new Error(
     "O banco de teste precisa terminar em _test (é limpo a cada teste)",

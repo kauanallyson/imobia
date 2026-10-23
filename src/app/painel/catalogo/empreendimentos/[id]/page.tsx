@@ -1,3 +1,5 @@
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -8,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/app/components/link";
+import { buscarBaseDeConhecimento } from "@/data/base-de-conhecimento";
 import { buscarEmpreendimento } from "@/data/empreendimentos";
 import { listarIncorporadoras } from "@/data/incorporadoras";
 import { listarLotes } from "@/data/lotes";
@@ -43,10 +46,11 @@ async function Empreendimento({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const empreendimento = await buscarEmpreendimento(session, id);
   if (!empreendimento) notFound();
-  const [lotes, modelos, incorporadoras] = await Promise.all([
+  const [lotes, modelos, incorporadoras, base] = await Promise.all([
     listarLotes(session, empreendimento.id),
     listarModelosDeCasa(session, empreendimento.id),
     listarIncorporadoras(session),
+    buscarBaseDeConhecimento(session, empreendimento.id),
   ]);
 
   return (
@@ -61,6 +65,29 @@ async function Empreendimento({ params }: { params: Promise<{ id: string }> }) {
         <Typography variant="body2" color="text.secondary">
           {empreendimento.endereco}
         </Typography>
+      </Stack>
+
+      <Stack component="section" spacing={2}>
+        <Typography variant="h6" component="h2">
+          Base de conhecimento
+        </Typography>
+        <Typography color="text.secondary">
+          {base?.trechos
+            ? `${base.trechos} trecho${base.trechos === 1 ? "" : "s"} indexado${base.trechos === 1 ? "" : "s"} para o assistente.`
+            : "Nada escrito ainda: o assistente não tem o que responder sobre este empreendimento."}
+        </Typography>
+        <Button
+          component={Link}
+          href={`/painel/catalogo/empreendimentos/${empreendimento.id}/conhecimento`}
+          variant="outlined"
+          size="large"
+          startIcon={<MenuBookIcon aria-hidden fontSize="small" />}
+          sx={{ alignSelf: "flex-start" }}
+        >
+          {base?.trechos
+            ? "Editar base de conhecimento"
+            : "Escrever base de conhecimento"}
+        </Button>
       </Stack>
 
       <Stack component="section" spacing={2}>

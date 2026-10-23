@@ -16,6 +16,9 @@ const envSchema = z.object({
   EVOLUTION_API_KEY: z.string().min(1),
   // Segredo que a Evolution envia no header x-webhook-secret.
   EVOLUTION_WEBHOOK_SECRET: z.string().min(16),
+  // OpenAI (embeddings da base de conhecimento; assistente e transcrição nos
+  // tickets 09 e 19).
+  OPENAI_API_KEY: z.string().min(1),
 });
 
 const parsed = envSchema.safeParse(process.env);
