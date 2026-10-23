@@ -65,3 +65,13 @@ export async function verificarCorretor() {
   if (session.role !== "corretor") redirect(homePath(session.role));
   return session;
 }
+
+// Catálogo, clientes e negócios são de corretores: o administrador não entra.
+export function requireCorretor(
+  session: Session,
+): Extract<Session, { role: "corretor" }> {
+  if (session.role !== "corretor") {
+    throw new ForbiddenError("Somente um corretor pode fazer isso");
+  }
+  return session;
+}

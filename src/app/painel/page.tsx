@@ -1,10 +1,13 @@
+import ApartmentIcon from "@mui/icons-material/Apartment";
 import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "@/app/components/link";
 import { SignOutButton } from "@/app/components/sign-out-button";
 import { buscarImobiliaria } from "@/data/imobiliarias";
 import { verificarCorretor } from "@/data/session";
@@ -63,6 +66,16 @@ async function Painel() {
         <Typography color="text.secondary">
           Nenhum negócio por enquanto.
         </Typography>
+        <Button
+          component={Link}
+          href="/painel/catalogo"
+          variant="outlined"
+          size="large"
+          startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
+          sx={{ mt: 3 }}
+        >
+          Catálogo
+        </Button>
       </Container>
     </>
   );
