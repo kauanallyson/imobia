@@ -1,8 +1,9 @@
 "use client";
 
+import BusinessIcon from "@mui/icons-material/Business";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
-import { Building2, UserPlus } from "lucide-react";
 import { useActionState } from "react";
 import { Field, SubmitButton } from "@/app/components/form";
 import { criarCorretorAction, criarImobiliariaAction } from "./actions";
@@ -20,7 +21,7 @@ export function CriarImobiliariaForm({ id }: { id: string }) {
       <input type="hidden" name="id" value={id} />
       <Field label="Nome" name="nome" />
       {state.erro && <Alert severity="error">{state.erro}</Alert>}
-      <SubmitButton pending={pending} icon={Building2}>
+      <SubmitButton pending={pending} icon={BusinessIcon}>
         Criar imobiliária
       </SubmitButton>
     </Stack>
@@ -49,7 +50,7 @@ export function CriarCorretorForm({
         slotProps={{ htmlInput: { minLength: 8 } }}
       />
       {state.erro && <Alert severity="error">{state.erro}</Alert>}
-      <SubmitButton pending={pending} icon={UserPlus}>
+      <SubmitButton pending={pending} icon={PersonAddIcon}>
         Criar corretor
       </SubmitButton>
     </Stack>

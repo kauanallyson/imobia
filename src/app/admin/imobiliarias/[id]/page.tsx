@@ -1,3 +1,4 @@
+import PersonOffIcon from "@mui/icons-material/PersonOff";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import List from "@mui/material/List";
@@ -6,7 +7,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { UserX } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { listarCorretores } from "@/data/corretores";
@@ -63,7 +63,9 @@ async function Imobiliaria({ params }: { params: Promise<{ id: string }> }) {
                         <Button
                           type="submit"
                           color="error"
-                          startIcon={<UserX aria-hidden size={18} />}
+                          startIcon={
+                            <PersonOffIcon aria-hidden fontSize="small" />
+                          }
                         >
                           Desativar
                         </Button>

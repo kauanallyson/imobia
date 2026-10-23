@@ -16,7 +16,7 @@ Issues and specs live as local markdown files under `docs/specs/<feature>/`. See
 
 ### Implementing a ticket
 
-Before starting any ticket, read `docs/agents/conventions.md`: branch per ticket, idempotent actions, MUI/Lucide UI rules, test fixtures and browser checks.
+Before starting any ticket, read `docs/agents/conventions.md`: branch per ticket, idempotent actions, MUI UI rules (MUI icons, not Lucide), test fixtures and browser checks.
 
 ### Triage labels
 

@@ -1,5 +1,5 @@
+import LogoutIcon from "@mui/icons-material/Logout";
 import Button from "@mui/material/Button";
-import { LogOut } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 
 export function SignOutButton() {
@@ -8,7 +8,7 @@ export function SignOutButton() {
       <Button
         type="submit"
         color="inherit"
-        startIcon={<LogOut aria-hidden size={18} />}
+        startIcon={<LogoutIcon aria-hidden fontSize="small" />}
       >
         Sair
       </Button>

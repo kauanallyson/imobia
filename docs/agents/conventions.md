@@ -20,7 +20,7 @@ Aprendidas no ticket 02. A arquitetura (pastas, DAL, permissão, DTOs, Server Ac
 
 ## Interface (`src/app`)
 
-- **Componentes MUI 9**, tema claro em `src/app/theme.ts`, fonte Tuffy (fallback Roboto, sans-serif), ícones `lucide-react` em todo botão de ação (`startIcon`, ou o `icon` de `SubmitButton`). O app se chama **loteAI**.
+- **Componentes MUI 9**, tema claro em `src/app/theme.ts`, fonte Tuffy (fallback Roboto, sans-serif), ícones `@mui/icons-material` (import individual, ex.: `@mui/icons-material/Login`) em todo botão de ação (`startIcon`, ou o `icon` de `SubmitButton`). O app se chama **loteAI**.
 - **Mobile-first**: uma coluna, `Container maxWidth="sm"`, alvos de toque de 44px+. Conferir em 390px de largura.
 - **Estilo com `sx`**: MUI 9 não aceita system props (`fontWeight={700}` não compila; use `sx={{ fontWeight: 700 }}`). Tuffy só tem pesos 400 e 700.
 - **Links em componentes MUI**: passe `component={Link}` com `Link` de `@/app/components/link` (re-export client). `next/link` direto quebra o build quando usado a partir de Server Component.
