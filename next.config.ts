@@ -7,6 +7,13 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  // "bun" (S3Client em src/lib/storage.ts) é módulo nativo do runtime.
+  serverExternalPackages: ["bun"],
+  experimental: {
+    // Upload de material de marketing via Server Action (até ~25 MB de
+    // arquivo; o multipart acrescenta alguns KB).
+    serverActions: { bodySizeLimit: "26mb" },
+  },
   turbopack: {
     rules: {
       "*.css": {

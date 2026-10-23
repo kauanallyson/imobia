@@ -390,3 +390,75 @@ export const modelosDeCasa = pgTable(
     index("modelos_de_casa_empreendimento_id_idx").on(t.empreendimentoId),
   ],
 );
+
+// ---------------------------------------------------------------------------
+// Planos de pagamento e material de marketing (ticket 04). Ambos pertencem a
+// um empreendimento e herdam dele a imobiliária.
+// ---------------------------------------------------------------------------
+
+// Estrutura provisória (spec → Dados): a regra definitiva com taxas virá
+// depois e substitui só `calcularPlano` em src/data/planos-de-pagamento.ts.
+export const planosDePagamento = pgTable(
+  "planos_de_pagamento",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empreendimentoId: uuid("empreendimento_id")
+      .notNull()
+      .references(() => empreendimentos.id),
+    nome: text().notNull(),
+    // Percentual de entrada sobre o preço total (0 a 100, ex.: 20.5).
+    percentualDeEntrada: numeric("percentual_de_entrada", {
+      precision: 5,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
+    numeroDeParcelas: integer("numero_de_parcelas").notNull(),
+    // Texto livre: correção, taxas, carência.
+    condicoes: text().notNull().default(""),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("planos_de_pagamento_empreendimento_id_idx").on(t.empreendimentoId),
+    check(
+      "planos_de_pagamento_percentual",
+      sql`${t.percentualDeEntrada} >= 0 and ${t.percentualDeEntrada} <= 100`,
+    ),
+    check("planos_de_pagamento_parcelas", sql`${t.numeroDeParcelas} >= 1`),
+  ],
+);
+
+export const tiposDeArquivo = ["pdf", "imagem", "video"] as const;
+export type TipoDeArquivo = (typeof tiposDeArquivo)[number];
+
+// A quem o material se destina (GLOSSARY → Material de marketing).
+export const destinosDoMaterial = ["lote", "lote_e_casa", "ambos"] as const;
+export type DestinoDoMaterial = (typeof destinosDoMaterial)[number];
+
+export const materiaisDeMarketing = pgTable(
+  "materiais_de_marketing",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empreendimentoId: uuid("empreendimento_id")
+      .notNull()
+      .references(() => empreendimentos.id),
+    nome: text().notNull(),
+    tipoDeArquivo: text("tipo_de_arquivo", { enum: tiposDeArquivo }).notNull(),
+    destino: text({ enum: destinosDoMaterial }).notNull(),
+    // Chave do objeto no R2 (src/lib/storage.ts):
+    // imobiliarias/<id>/empreendimentos/<id>/materiais/<uuid>
+    chave: text().notNull().unique(),
+    contentType: text("content_type").notNull(),
+    // Em bytes.
+    tamanho: integer().notNull(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("materiais_de_marketing_empreendimento_id_idx").on(
+      t.empreendimentoId,
+    ),
+  ],
+);

@@ -1,3 +1,6 @@
+import CollectionsIcon from "@mui/icons-material/Collections";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -61,6 +64,24 @@ async function Empreendimento({ params }: { params: Promise<{ id: string }> }) {
         <Typography variant="body2" color="text.secondary">
           {empreendimento.endereco}
         </Typography>
+        <Stack direction="row" spacing={1} sx={{ pt: 1, flexWrap: "wrap" }}>
+          <Button
+            component={Link}
+            href={`/painel/catalogo/empreendimentos/${empreendimento.id}/planos`}
+            variant="outlined"
+            startIcon={<PaymentsIcon aria-hidden fontSize="small" />}
+          >
+            Planos de pagamento
+          </Button>
+          <Button
+            component={Link}
+            href={`/painel/catalogo/empreendimentos/${empreendimento.id}/materiais`}
+            variant="outlined"
+            startIcon={<CollectionsIcon aria-hidden fontSize="small" />}
+          >
+            Material de marketing
+          </Button>
+        </Stack>
       </Stack>
 
       <Stack component="section" spacing={2}>

@@ -102,3 +102,36 @@ export async function criarEmpreendimentoDaAna(session: Session) {
   );
   return { incorporadora, empreendimento };
 }
+
+// Lote A-1 (R$ 85.000) e modelo "Casa 2 quartos" (R$ 150.000) no
+// empreendimento da Ana.
+export async function criarLoteECasaDaAna(session: Session) {
+  const { criarLote } = await import("@/data/lotes");
+  const { criarModeloDeCasa } = await import("@/data/modelos-de-casa");
+  const { incorporadora, empreendimento } =
+    await criarEmpreendimentoDaAna(session);
+  const lote = ok(
+    await criarLote(session, {
+      empreendimentoId: empreendimento.id,
+      quadra: "A",
+      numero: "1",
+      area: 360,
+      frente: 12,
+      fundo: 30,
+      preco: 85000,
+    }),
+  );
+  const modelo = ok(
+    await criarModeloDeCasa(session, {
+      empreendimentoId: empreendimento.id,
+      nome: "Casa 2 quartos",
+      areaConstruida: 70,
+      quartos: 2,
+      banheiros: 1,
+      suites: 0,
+      vagas: 1,
+      preco: 150000,
+    }),
+  );
+  return { incorporadora, empreendimento, lote, modelo };
+}
