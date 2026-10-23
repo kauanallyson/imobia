@@ -20,6 +20,8 @@ bun run dev
 
 O Next roda no runtime do Bun (`bun --bun next ...` nos scripts `dev`, `build` e `start`), exigido pelo cliente S3 nativo do Bun usado no storage.
 
+Para subir a stack inteira em containers (app, worker, migrations, Evolution API com Redis e, opcionalmente, Caddy com HTTPS), veja `docs/deploy.md`.
+
 Não há cadastro público. O administrador entra em `/admin`, cria imobiliárias e corretores; corretores entram em `/login` e caem em `/painel`.
 
 ## Testes
