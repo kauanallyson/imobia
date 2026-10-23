@@ -3,9 +3,11 @@ import {
   boolean,
   check,
   index,
+  jsonb,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -104,3 +106,183 @@ export const verifications = pgTable("verifications", {
     .notNull()
     .defaultNow(),
 });
+
+// ---------------------------------------------------------------------------
+// WhatsApp (ticket 06). Uma conexão por corretor: o aceite de risco
+// (ADR-0004) fica registrado aqui com data e hora, e a instância da Evolution
+// só é criada depois dele.
+// ---------------------------------------------------------------------------
+
+export const estadosDaConexao = [
+  "desconectado",
+  "conectando",
+  "conectado",
+] as const;
+export type EstadoDaConexao = (typeof estadosDaConexao)[number];
+
+export const whatsappConexoes = pgTable(
+  "whatsapp_conexoes",
+  {
+    corretorId: uuid("corretor_id")
+      .primaryKey()
+      .references(() => users.id),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    aceiteEm: timestamp("aceite_em", { withTimezone: true }).notNull(),
+    // Nome da instância na Evolution; nulo até o corretor pedir o QR code.
+    instancia: text().unique(),
+    estado: text({ enum: estadosDaConexao }).notNull().default("desconectado"),
+    atualizadaEm: timestamp("atualizada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("whatsapp_conexoes_imobiliaria_id_idx").on(t.imobiliariaId)],
+);
+
+export const clientes = pgTable(
+  "clientes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    nome: text().notNull(),
+    // Só dígitos com DDI (ex.: 5588999990000).
+    telefone: text().notNull(),
+    email: text(),
+    cpf: text(),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("clientes_corretor_telefone").on(t.corretorId, t.telefone),
+    index("clientes_corretor_id_idx").on(t.corretorId),
+  ],
+);
+
+// Etapas fixas do funil (GLOSSARY.md → Etapa).
+export const etapas = [
+  "novo",
+  "em_atendimento",
+  "visita_agendada",
+  "coletando_dados",
+  "proposta_em_revisao",
+  "aguardando_assinatura",
+  "aguardando_pagamento",
+  "ganho",
+  "perdido",
+] as const;
+export type Etapa = (typeof etapas)[number];
+
+export const negocios = pgTable(
+  "negocios",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    clienteId: uuid("cliente_id")
+      .notNull()
+      .references(() => clientes.id),
+    etapa: text({ enum: etapas }).notNull().default("novo"),
+    motivoPerda: text("motivo_perda"),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("negocios_corretor_id_idx").on(t.corretorId),
+    index("negocios_cliente_id_idx").on(t.clienteId),
+  ],
+);
+
+// Histórico de mudanças de etapa; `de` é nulo na criação.
+export const negocioEtapas = pgTable(
+  "negocio_etapas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    de: text({ enum: etapas }),
+    para: text({ enum: etapas }).notNull(),
+    em: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("negocio_etapas_negocio_id_idx").on(t.negocioId)],
+);
+
+export const estadosDoAssistente = ["ativo", "pausado", "desligado"] as const;
+
+// A conversa de WhatsApp de um cliente com o número do corretor.
+export const conversas = pgTable(
+  "conversas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    clienteId: uuid("cliente_id")
+      .notNull()
+      .references(() => clientes.id),
+    assistente: text({ enum: estadosDoAssistente }).notNull().default("ativo"),
+    ultimaMensagemCorretorEm: timestamp("ultima_mensagem_corretor_em", {
+      withTimezone: true,
+    }),
+    optOut: boolean("opt_out").notNull().default(false),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("conversas_corretor_cliente").on(t.corretorId, t.clienteId),
+    index("conversas_corretor_id_idx").on(t.corretorId),
+  ],
+);
+
+export const autoresDeMensagem = ["cliente", "assistente", "corretor"] as const;
+
+export type Midia = {
+  tipo: "imagem" | "audio" | "video" | "documento" | "figurinha";
+  mimetype: string | null;
+  nomeDoArquivo: string | null;
+  url: string | null;
+};
+
+export const mensagens = pgTable(
+  "mensagens",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    conversaId: uuid("conversa_id")
+      .notNull()
+      .references(() => conversas.id, { onDelete: "cascade" }),
+    // key.id da Evolution: a chave natural que torna o webhook idempotente.
+    evolutionId: text("evolution_id").notNull(),
+    autor: text({ enum: autoresDeMensagem }).notNull(),
+    texto: text(),
+    midia: jsonb().$type<Midia>(),
+    transcricao: text(),
+    fromMe: boolean("from_me").notNull().default(false),
+    enviadaEm: timestamp("enviada_em", { withTimezone: true }).notNull(),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("mensagens_conversa_evolution_id").on(t.conversaId, t.evolutionId),
+    index("mensagens_conversa_id_idx").on(t.conversaId),
+  ],
+);

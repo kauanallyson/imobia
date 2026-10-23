@@ -1,0 +1,1709 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "1bd30ebb-b05e-45f5-867a-863b4efb725d",
+  "prevIds": ["aa9ea313-7a8b-4d8f-9ec5-5166cb16feaa"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "clientes"],
+      "writes": [
+        "s|tbl|public.clientes",
+        "n|tbl|public.clientes",
+        "e|tbl|public.clientes",
+        "n|rel|public.clientes",
+        "n|type|public.clientes",
+        "n|rel|public.clientes_pkey",
+        "n|rel|public.clientes_corretor_telefone"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "conversas"],
+      "writes": [
+        "s|tbl|public.conversas",
+        "n|tbl|public.conversas",
+        "e|tbl|public.conversas",
+        "n|rel|public.conversas",
+        "n|type|public.conversas",
+        "n|rel|public.conversas_pkey",
+        "n|rel|public.conversas_corretor_cliente"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "mensagens"],
+      "writes": [
+        "s|tbl|public.mensagens",
+        "n|tbl|public.mensagens",
+        "e|tbl|public.mensagens",
+        "n|rel|public.mensagens",
+        "n|type|public.mensagens",
+        "n|rel|public.mensagens_pkey",
+        "n|rel|public.mensagens_conversa_evolution_id"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "negocio_etapas"],
+      "writes": [
+        "s|tbl|public.negocio_etapas",
+        "n|tbl|public.negocio_etapas",
+        "e|tbl|public.negocio_etapas",
+        "n|rel|public.negocio_etapas",
+        "n|type|public.negocio_etapas",
+        "n|rel|public.negocio_etapas_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|tbl|public.negocios",
+        "n|tbl|public.negocios",
+        "e|tbl|public.negocios",
+        "n|rel|public.negocios",
+        "n|type|public.negocios",
+        "n|rel|public.negocios_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "whatsapp_conexoes"],
+      "writes": [
+        "s|tbl|public.whatsapp_conexoes",
+        "n|tbl|public.whatsapp_conexoes",
+        "e|tbl|public.whatsapp_conexoes",
+        "n|rel|public.whatsapp_conexoes",
+        "n|type|public.whatsapp_conexoes",
+        "n|rel|public.whatsapp_conexoes_pkey",
+        "n|rel|public.whatsapp_conexoes_instancia_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "clientes",
+        "clientes_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.clientes_corretor_id_idx",
+        "n|idx|public.clientes_corretor_id_idx",
+        "e|idx|public.clientes_corretor_id_idx",
+        "n|rel|public.clientes_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|col|public.clientes.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "conversas",
+        "conversas_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.conversas_corretor_id_idx",
+        "n|idx|public.conversas_corretor_id_idx",
+        "e|idx|public.conversas_corretor_id_idx",
+        "n|rel|public.conversas_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.conversas",
+        "n|sch|public",
+        "n|col|public.conversas.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "mensagens",
+        "mensagens_conversa_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.mensagens_conversa_id_idx",
+        "n|idx|public.mensagens_conversa_id_idx",
+        "e|idx|public.mensagens_conversa_id_idx",
+        "n|rel|public.mensagens_conversa_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.mensagens",
+        "n|sch|public",
+        "n|col|public.mensagens.conversa_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "negocio_etapas",
+        "negocio_etapas_negocio_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.negocio_etapas_negocio_id_idx",
+        "n|idx|public.negocio_etapas_negocio_id_idx",
+        "e|idx|public.negocio_etapas_negocio_id_idx",
+        "n|rel|public.negocio_etapas_negocio_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.negocio_etapas",
+        "n|sch|public",
+        "n|col|public.negocio_etapas.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "negocios",
+        "negocios_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.negocios_corretor_id_idx",
+        "n|idx|public.negocios_corretor_id_idx",
+        "e|idx|public.negocios_corretor_id_idx",
+        "n|rel|public.negocios_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.negocios.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "negocios",
+        "negocios_cliente_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.negocios_cliente_id_idx",
+        "n|idx|public.negocios_cliente_id_idx",
+        "e|idx|public.negocios_cliente_id_idx",
+        "n|rel|public.negocios_cliente_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.negocios.cliente_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "whatsapp_conexoes",
+        "whatsapp_conexoes_imobiliaria_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.whatsapp_conexoes_imobiliaria_id_idx",
+        "n|idx|public.whatsapp_conexoes_imobiliaria_id_idx",
+        "e|idx|public.whatsapp_conexoes_imobiliaria_id_idx",
+        "n|rel|public.whatsapp_conexoes_imobiliaria_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.whatsapp_conexoes",
+        "n|sch|public",
+        "n|col|public.whatsapp_conexoes.imobiliaria_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "clientes"],
+      "writes": [
+        "s|fk|public.clientes.clientes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.clientes.clientes_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.clientes.clientes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.clientes.clientes_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.clientes.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "clientes"],
+      "writes": [
+        "s|fk|public.clientes.clientes_corretor_id_users_id_fkey",
+        "n|fk|public.clientes.clientes_corretor_id_users_id_fkey",
+        "e|fk|public.clientes.clientes_corretor_id_users_id_fkey",
+        "n|con|public.clientes.clientes_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.clientes.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "conversas"],
+      "writes": [
+        "s|fk|public.conversas.conversas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.conversas.conversas_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.conversas.conversas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.conversas.conversas_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.conversas",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.conversas.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "conversas"],
+      "writes": [
+        "s|fk|public.conversas.conversas_corretor_id_users_id_fkey",
+        "n|fk|public.conversas.conversas_corretor_id_users_id_fkey",
+        "e|fk|public.conversas.conversas_corretor_id_users_id_fkey",
+        "n|con|public.conversas.conversas_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.conversas",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.conversas.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "conversas"],
+      "writes": [
+        "s|fk|public.conversas.conversas_cliente_id_clientes_id_fkey",
+        "n|fk|public.conversas.conversas_cliente_id_clientes_id_fkey",
+        "e|fk|public.conversas.conversas_cliente_id_clientes_id_fkey",
+        "n|con|public.conversas.conversas_cliente_id_clientes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.conversas",
+        "n|sch|public",
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|col|public.conversas.cliente_id",
+        "n|col|public.clientes.id",
+        "e|uniqueness|public.clientes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "mensagens"],
+      "writes": [
+        "s|fk|public.mensagens.mensagens_conversa_id_conversas_id_fkey",
+        "n|fk|public.mensagens.mensagens_conversa_id_conversas_id_fkey",
+        "e|fk|public.mensagens.mensagens_conversa_id_conversas_id_fkey",
+        "n|con|public.mensagens.mensagens_conversa_id_conversas_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.mensagens",
+        "n|sch|public",
+        "n|tbl|public.conversas",
+        "n|sch|public",
+        "n|col|public.mensagens.conversa_id",
+        "n|col|public.conversas.id",
+        "e|uniqueness|public.conversas.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocio_etapas"],
+      "writes": [
+        "s|fk|public.negocio_etapas.negocio_etapas_negocio_id_negocios_id_fkey",
+        "n|fk|public.negocio_etapas.negocio_etapas_negocio_id_negocios_id_fkey",
+        "e|fk|public.negocio_etapas.negocio_etapas_negocio_id_negocios_id_fkey",
+        "n|con|public.negocio_etapas.negocio_etapas_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocio_etapas",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.negocio_etapas.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.negocios.negocios_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.negocios.negocios_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.negocios.negocios_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.negocios.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_corretor_id_users_id_fkey",
+        "n|fk|public.negocios.negocios_corretor_id_users_id_fkey",
+        "e|fk|public.negocios.negocios_corretor_id_users_id_fkey",
+        "n|con|public.negocios.negocios_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.negocios.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_cliente_id_clientes_id_fkey",
+        "n|fk|public.negocios.negocios_cliente_id_clientes_id_fkey",
+        "e|fk|public.negocios.negocios_cliente_id_clientes_id_fkey",
+        "n|con|public.negocios.negocios_cliente_id_clientes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|col|public.negocios.cliente_id",
+        "n|col|public.clientes.id",
+        "e|uniqueness|public.clientes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "whatsapp_conexoes"],
+      "writes": [
+        "s|fk|public.whatsapp_conexoes.whatsapp_conexoes_corretor_id_users_id_fkey",
+        "n|fk|public.whatsapp_conexoes.whatsapp_conexoes_corretor_id_users_id_fkey",
+        "e|fk|public.whatsapp_conexoes.whatsapp_conexoes_corretor_id_users_id_fkey",
+        "n|con|public.whatsapp_conexoes.whatsapp_conexoes_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.whatsapp_conexoes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.whatsapp_conexoes.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "whatsapp_conexoes"],
+      "writes": [
+        "s|fk|public.whatsapp_conexoes.whatsapp_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.whatsapp_conexoes.whatsapp_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.whatsapp_conexoes.whatsapp_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.whatsapp_conexoes.whatsapp_conexoes_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.whatsapp_conexoes",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.whatsapp_conexoes.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "clientes",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "conversas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "mensagens",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "negocio_etapas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "negocios",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "whatsapp_conexoes",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "nome",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "telefone",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "email",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "cpf",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "criado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "cliente_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "assistente",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'ativo'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "ultima_mensagem_corretor_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "opt_out",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "conversa_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "evolution_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "autor",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "texto",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "midia",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "transcricao",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "from_me",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "false",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "enviada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "de",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "para",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "cliente_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "etapa",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'novo'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "motivo_perda",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "criado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "atualizado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "aceite_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "instancia",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "estado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'desconectado'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "atualizada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "mensagens_conversa_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "conversa_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "negocio_etapas_negocio_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_cliente_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "cliente_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "whatsapp_conexoes_imobiliaria_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "imobiliaria_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_cliente_id_clientes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["cliente_id"],
+        "schemaTo": "public",
+        "tableTo": "clientes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "mensagens_conversa_id_conversas_id_fkey",
+        "nameExplicit": false,
+        "columns": ["conversa_id"],
+        "schemaTo": "public",
+        "tableTo": "conversas",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "negocio_etapas_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_cliente_id_clientes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["cliente_id"],
+        "schemaTo": "public",
+        "tableTo": "clientes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "whatsapp_conexoes_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "whatsapp_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "mensagens_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "negocio_etapas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "whatsapp_conexoes_pkey",
+        "columns": ["corretor_id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_corretor_telefone",
+        "nameExplicit": true,
+        "columns": ["corretor_id", "telefone"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "conversas_corretor_cliente",
+        "nameExplicit": true,
+        "columns": ["corretor_id", "cliente_id"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "mensagens",
+        "name": "mensagens_conversa_evolution_id",
+        "nameExplicit": true,
+        "columns": ["conversa_id", "evolution_id"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "whatsapp_conexoes",
+        "name": "whatsapp_conexoes_instancia_key",
+        "nameExplicit": false,
+        "columns": ["instancia"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

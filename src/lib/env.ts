@@ -9,6 +9,13 @@ const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.url(),
+  // URL pública do app (webhooks da Evolution apontam para cá).
+  APP_URL: z.url(),
+  // Evolution API auto-hospedada (ADR-0004).
+  EVOLUTION_API_URL: z.url(),
+  EVOLUTION_API_KEY: z.string().min(1),
+  // Segredo que a Evolution envia no header x-webhook-secret.
+  EVOLUTION_WEBHOOK_SECRET: z.string().min(16),
 });
 
 const parsed = envSchema.safeParse(process.env);
