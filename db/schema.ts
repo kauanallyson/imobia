@@ -1,8 +1,10 @@
-import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const usersTable = pgTable("users", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  name: varchar({ length: 255 }).notNull(),
-  age: integer().notNull(),
-  email: varchar({ length: 255 }).notNull().unique(),
+// ADR-0001: toda tabela de domínio referencia a imobiliária dona.
+export const imobiliarias = pgTable("imobiliarias", {
+  id: uuid().primaryKey().defaultRandom(),
+  nome: text().notNull(),
+  criadaEm: timestamp("criada_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });

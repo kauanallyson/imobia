@@ -1,0 +1,77 @@
+{
+  "type": "base",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "8f90ac35-2c52-4417-ae8c-01eb8e6501b8",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "imobiliarias"],
+      "writes": [
+        "s|tbl|public.imobiliarias",
+        "n|tbl|public.imobiliarias",
+        "e|tbl|public.imobiliarias",
+        "n|rel|public.imobiliarias",
+        "n|type|public.imobiliarias",
+        "n|rel|public.imobiliarias_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    }
+  ],
+  "ddl": [
+    {
+      "schema": "public",
+      "name": "imobiliarias",
+      "isRlsEnabled": false,
+      "entityType": "tables"
+    },
+    {
+      "schema": "public",
+      "table": "imobiliarias",
+      "name": "id",
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "imobiliarias",
+      "name": "nome",
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "imobiliarias",
+      "name": "criada_em",
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "entityType": "columns"
+    },
+    {
+      "schema": "public",
+      "table": "imobiliarias",
+      "name": "imobiliarias_pkey",
+      "columns": ["id"],
+      "nameExplicit": false,
+      "entityType": "pks"
+    }
+  ]
+}

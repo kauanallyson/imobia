@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CRM imobiliário
 
-## Getting Started
+Vocabulário em `GLOSSARY.md`, decisões em `docs/adr/`, spec do MVP em `docs/specs/mvp/`.
 
-First, run the development server:
+## Desenvolvimento
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
+systemctl --user start podman.socket   # `podman compose` precisa do socket
+podman compose up -d postgres          # Postgres 17 + pgvector
+bun run db:migrate
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Testes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+bun run test
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`bun test` cria (ou reinicia) o container Podman `crm-postgres-test` na porta 5433, com dados em tmpfs, e aplica as migrations antes de rodar. Para usar outro Postgres com pgvector, defina `TEST_DATABASE_URL`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Testes exercitam o módulo de domínio (`dominio/`) com Postgres real e adaptadores falsos (`adaptadores/`). Use `withRollback` (`test/database.ts`) para isolar os dados de cada teste (testes de concorrência, que precisam de várias conexões, criam uma imobiliária nova por teste em vez disso) e `criarDominioDeTeste` (`test/dominio.ts`) para obter o domínio e os falsos. Veja `dominio/imobiliarias.test.ts` como referência.
