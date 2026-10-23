@@ -182,6 +182,9 @@ export const etapas = [
 ] as const;
 export type Etapa = (typeof etapas)[number];
 
+export const interesses = ["lote", "lote_e_casa"] as const;
+export type Interesse = (typeof interesses)[number];
+
 export const negocios = pgTable(
   "negocios",
   {
@@ -199,6 +202,14 @@ export const negocios = pgTable(
     motivoPerda: text("motivo_perda"),
     // Lote de interesse (opcional); escolhido pelo assistente ou na proposta.
     loteInteresseId: uuid("lote_interesse_id").references(() => lotes.id),
+    // Empreendimento sobre o qual o assistente conversa quando ainda não há
+    // lote escolhido (a imobiliária pode ter vários).
+    empreendimentoInteresseId: uuid("empreendimento_interesse_id").references(
+      () => empreendimentos.id,
+    ),
+    // O que o cliente procura: só o lote ou lote + casa (GLOSSARY →
+    // Material de marketing). Registrado pelo assistente.
+    interesse: text({ enum: interesses }),
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),

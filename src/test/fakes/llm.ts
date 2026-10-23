@@ -1,34 +1,74 @@
 import {
+  type ChamadaDeFerramenta,
   DIMENSOES_DO_EMBEDDING,
+  type FerramentaDoModelo,
   type MensagemDoModelo,
   MODELO_DE_EMBEDDING,
+  MODELO_DO_ASSISTENTE,
+  type PedidoAoModelo,
   type RespostaDoModelo,
+  type ResultadoDeFerramenta,
 } from "@/lib/llm";
 
 // Falso em memória de src/lib/llm.ts: mesma superfície, mais helpers de
 // inspeção. Trocado pelo preload (src/test/fakes/preload.ts).
 
-export { DIMENSOES_DO_EMBEDDING, MODELO_DE_EMBEDDING };
-export type { MensagemDoModelo, RespostaDoModelo };
+export { DIMENSOES_DO_EMBEDDING, MODELO_DE_EMBEDDING, MODELO_DO_ASSISTENTE };
+export type {
+  FerramentaDoModelo,
+  MensagemDoModelo,
+  PedidoAoModelo,
+  RespostaDoModelo,
+  ResultadoDeFerramenta,
+};
 
 // Textos enviados para embedding, uma entrada por chamada.
 export const embeddingsPedidos: string[][] = [];
-// Fila de respostas roteirizadas para `responder` (ticket 09).
-const roteiro: RespostaDoModelo[] = [];
+
+// O que o teste roteiriza para cada rodada do modelo: um texto final ou uma
+// lista de ferramentas a chamar (ids opcionais, o falso preenche).
+export type Roteiro =
+  | { tipo: "texto"; texto: string }
+  | {
+      tipo: "chamadas";
+      chamadas: Array<{ id?: string; nome: string; argumentos: unknown }>;
+    };
+
+// Fila de rodadas roteirizadas, consumidas em ordem por `responder`.
+const roteiro: Roteiro[] = [];
+// Tudo que o assistente mandou ao modelo, para inspeção (instruções,
+// histórico, ferramentas oferecidas e resultados devolvidos).
+export const pedidos: PedidoAoModelo[] = [];
+
+let contador = 0;
 
 export function limpar() {
   embeddingsPedidos.length = 0;
   roteiro.length = 0;
+  pedidos.length = 0;
+  contador = 0;
 }
 
-export function roteirizar(...respostas: RespostaDoModelo[]) {
-  roteiro.push(...respostas);
+export function roteirizar(...rodadas: Roteiro[]) {
+  roteiro.push(...rodadas);
 }
 
-export function proximaResposta(): RespostaDoModelo {
-  const resposta = roteiro.shift();
-  if (!resposta) throw new Error("llm falso: roteiro vazio");
-  return resposta;
+export async function responder(
+  pedido: PedidoAoModelo,
+): Promise<RespostaDoModelo> {
+  pedidos.push(structuredClone(pedido));
+  const rodada = roteiro.shift();
+  if (!rodada) throw new Error("llm falso: roteiro vazio");
+  const responseId = `resp-falsa-${++contador}`;
+  if (rodada.tipo === "texto") {
+    return { tipo: "texto", texto: rodada.texto, responseId };
+  }
+  const chamadas: ChamadaDeFerramenta[] = rodada.chamadas.map((c, i) => ({
+    id: c.id ?? `${responseId}-call-${i}`,
+    nome: c.nome,
+    argumentos: c.argumentos,
+  }));
+  return { tipo: "chamadas", chamadas, responseId };
 }
 
 // Embedding determinístico: cada palavra (normalizada) é jogada por hash em

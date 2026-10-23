@@ -1,0 +1,103 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "34eeaa10-655a-4563-a676-20b5b49a6a42",
+  "prevIds": ["d987dba6-43c8-4372-b8c9-868e9ef0e851"],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "negocios",
+        "empreendimento_interesse_id"
+      ],
+      "writes": [
+        "s|col|public.negocios.empreendimento_interesse_id",
+        "n|col|public.negocios.empreendimento_interesse_id",
+        "e|col|public.negocios.empreendimento_interesse_id"
+      ],
+      "reads": ["n|tbl|public.negocios", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "negocios", "interesse"],
+      "writes": [
+        "s|col|public.negocios.interesse",
+        "n|col|public.negocios.interesse",
+        "e|col|public.negocios.interesse"
+      ],
+      "reads": ["n|tbl|public.negocios", "n|sch|public"]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_empreendimento_interesse_id_empreendimentos_id_fkey",
+        "n|fk|public.negocios.negocios_empreendimento_interesse_id_empreendimentos_id_fkey",
+        "e|fk|public.negocios.negocios_empreendimento_interesse_id_empreendimentos_id_fkey",
+        "n|con|public.negocios.negocios_empreendimento_interesse_id_empreendimentos_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.empreendimentos",
+        "n|sch|public",
+        "n|col|public.negocios.empreendimento_interesse_id",
+        "n|col|public.empreendimentos.id",
+        "e|uniqueness|public.empreendimentos.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "empreendimento_interesse_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "interesse",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_empreendimento_interesse_id_empreendimentos_id_fkey",
+        "nameExplicit": false,
+        "columns": ["empreendimento_interesse_id"],
+        "schemaTo": "public",
+        "tableTo": "empreendimentos",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import {
   type Etapa,
   empreendimentos,
   etapas,
+  type Interesse,
   lotes,
   mensagens,
   negocioEtapas,
@@ -24,6 +25,8 @@ export const negocioColumns = {
   etapa: negocios.etapa,
   motivoPerda: negocios.motivoPerda,
   loteInteresseId: negocios.loteInteresseId,
+  empreendimentoInteresseId: negocios.empreendimentoInteresseId,
+  interesse: negocios.interesse,
   criadoEm: negocios.criadoEm,
   atualizadoEm: negocios.atualizadoEm,
 };
@@ -121,6 +124,47 @@ async function buscarNegocioResumido(session: Session, id: string) {
     .from(negocios)
     .where(and(eq(negocios.id, id), eq(negocios.corretorId, corretorId)));
   return found ?? null;
+}
+
+// O assistente (ou o corretor) registra o que o cliente procura e sobre qual
+// empreendimento conversam. Empreendimento de outra imobiliária → null.
+export async function registrarInteresse(
+  session: Session,
+  negocioId: string,
+  input: { interesse?: Interesse | null; empreendimentoId?: string | null },
+) {
+  const { corretorId, imobiliariaId } = requireCorretor(session);
+  if (!z.uuid().safeParse(negocioId).success) return null;
+  const set: Partial<{
+    interesse: Interesse;
+    empreendimentoInteresseId: string;
+    atualizadoEm: Date;
+  }> = {};
+  if (input.interesse) set.interesse = input.interesse;
+  if (input.empreendimentoId) {
+    if (!z.uuid().safeParse(input.empreendimentoId).success) return null;
+    const [empreendimento] = await db
+      .select({ id: empreendimentos.id })
+      .from(empreendimentos)
+      .where(
+        and(
+          eq(empreendimentos.id, input.empreendimentoId),
+          eq(empreendimentos.imobiliariaId, imobiliariaId),
+        ),
+      );
+    if (!empreendimento) return null;
+    set.empreendimentoInteresseId = empreendimento.id;
+  }
+  if (Object.keys(set).length === 0) {
+    return buscarNegocioResumido(session, negocioId);
+  }
+  set.atualizadoEm = new Date();
+  const [updated] = await db
+    .update(negocios)
+    .set(set)
+    .where(and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)))
+    .returning(negocioColumns);
+  return updated ?? null;
 }
 
 export async function listarNegocios(session: Session) {

@@ -7,8 +7,11 @@ import { parseWebhook } from "@/lib/whatsapp";
 // Webhook da Evolution API (único Route Handler além do OAuth do Google,
 // como prevê a spec). Não há sessão de usuário: a Evolution se identifica
 // pelo segredo enviado no header configurado na criação da instância, e o
-// corretor dono vem da instância do envelope. A resposta é 200 rápida e a
-// reentrega é um no-op pela chave única no banco.
+// corretor dono vem da instância do envelope. A reentrega é um no-op pela
+// chave única no banco. `receberMensagem` também aciona o assistente e
+// aguarda a resposta do modelo antes do 200: aceitável no MVP (a Evolution
+// tolera segundos e reentrega em falha); se virar problema, mover o
+// atendimento para o worker.
 export async function POST(request: NextRequest) {
   const secret =
     request.headers.get("x-webhook-secret") ??

@@ -9,6 +9,7 @@ import {
   whatsappConexoes,
 } from "@/lib/db/schema";
 import type { MensagemRecebida } from "@/lib/whatsapp";
+import { atenderMensagem } from "./assistente";
 import { inserirNegocioEmNovo } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
@@ -29,7 +30,24 @@ const mensagemColumns = {
 // conversa, não é um cliente do anúncio). A reentrega do webhook é um no-op
 // pela chave única (conversa, id da Evolution). Sem sessão: a Evolution é a
 // origem; o corretor vem da instância.
+//
+// Depois de gravar uma mensagem nova do cliente, aciona o assistente (que
+// decide sozinho se está ativo na conversa). Só a gravação nova aciona: a
+// reentrega do webhook não gera segunda resposta. Falha do modelo não derruba
+// o webhook: a mensagem já está guardada, o erro vai para o log.
 export async function receberMensagem(mensagem: MensagemRecebida) {
+  const gravacao = await gravarMensagemRecebida(mensagem);
+  if (gravacao?.gravada && !mensagem.fromMe) {
+    try {
+      await atenderMensagem(gravacao.conversaId);
+    } catch (error) {
+      console.error("assistente: falha ao atender a mensagem", error);
+    }
+  }
+  return gravacao;
+}
+
+async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
   if (mensagem.grupo || !mensagem.telefone) return null;
   const { telefone } = mensagem;
 
