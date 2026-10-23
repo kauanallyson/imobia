@@ -24,6 +24,9 @@ export type Envio =
 
 export const enviados: Envio[] = [];
 export const instancias = new Map<string, EstadoDaInstancia>();
+// Mídias "na Evolution", por id da mensagem, e os downloads pedidos.
+const midias = new Map<string, { bytes: Uint8Array; mimeType: string }>();
+export const downloads: Array<{ instancia: string; idMensagem: string }> = [];
 
 let contador = 0;
 const proximoId = () => `FAKE-${++contador}`;
@@ -32,7 +35,24 @@ export function limpar() {
   enviados.length = 0;
   avisosDoSistema.length = 0;
   instancias.clear();
+  midias.clear();
+  downloads.length = 0;
   contador = 0;
+}
+
+// Roteiriza o conteúdo que `baixarMidia` devolve para uma mensagem.
+export function simularMidia(
+  idMensagem: string,
+  midia: { bytes: Uint8Array; mimeType: string },
+) {
+  midias.set(idMensagem, midia);
+}
+
+export async function baixarMidia(instancia: string, idMensagem: string) {
+  downloads.push({ instancia, idMensagem });
+  const midia = midias.get(idMensagem);
+  if (!midia) throw new Error(`whatsapp falso: sem mídia para ${idMensagem}`);
+  return { ...midia };
 }
 
 // Simula o pareamento (o que a Evolution faria após o celular ler o QR).

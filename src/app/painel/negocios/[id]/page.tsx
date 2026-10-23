@@ -372,7 +372,7 @@ type MensagemDaConversa = NonNullable<
 
 const rotuloDaMidia = {
   imagem: "Imagem",
-  audio: "Áudio",
+  audio: "🎤 Áudio",
   video: "Vídeo",
   documento: "Documento",
   figurinha: "Figurinha",
@@ -400,10 +400,16 @@ function Mensagem({ mensagem: m }: { mensagem: MensagemDaConversa }) {
       {m.texto && (
         <Typography sx={{ whiteSpace: "pre-wrap" }}>{m.texto}</Typography>
       )}
-      {m.transcricao && (
+      {m.transcricao ? (
         <Typography sx={{ whiteSpace: "pre-wrap", fontStyle: "italic" }}>
-          Transcrição: {m.transcricao}
+          {m.transcricao}
         </Typography>
+      ) : (
+        m.midia?.tipo === "audio" && (
+          <Typography variant="body2" color="text.secondary">
+            Sem transcrição
+          </Typography>
+        )
       )}
       <Typography variant="caption" color="text.secondary">
         {m.autor === "cliente"

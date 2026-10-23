@@ -4,6 +4,7 @@ import {
   type FerramentaDoModelo,
   type MensagemDoModelo,
   MODELO_DE_EMBEDDING,
+  MODELO_DE_TRANSCRICAO,
   MODELO_DO_ASSISTENTE,
   type PedidoAoModelo,
   type RespostaDoModelo,
@@ -13,7 +14,12 @@ import {
 // Falso em memória de src/lib/llm.ts: mesma superfície, mais helpers de
 // inspeção. Trocado pelo preload (src/test/fakes/preload.ts).
 
-export { DIMENSOES_DO_EMBEDDING, MODELO_DE_EMBEDDING, MODELO_DO_ASSISTENTE };
+export {
+  DIMENSOES_DO_EMBEDDING,
+  MODELO_DE_EMBEDDING,
+  MODELO_DE_TRANSCRICAO,
+  MODELO_DO_ASSISTENTE,
+};
 export type {
   FerramentaDoModelo,
   MensagemDoModelo,
@@ -40,13 +46,43 @@ const roteiro: Roteiro[] = [];
 // histórico, ferramentas oferecidas e resultados devolvidos).
 export const pedidos: PedidoAoModelo[] = [];
 
+// Transcrições roteirizadas (texto ou falha), consumidas em ordem, e os
+// áudios recebidos para inspeção.
+const transcricoes: Array<string | Error> = [];
+export const transcricoesPedidas: Array<{
+  bytes: Uint8Array;
+  mimeType: string;
+}> = [];
+
 let contador = 0;
 
 export function limpar() {
   embeddingsPedidos.length = 0;
   roteiro.length = 0;
   pedidos.length = 0;
+  transcricoes.length = 0;
+  transcricoesPedidas.length = 0;
   contador = 0;
+}
+
+export function roteirizarTranscricao(...textos: string[]) {
+  transcricoes.push(...textos);
+}
+
+// A próxima transcrição falha (como a OpenAI fora do ar ou áudio ilegível).
+export function falharTranscricao(mensagem = "llm falso: transcrição falhou") {
+  transcricoes.push(new Error(mensagem));
+}
+
+export async function transcrever(audio: {
+  bytes: Uint8Array;
+  mimeType: string;
+}): Promise<string> {
+  transcricoesPedidas.push({ ...audio });
+  const proxima = transcricoes.shift();
+  if (!proxima) throw new Error("llm falso: nenhuma transcrição roteirizada");
+  if (proxima instanceof Error) throw proxima;
+  return proxima;
 }
 
 export function roteirizar(...rodadas: Roteiro[]) {

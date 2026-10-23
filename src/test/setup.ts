@@ -12,6 +12,7 @@ process.env.EVOLUTION_API_KEY = "chave-de-teste";
 process.env.EVOLUTION_WEBHOOK_SECRET = "segredo-de-teste-com-32-caracteres";
 process.env.EVOLUTION_SYSTEM_INSTANCE = "sistema-de-teste";
 process.env.OPENAI_API_KEY = "sk-teste";
+process.env.OPENAI_TRANSCRIBE_MODEL = "gpt-transcribe";
 process.env.R2_ACCOUNT_ID = "conta-de-teste";
 process.env.R2_ACCESS_KEY_ID = "chave-de-teste";
 process.env.R2_SECRET_ACCESS_KEY = "segredo-de-teste";
