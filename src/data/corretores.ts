@@ -15,11 +15,30 @@ export async function criarCorretor(
     nome: string;
     email: string;
     senha: string;
+    telefone?: string | null;
   },
 ) {
   requireAdministrador(session);
   if (!(await buscarImobiliaria(session, input.imobiliariaId))) return null;
   return createUser({ ...input, role: "corretor" });
+}
+
+// WhatsApp do corretor para os avisos do número de sistema (ticket 11); só
+// dígitos com DDI. Vazio remove. Inexistente → null; repetir não altera.
+export async function definirTelefoneDoCorretor(
+  session: Session,
+  id: string,
+  telefone: string | null,
+) {
+  requireAdministrador(session);
+  if (!z.uuid().safeParse(id).success) return null;
+  const digitos = telefone?.replace(/\D/g, "") || null;
+  const [corretor] = await db
+    .update(users)
+    .set({ telefone: digitos, updatedAt: new Date() })
+    .where(and(eq(users.id, id), eq(users.role, "corretor")))
+    .returning(userColumns);
+  return corretor ?? null;
 }
 
 export async function listarCorretores(

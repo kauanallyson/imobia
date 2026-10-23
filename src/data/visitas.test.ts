@@ -1,13 +1,14 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import { enviados } from "@/test/fakes/whatsapp";
+import { avisosDoSistema, enviados } from "@/test/fakes/whatsapp";
 import {
   criarBruno,
   criarCenarioDeVisitaDaAna,
   criarConcorrente,
+  darTelefoneAAna,
   ok,
   sessaoDe,
 } from "@/test/fixtures";
-import { bloquearData } from "./disponibilidade";
+import { bloquearData, criarJanela } from "./disponibilidade";
 import { buscarNegocio, listarNegocios } from "./negocios";
 import {
   agendarVisita,
@@ -73,6 +74,11 @@ describe("horários livres", () => {
   test("nunca oferece horários depois do domingo da semana corrente", async () => {
     setSystemTime(segunda8h);
     const { session } = await criarCenarioDeVisitaDaAna();
+    await criarJanela(session, {
+      diaDaSemana: 0,
+      inicio: "09:00",
+      fim: "12:00",
+    });
 
     const livres = await horariosLivres(session, {
       aPartirDe: segunda8h,
@@ -80,10 +86,32 @@ describe("horários livres", () => {
     });
 
     expect(livres.length).toBeGreaterThan(0);
+    expect(livres).toContainEqual(new Date("2026-11-08T09:00:00-03:00"));
     expect(
       livres.every(
         (horario) => horario <= new Date("2026-11-08T23:59:59-03:00"),
       ),
+    ).toBe(true);
+  });
+
+  test("no domingo, inclui hoje e exclui a segunda-feira seguinte", async () => {
+    const domingo8h = new Date("2026-11-08T08:00:00-03:00");
+    setSystemTime(domingo8h);
+    const { session } = await criarCenarioDeVisitaDaAna();
+    await criarJanela(session, {
+      diaDaSemana: 0,
+      inicio: "09:00",
+      fim: "12:00",
+    });
+
+    const livres = await horariosLivres(session, {
+      aPartirDe: domingo8h,
+      dias: 7,
+    });
+
+    expect(livres).toContainEqual(new Date("2026-11-08T09:00:00-03:00"));
+    expect(
+      livres.every((horario) => horario.toISOString().startsWith("2026-11-08")),
     ).toBe(true);
   });
 });
@@ -363,5 +391,21 @@ describe("lembretes de visita (worker)", () => {
     setSystemTime(new Date("2026-11-02T09:00:00-03:00"));
     await enviarLembretesDeVisita();
     expect(enviados).toEqual([]);
+  });
+
+  test("lembrete do corretor sai pelo número de sistema e não duplica", async () => {
+    const { corretor } = await visitaDeTerca();
+    await darTelefoneAAna(corretor);
+    avisosDoSistema.length = 0;
+
+    setSystemTime(new Date("2026-11-02T08:00:00-03:00"));
+    await enviarLembretesDeVisita();
+    await enviarLembretesDeVisita();
+
+    expect(avisosDoSistema).toHaveLength(1);
+    expect(avisosDoSistema[0]).toMatchObject({
+      para: "5588988880000",
+      texto: expect.stringContaining("Carlos Lima"),
+    });
   });
 });

@@ -1,6 +1,8 @@
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import ReplayIcon from "@mui/icons-material/Replay";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -14,9 +16,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/app/components/link";
+import { formatarReais } from "@/app/painel/catalogo/formatos";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
 import { verificarCorretor } from "@/data/session";
-import { criarNegocioAction, reabrirAction } from "../actions";
+import {
+  assistenteDaConversaAction,
+  criarNegocioAction,
+  reabrirAction,
+} from "../actions";
 import { formatarTelefone, formatoDataHora, rotuloDaEtapa } from "../etapas";
 import { MarcarPerdidoForm, MudarEtapaForm } from "../forms";
 
@@ -49,7 +56,7 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const negocio = await buscarNegocio(session, id);
   if (!negocio) notFound();
-  const { cliente, conversa, historico, lote } = negocio;
+  const { cliente, conversa, historico, lote, planoEscolhido } = negocio;
 
   return (
     <>
@@ -71,6 +78,13 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
           <Typography variant="body2" color="text.secondary">
             desde {formatoDataHora.format(negocio.atualizadoEm)}
           </Typography>
+          {negocio.foraDoOrcamento && (
+            <Chip
+              label="Fora do orçamento"
+              color="warning"
+              variant="outlined"
+            />
+          )}
         </Stack>
         {negocio.etapa === "perdido" && (
           <Alert severity="warning">
@@ -148,7 +162,56 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
         )}
       </Secao>
 
+      <Secao titulo="Orçamento e plano">
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack spacing={0.5}>
+            {negocio.orcamentoEntrada === null ||
+            negocio.orcamentoParcelaMaxima === null ? (
+              <Typography color="text.secondary">
+                Orçamento ainda não informado.
+              </Typography>
+            ) : (
+              <>
+                <Typography>
+                  Entrada de até {formatarReais(negocio.orcamentoEntrada / 100)}
+                </Typography>
+                <Typography>
+                  Parcela de até{" "}
+                  {formatarReais(negocio.orcamentoParcelaMaxima / 100)} por mês
+                </Typography>
+              </>
+            )}
+            {negocio.foraDoOrcamento && (
+              <Typography color="warning.main">
+                Nenhuma opção coube no orçamento; o assistente ofereceu a mais
+                próxima.
+              </Typography>
+            )}
+          </Stack>
+        </Paper>
+        {planoEscolhido ? (
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Typography>Plano escolhido: {planoEscolhido.nome}</Typography>
+              {planoEscolhido.calculo && (
+                <Typography color="text.secondary">
+                  {formatarReais(planoEscolhido.calculo.precoTotal)} · entrada
+                  de {formatarReais(planoEscolhido.calculo.entrada)} +{" "}
+                  {planoEscolhido.calculo.parcelas}x de{" "}
+                  {formatarReais(planoEscolhido.calculo.parcela)}
+                </Typography>
+              )}
+            </Stack>
+          </Paper>
+        ) : (
+          <Typography color="text.secondary">
+            Nenhum plano escolhido ainda.
+          </Typography>
+        )}
+      </Secao>
+
       <Secao titulo="Conversa">
+        {conversa && <Assistente negocioId={negocio.id} conversa={conversa} />}
         {!conversa ? (
           <Typography color="text.secondary">
             Sem conversa no WhatsApp: este cliente foi cadastrado à mão.
@@ -189,6 +252,91 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   );
 }
 
+const rotuloDoAssistente = {
+  ativo: "Assistente ativo",
+  pausado: "Assistente pausado: você assumiu",
+  desligado: "Assistente desligado",
+} as const;
+
+// Ticket 10: estado do assistente nesta conversa e os botões de controle.
+// Com opt-out do cliente não há botão: ninguém religa.
+function Assistente({
+  negocioId,
+  conversa,
+}: {
+  negocioId: string;
+  conversa: Pick<
+    NonNullable<NegocioDetalhado["conversa"]>,
+    "id" | "assistente" | "optOut"
+  >;
+}) {
+  if (conversa.optOut) {
+    return (
+      <Alert severity="info">
+        O cliente pediu para não receber mais mensagens. O assistente está
+        desligado em definitivo nesta conversa.
+      </Alert>
+    );
+  }
+  const botao = (
+    acao: "devolver" | "ligar" | "desligar",
+    rotulo: string,
+    icone: React.ReactNode,
+    variant: "contained" | "outlined",
+  ) => (
+    <form action={assistenteDaConversaAction}>
+      <input type="hidden" name="negocioId" value={negocioId} />
+      <input type="hidden" name="conversaId" value={conversa.id} />
+      <input type="hidden" name="acao" value={acao} />
+      <Button
+        type="submit"
+        variant={variant}
+        size="large"
+        disableElevation
+        fullWidth
+        startIcon={icone}
+      >
+        {rotulo}
+      </Button>
+    </form>
+  );
+  return (
+    <Stack spacing={2}>
+      <Chip
+        label={rotuloDoAssistente[conversa.assistente]}
+        color={
+          conversa.assistente === "ativo"
+            ? "success"
+            : conversa.assistente === "pausado"
+              ? "warning"
+              : "default"
+        }
+        sx={{ alignSelf: "flex-start" }}
+      />
+      {conversa.assistente === "pausado" &&
+        botao(
+          "devolver",
+          "Devolver ao assistente",
+          <SmartToyIcon aria-hidden fontSize="small" />,
+          "contained",
+        )}
+      {conversa.assistente === "desligado"
+        ? botao(
+            "ligar",
+            "Ligar assistente",
+            <PowerSettingsNewIcon aria-hidden fontSize="small" />,
+            "contained",
+          )
+        : botao(
+            "desligar",
+            "Desligar assistente",
+            <PowerSettingsNewIcon aria-hidden fontSize="small" />,
+            "outlined",
+          )}
+    </Stack>
+  );
+}
+
 const rotuloDoStatus = {
   disponivel: "disponível",
   reservado: "reservado",
@@ -224,7 +372,7 @@ type MensagemDaConversa = NonNullable<
 
 const rotuloDaMidia = {
   imagem: "Imagem",
-  audio: "Áudio",
+  audio: "🎤 Áudio",
   video: "Vídeo",
   documento: "Documento",
   figurinha: "Figurinha",
@@ -252,10 +400,16 @@ function Mensagem({ mensagem: m }: { mensagem: MensagemDaConversa }) {
       {m.texto && (
         <Typography sx={{ whiteSpace: "pre-wrap" }}>{m.texto}</Typography>
       )}
-      {m.transcricao && (
+      {m.transcricao ? (
         <Typography sx={{ whiteSpace: "pre-wrap", fontStyle: "italic" }}>
-          Transcrição: {m.transcricao}
+          {m.transcricao}
         </Typography>
+      ) : (
+        m.midia?.tipo === "audio" && (
+          <Typography variant="body2" color="text.secondary">
+            Sem transcrição
+          </Typography>
+        )
       )}
       <Typography variant="caption" color="text.secondary">
         {m.autor === "cliente"

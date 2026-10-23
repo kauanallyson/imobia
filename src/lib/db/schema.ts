@@ -46,6 +46,9 @@ export const users = pgTable(
     // nenhuma.
     imobiliariaId: uuid("imobiliaria_id").references(() => imobiliarias.id),
     ativo: boolean().notNull().default(true),
+    // WhatsApp do corretor (só dígitos com DDI), para os avisos do número de
+    // sistema (ticket 11). Nulo: o corretor não recebe avisos.
+    telefone: text(),
   },
   (t) => [
     check(
@@ -212,6 +215,22 @@ export const negocios = pgTable(
     // O que o cliente procura: só o lote ou lote + casa (GLOSSARY →
     // Material de marketing). Registrado pelo assistente.
     interesse: text({ enum: interesses }),
+    // ---- ticket 12: orçamento do cliente e plano escolhido. Valores em
+    // centavos inteiros (o cálculo em src/data/planos-de-pagamento.ts também
+    // trabalha em centavos; a interface e as ferramentas convertem).
+    orcamentoEntrada: integer("orcamento_entrada"),
+    orcamentoParcelaMaxima: integer("orcamento_parcela_maxima"),
+    // Nenhuma combinação plano + lote coube no orçamento; o negócio segue
+    // aberto com a opção mais próxima oferecida.
+    foraDoOrcamento: boolean("fora_do_orcamento").notNull().default(false),
+    planoEscolhidoId: uuid("plano_escolhido_id").references(
+      () => planosDePagamento.id,
+    ),
+    // Modelo de casa da opção escolhida (só para lote + casa).
+    modeloDeCasaEscolhidoId: uuid("modelo_de_casa_escolhido_id").references(
+      () => modelosDeCasa.id,
+    ),
+    // ---- fim ticket 12
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -584,6 +603,59 @@ export const estadosDaVisita = [
   "realizada",
 ] as const;
 export type EstadoDaVisita = (typeof estadosDaVisita)[number];
+
+// ---- ticket 10: estado do assistente por conversa (só tipo; colunas já
+// existem em `conversas`).
+export type EstadoDoAssistente = (typeof estadosDoAssistente)[number];
+
+// ---- ticket 11: pendências --------------------------------------------------
+// O que o assistente não resolve sozinho e espera o corretor (GLOSSARY →
+// Pendência). Escopo pelo corretor dono do negócio.
+export const tiposDePendencia = [
+  "revisar_proposta",
+  "pergunta_sem_resposta",
+  "cliente_pediu_pessoa",
+  "confirmar_assinatura",
+  "confirmar_pagamento",
+] as const;
+export type TipoDePendencia = (typeof tiposDePendencia)[number];
+
+export const estadosDePendencia = ["aberta", "resolvida"] as const;
+export type EstadoDePendencia = (typeof estadosDePendencia)[number];
+
+export const pendencias = pgTable(
+  "pendencias",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    tipo: text({ enum: tiposDePendencia }).notNull(),
+    descricao: text().notNull(),
+    estado: text({ enum: estadosDePendencia }).notNull().default("aberta"),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvidaEm: timestamp("resolvida_em", { withTimezone: true }),
+    // Quando o número de sistema avisou o corretor; nulo enquanto espera a
+    // janela de 8h–20h (ou o telefone do corretor).
+    avisoEnviadoEm: timestamp("aviso_enviado_em", { withTimezone: true }),
+  },
+  (t) => [
+    index("pendencias_corretor_id_idx").on(t.corretorId),
+    index("pendencias_negocio_id_idx").on(t.negocioId),
+    // Chave natural: uma pendência aberta por negócio, tipo e descrição.
+    uniqueIndex("pendencias_aberta_unica")
+      .on(t.negocioId, t.tipo, t.descricao)
+      .where(sql`${t.estado} = 'aberta'`),
+  ],
+);
 
 export const visitas = pgTable(
   "visitas",

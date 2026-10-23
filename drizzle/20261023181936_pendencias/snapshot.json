@@ -1,0 +1,483 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "a22cc67a-3700-45e5-b3a9-0c25154f800f",
+  "prevIds": ["34eeaa10-655a-4563-a676-20b5b49a6a42"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "pendencias"],
+      "writes": [
+        "s|tbl|public.pendencias",
+        "n|tbl|public.pendencias",
+        "e|tbl|public.pendencias",
+        "n|rel|public.pendencias",
+        "n|type|public.pendencias",
+        "n|rel|public.pendencias_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "users", "telefone"],
+      "writes": [
+        "s|col|public.users.telefone",
+        "n|col|public.users.telefone",
+        "e|col|public.users.telefone"
+      ],
+      "reads": ["n|tbl|public.users", "n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "pendencias",
+        "pendencias_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.pendencias_corretor_id_idx",
+        "n|idx|public.pendencias_corretor_id_idx",
+        "e|idx|public.pendencias_corretor_id_idx",
+        "n|rel|public.pendencias_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|col|public.pendencias.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "pendencias",
+        "pendencias_negocio_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.pendencias_negocio_id_idx",
+        "n|idx|public.pendencias_negocio_id_idx",
+        "e|idx|public.pendencias_negocio_id_idx",
+        "n|rel|public.pendencias_negocio_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|col|public.pendencias.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "pendencias",
+        "pendencias_aberta_unica"
+      ],
+      "writes": [
+        "s|idx|public.pendencias_aberta_unica",
+        "n|idx|public.pendencias_aberta_unica",
+        "e|idx|public.pendencias_aberta_unica",
+        "n|rel|public.pendencias_aberta_unica"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|col|public.pendencias.negocio_id",
+        "n|col|public.pendencias.tipo",
+        "n|col|public.pendencias.descricao"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "pendencias"],
+      "writes": [
+        "s|fk|public.pendencias.pendencias_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.pendencias.pendencias_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.pendencias.pendencias_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.pendencias.pendencias_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.pendencias.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "pendencias"],
+      "writes": [
+        "s|fk|public.pendencias.pendencias_corretor_id_users_id_fkey",
+        "n|fk|public.pendencias.pendencias_corretor_id_users_id_fkey",
+        "e|fk|public.pendencias.pendencias_corretor_id_users_id_fkey",
+        "n|con|public.pendencias.pendencias_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.pendencias.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "pendencias"],
+      "writes": [
+        "s|fk|public.pendencias.pendencias_negocio_id_negocios_id_fkey",
+        "n|fk|public.pendencias.pendencias_negocio_id_negocios_id_fkey",
+        "e|fk|public.pendencias.pendencias_negocio_id_negocios_id_fkey",
+        "n|con|public.pendencias.pendencias_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.pendencias",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.pendencias.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "pendencias",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "tipo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "descricao",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "estado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'aberta'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "resolvida_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "aviso_enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "users",
+        "name": "telefone",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_negocio_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_aberta_unica",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "tipo",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "descricao",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"estado\" = 'aberta'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "pendencias",
+        "name": "pendencias_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}

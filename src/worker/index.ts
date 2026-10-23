@@ -1,3 +1,5 @@
+import { retomarAssistentesPausados } from "@/data/conversas";
+import { enviarAvisosPendentes } from "@/data/pendencias";
 import { env } from "@/lib/env";
 import { type Job, jobs } from "./jobs";
 
@@ -20,20 +22,29 @@ async function executar(job: Job) {
   }
 }
 
+const jobsDoWorker: Job[] = [
+  {
+    nome: "retomar-assistentes-pausados",
+    executar: retomarAssistentesPausados,
+  },
+  { nome: "avisos-de-pendencias", executar: enviarAvisosPendentes },
+  ...jobs,
+];
+
 let rodando = false;
 async function ciclo() {
   if (rodando) return; // um ciclo lento não acumula com o próximo
   rodando = true;
+  console.log(
+    `[worker] ${new Date().toISOString()} ativo (banco: ${new URL(env.DATABASE_URL).host}, jobs: ${jobsDoWorker.map((j) => j.nome).join(", ")})`,
+  );
   try {
-    for (const job of jobs) await executar(job);
+    for (const job of jobsDoWorker) await executar(job);
   } finally {
     rodando = false;
   }
 }
 
-console.log(
-  `[worker] ${new Date().toISOString()} ativo (banco: ${new URL(env.DATABASE_URL).host}, jobs: ${jobs.map((j) => j.nome).join(", ")})`,
-);
 void ciclo();
 const timer = setInterval(ciclo, INTERVALO_MS);
 

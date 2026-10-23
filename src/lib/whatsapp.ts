@@ -137,6 +137,19 @@ export async function enviarTexto(
   return { idMensagem: data.key.id };
 }
 
+// Mensagem do número de sistema (instância própria, ADR: chip separado) para
+// o corretor: avisos de pendência. Sem EVOLUTION_SYSTEM_INSTANCE, lança.
+export async function enviarTextoDoSistema(
+  telefone: string,
+  texto: string,
+): Promise<{ idMensagem: string }> {
+  const instancia = env.EVOLUTION_SYSTEM_INSTANCE;
+  if (!instancia) {
+    throw new Error("EVOLUTION_SYSTEM_INSTANCE não configurada");
+  }
+  return enviarTexto(instancia, telefone, texto);
+}
+
 export async function enviarMidia(
   instancia: string,
   para: string,
@@ -185,6 +198,23 @@ export async function enviarLocalizacao(
     },
   );
   return { idMensagem: data.key.id };
+}
+
+// Baixa o conteúdo de uma mídia recebida (áudio, por enquanto) pelo id da
+// mensagem na Evolution; a Evolution devolve base64 e o mimetype real.
+export async function baixarMidia(
+  instancia: string,
+  idMensagem: string,
+): Promise<{ bytes: Uint8Array; mimeType: string }> {
+  const data = await evolution<{ base64: string; mimetype: string }>(
+    "POST",
+    `/chat/getBase64FromMediaMessage/${encodeURIComponent(instancia)}`,
+    { message: { key: { id: idMensagem } }, convertToMp4: false },
+  );
+  return {
+    bytes: new Uint8Array(Buffer.from(data.base64, "base64")),
+    mimeType: data.mimetype,
+  };
 }
 
 // --- Webhook -----------------------------------------------------------------

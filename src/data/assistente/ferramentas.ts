@@ -2,7 +2,6 @@ import "server-only";
 import { z } from "zod";
 import { interesses } from "@/lib/db/schema";
 import type { FerramentaDoModelo } from "@/lib/llm";
-import * as whatsapp from "@/lib/whatsapp";
 import { buscarNaBaseDeConhecimento } from "../base-de-conhecimento";
 import {
   buscarEmpreendimento,
@@ -13,8 +12,12 @@ import { materiaisPara, urlDoMaterial } from "../materiais-de-marketing";
 import { mudarEtapa, registrarInteresse } from "../negocios";
 import {
   type ContextoDoAtendimento,
+  enviarMidiaAoCliente,
   gravarMensagemDoAssistente,
 } from "./contexto";
+import { ferramentasDePausaEOptOut } from "./ferramentas/10-pausa-e-opt-out";
+import { ferramentasDePendencias } from "./ferramentas/11-pendencias";
+import { ferramentasDoOrcamento } from "./ferramentas/12-orcamento";
 import { ferramentasDeVisita } from "./ferramentas/13-visitas";
 
 // Registro de ferramentas do assistente (spec → Assistente → Ferramentas).
@@ -138,8 +141,6 @@ export const ferramentaBuscarBaseDeConhecimento = definir({
       empreendimentoId: empreendimento.id,
       pergunta,
     });
-    // TODO(ticket 11): sem trecho relevante, criar a pendência "pergunta sem
-    // resposta" para o corretor.
     return {
       empreendimento: empreendimento.nome,
       trechos: (trechos ?? []).map((t) => t.texto),
@@ -174,17 +175,13 @@ export const ferramentaEnviarMaterialDeMarketing = definir({
     for (const material of materiais) {
       const url = await urlDoMaterial(contexto.session, material.id);
       if (!url) continue;
-      const { idMensagem } = await whatsapp.enviarMidia(
-        contexto.instancia,
-        contexto.conversa.telefone,
-        {
-          tipo: tipoDeMidia[material.tipoDeArquivo],
-          url,
-          mimetype: material.contentType,
-          legenda: material.nome,
-          nomeDoArquivo: material.nome,
-        },
-      );
+      const { idMensagem } = await enviarMidiaAoCliente(contexto, {
+        tipo: tipoDeMidia[material.tipoDeArquivo],
+        url,
+        mimetype: material.contentType,
+        legenda: material.nome,
+        nomeDoArquivo: material.nome,
+      });
       await gravarMensagemDoAssistente(contexto, {
         idMensagem,
         texto: material.nome,
@@ -275,6 +272,9 @@ export const ferramentas: Ferramenta[] = [
   ferramentaRegistrarInteresse,
   ferramentaMudarEtapa,
   ...ferramentasDeVisita, // ticket 13
+  ...ferramentasDePausaEOptOut, // ticket 10
+  ...ferramentasDePendencias, // ticket 11
+  ...ferramentasDoOrcamento, // ticket 12
 ];
 
 // JSON Schema que vai para a Responses API.

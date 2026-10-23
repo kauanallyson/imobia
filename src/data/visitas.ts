@@ -13,6 +13,7 @@ import {
   mensagens,
   negocios,
   type TipoDeLembrete,
+  users,
   visitas,
   whatsappConexoes,
 } from "@/lib/db/schema";
@@ -80,7 +81,8 @@ export async function horariosLivres(
 ): Promise<Date[]> {
   const { corretorId } = requireCorretor(session);
   const partesDeInicio = partesEmBrasilia(input.aPartirDe);
-  const diasAteDomingo = 7 - partesDeInicio.diaDaSemana;
+  const diasAteDomingo =
+    partesDeInicio.diaDaSemana === 0 ? 1 : 8 - partesDeInicio.diaDaSemana;
   const dias = Math.max(0, Math.min(diasAteDomingo, 7, Math.trunc(input.dias)));
   const inicio = partesDeInicio.data;
   const limite = instanteEmBrasilia(somarDias(inicio, dias), "00:00");
@@ -442,8 +444,9 @@ export async function alterarLocalDaVisita(
 // --- WhatsApp ---------------------------------------------------------------
 
 type Destinatario = {
-  instancia: string;
+  instancia: string | null;
   telefone: string;
+  telefoneDoCorretor: string | null;
   conversaId: string | null;
   clienteNome: string;
 };
@@ -457,15 +460,17 @@ async function destinatarioDaVisita(visita: {
     .select({
       instancia: whatsappConexoes.instancia,
       telefone: clientes.telefone,
+      telefoneDoCorretor: users.telefone,
       clienteNome: clientes.nome,
       conversaId: conversas.id,
     })
     .from(negocios)
     .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
-    .innerJoin(
+    .leftJoin(
       whatsappConexoes,
       eq(whatsappConexoes.corretorId, negocios.corretorId),
     )
+    .innerJoin(users, eq(users.id, negocios.corretorId))
     .leftJoin(
       conversas,
       and(
@@ -474,8 +479,8 @@ async function destinatarioDaVisita(visita: {
       ),
     )
     .where(eq(negocios.id, visita.negocioId));
-  if (!row?.instancia) return null;
-  return { ...row, instancia: row.instancia };
+  if (!row) return null;
+  return row;
 }
 
 async function enviarAoCliente(
@@ -483,6 +488,7 @@ async function enviarAoCliente(
   texto: string,
   localizacao?: Visita,
 ) {
+  if (!destino.instancia) return;
   const envio = await whatsapp.enviarTexto(
     destino.instancia,
     destino.telefone,
@@ -542,7 +548,7 @@ async function notificarCliente(
   motivo: "agendada" | "remarcada",
 ) {
   const destino = await destinatarioDaVisita(visita);
-  if (!destino) return;
+  if (!destino?.instancia) return;
   const texto =
     motivo === "agendada"
       ? `Visita confirmada para ${quando(visita.dataHora)}. Local: ${visita.local}. Se precisar remarcar, é só me avisar.`
@@ -602,6 +608,10 @@ async function enviarLembrete(
   tipo: TipoDeLembrete,
   para: "cliente" | "corretor",
 ) {
+  const destino = await destinatarioDaVisita(visita);
+  if (!destino) return false;
+  const telefoneDoCorretor = destino.telefoneDoCorretor;
+  if (para === "corretor" && !telefoneDoCorretor) return false;
   return db.transaction(async (tx) => {
     const [marcado] = await tx
       .insert(lembretesDeVisita)
@@ -610,8 +620,6 @@ async function enviarLembrete(
       .returning({ id: lembretesDeVisita.id });
     if (!marcado) return false;
 
-    const destino = await destinatarioDaVisita(visita);
-    if (!destino) return false;
     const dia = tipo.endsWith("vespera") ? "amanhã" : "hoje";
     if (para === "cliente") {
       await enviarAoCliente(
@@ -620,14 +628,12 @@ async function enviarLembrete(
       );
       return true;
     }
-    // TODO(ticket 11): enviar ao corretor pelo número de sistema
-    // (`enviarTextoDoSistema` em src/lib/whatsapp.ts). Pelo número do
-    // próprio corretor não dá: ele mandaria mensagem para si mesmo.
-    console.log(
-      `[lembretes] TODO ticket 11: lembrete ${tipo} ao corretor ${visita.corretorId} ` +
-        `(visita ${visita.id} com ${destino.clienteNome}, ${quando(visita.dataHora)})`,
+    if (!telefoneDoCorretor) return false;
+    await whatsapp.enviarTextoDoSistema(
+      telefoneDoCorretor,
+      `Lembrete: visita com ${destino.clienteNome} ${dia}, ${quando(visita.dataHora)}. Local: ${visita.local}.`,
     );
-    return false;
+    return true;
   });
 }
 

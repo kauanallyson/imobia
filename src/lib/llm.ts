@@ -128,4 +128,56 @@ export async function responder(
   };
 }
 
-// TODO(ticket 19): `transcrever` — transcrição de áudio do WhatsApp.
+// --- Transcrição de áudio ---------------------------------------------------
+
+// Modelo de transcrição (integrations.md): `gpt-transcribe`; whisper-1 e os
+// gpt-4o-*-transcribe estão deprecados. Configurável por env.
+export const MODELO_DE_TRANSCRICAO = env.OPENAI_TRANSCRIBE_MODEL;
+
+// Extensão que a API usa para reconhecer o formato; áudio do WhatsApp (ptt) é
+// `audio/ogg; codecs=opus`, aceito como .ogg.
+function extensaoDe(mimeType: string) {
+  const base = mimeType.split(";")[0]?.trim().toLowerCase() ?? "";
+  const mapa: Record<string, string> = {
+    "audio/ogg": "ogg",
+    "audio/opus": "ogg",
+    "audio/mpeg": "mp3",
+    "audio/mp3": "mp3",
+    "audio/mp4": "m4a",
+    "audio/x-m4a": "m4a",
+    "audio/aac": "m4a",
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+    "audio/webm": "webm",
+    "audio/flac": "flac",
+  };
+  return mapa[base] ?? "ogg";
+}
+
+// Texto do áudio em português. Lança em qualquer falha (quem chama decide o
+// que dizer ao cliente).
+export async function transcrever(audio: {
+  bytes: Uint8Array;
+  mimeType: string;
+}): Promise<string> {
+  const tipo = audio.mimeType.split(";")[0]?.trim() || "audio/ogg";
+  const file = new File(
+    [Uint8Array.from(audio.bytes)],
+    `audio.${extensaoDe(audio.mimeType)}`,
+    {
+      type: tipo,
+    },
+  );
+  const resultado = await openai().audio.transcriptions.create({
+    file,
+    model: MODELO_DE_TRANSCRICAO,
+    response_format: "json",
+    // gpt-transcribe usa `languages`; os modelos antigos usavam `language`.
+    ...(MODELO_DE_TRANSCRICAO.startsWith("gpt-transcribe")
+      ? { languages: ["pt"] }
+      : { language: "pt" }),
+  } as Parameters<typeof OpenAI.prototype.audio.transcriptions.create>[0]);
+  const texto = (resultado as { text?: string }).text?.trim();
+  if (!texto) throw new Error("transcrição vazia");
+  return texto;
+}

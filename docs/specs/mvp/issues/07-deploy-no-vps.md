@@ -27,4 +27,4 @@ Verificado localmente (WSL2, Podman 4.9 + docker-compose como provider): `podman
 2. `podman compose --profile proxy up -d --build` e conferir `podman compose logs migrate`.
 3. `podman compose run --rm migrate bun run admin:create <email> <senha> <nome>` e marcar a última caixa.
 4. Conectar um WhatsApp real pelo `/painel/whatsapp`, confirmar `POST /api/webhooks/evolution 200` nos logs do app e que uma mensagem de número novo cria um negócio; marcar as caixas 3 e 4.
-5. R2: a caixa de uploads só pode ser verificada quando `src/lib/storage.ts` existir (ticket 04); a imagem já roda no Bun e as variáveis `R2_*` estão reservadas no `.env.example`.
+5. R2: validar uploads com as credenciais configuradas; o código de storage foi implementado no ticket 04 e a imagem roda no Bun.
