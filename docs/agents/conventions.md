@@ -35,7 +35,7 @@ Aprendidas no ticket 02. A arquitetura (pastas, DAL, permissão, DTOs, Server Ac
 
 ## Conferir no navegador
 
-`bun run build`, um banco descartável no container de teste (`create database crm_e2e`, `DATABASE_URL=... bun run db:migrate`, `bun run admin:create`) e `next start -p 3100` com `BETTER_AUTH_URL=http://localhost:3100`. Dirija com Playwright usando o Chromium já baixado em `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome`. Pegadinhas:
+`bun run build`, um banco descartável no container de teste (`create database crm_e2e`, `DATABASE_URL=... bun run db:migrate`, `bun run admin:create`) e `bun run start -p 3100` com `BETTER_AUTH_URL=http://localhost:3100`. Os scripts `dev`, `build` e `start` rodam o Next no runtime do Bun (`bun --bun`); chame-os pelo `bun run`, não por `bunx next`, que usa Node. Dirija com Playwright usando o Chromium já baixado em `~/.cache/ms-playwright/chromium-*/chrome-linux64/chrome`. Pegadinhas:
 
 - Cache Components mantém a rota anterior montada e oculta: filtre seletores com `.filter({ visible: true })`.
 - Rótulos de campos `required` do MUI terminam em " *"; não use `exact` em `getByLabel`.

@@ -10,10 +10,10 @@
 - [ ] O cálculo de plano está concentrado num único ponto, coberto por testes
 - [ ] Corretor envia, lista e remove material de marketing marcado por tipo (lote / lote + casa / ambos)
 - [ ] Arquivos vão por `src/lib/storage.ts`, com o `S3Client` nativo do Bun (`import { S3Client } from "bun"`) apontando para o R2; falso em testes
-- [ ] Next roda no runtime do Bun (`bun --bun next dev|build|start` nos scripts) e upload/download funcionam em `dev` e em `start`
+- [ ] Upload e download funcionam em `bun run dev` e em `bun run start`
 - [ ] Uma consulta de domínio devolve o material certo para "lote" e para "lote + casa"
 - [ ] Reenviar o upload do mesmo formulário não duplica o material
 
 ## Comments
 
-**2026-10-23 (aprendizados do 02):** storage usa o cliente S3 nativo do Bun, sem SDK da AWS. Hoje o Next roda em Node (o binário `next` tem shebang `node`), onde `import "bun"` não existe: passe os scripts para `bun --bun` e confira no build que o Next não tenta empacotar `"bun"` (se tentar, adicione em `serverExternalPackages`). Se algo do Next não funcionar no runtime do Bun, pare e pergunte ao usuário. Env nova entra em `src/lib/env.ts`, `.env.example` e, se preciso, `src/test/setup.ts`.
+**2026-10-23 (aprendizados do 02):** storage usa o cliente S3 nativo do Bun, sem SDK da AWS. Os scripts já rodam o Next no runtime do Bun (`bun --bun`, guia https://bun.com/guides/ecosystem/nextjs). Confira no build que o Next não tenta empacotar `"bun"`; se tentar, adicione em `serverExternalPackages`. Env nova entra em `src/lib/env.ts`, `.env.example` e, se preciso, `src/test/setup.ts`.
