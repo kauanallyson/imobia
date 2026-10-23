@@ -1,6 +1,7 @@
 import "server-only";
 import type { Empreendimento } from "../empreendimentos";
 import type { ContextoDoAtendimento } from "./contexto";
+import { secaoDoPromptDeOrcamento } from "./ferramentas/12-orcamento";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -56,5 +57,6 @@ export function montarInstrucoes(
       : "- Empreendimento em foco: ainda não definido.",
     "- Empreendimentos da imobiliária:",
     listaDeEmpreendimentos,
+    `\n${secaoDoPromptDeOrcamento}`, // ticket 12
   ].join("\n");
 }

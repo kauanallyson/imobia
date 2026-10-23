@@ -213,6 +213,11 @@ describe("assistente: primeiro atendimento", () => {
       "enviar_material_de_marketing",
       "registrar_interesse",
       "mudar_etapa",
+      // ticket 12
+      "registrar_orcamento",
+      "listar_opcoes_no_orcamento",
+      "escolher_plano",
+      "pedido_de_desconto",
     ]);
   });
 

@@ -150,3 +150,52 @@ export async function criarLoteECasaDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lote, modelo };
 }
+
+// Lotes A-1 (R$ 60 mil), A-2 (R$ 85 mil) e A-3 (R$ 120 mil) e os planos
+// "60x" (20% de entrada) e "120x" (10% de entrada) no empreendimento da Ana
+// (ticket 12).
+export async function criarLotesEPlanosDaAna(session: Session) {
+  const { criarLote } = await import("@/data/lotes");
+  const { criarPlanoDePagamento } = await import("@/data/planos-de-pagamento");
+  const { incorporadora, empreendimento } =
+    await criarEmpreendimentoDaAna(session);
+  const lotes = [];
+  for (const [numero, preco] of [
+    ["1", 60000],
+    ["2", 85000],
+    ["3", 120000],
+  ] as const) {
+    lotes.push(
+      ok(
+        await criarLote(session, {
+          empreendimentoId: empreendimento.id,
+          quadra: "A",
+          numero,
+          area: 360,
+          frente: 12,
+          fundo: 30,
+          preco,
+        }),
+      ),
+    );
+  }
+  const plano60 = ok(
+    await criarPlanoDePagamento(session, {
+      empreendimentoId: empreendimento.id,
+      nome: "60x",
+      percentualDeEntrada: 20,
+      numeroDeParcelas: 60,
+      condicoes: "",
+    }),
+  );
+  const plano120 = ok(
+    await criarPlanoDePagamento(session, {
+      empreendimentoId: empreendimento.id,
+      nome: "120x",
+      percentualDeEntrada: 10,
+      numeroDeParcelas: 120,
+      condicoes: "",
+    }),
+  );
+  return { incorporadora, empreendimento, lotes, plano60, plano120 };
+}

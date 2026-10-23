@@ -14,6 +14,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/app/components/link";
+import { formatarReais } from "@/app/painel/catalogo/formatos";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
 import { verificarCorretor } from "@/data/session";
 import { criarNegocioAction, reabrirAction } from "../actions";
@@ -49,7 +50,7 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const negocio = await buscarNegocio(session, id);
   if (!negocio) notFound();
-  const { cliente, conversa, historico, lote } = negocio;
+  const { cliente, conversa, historico, lote, planoEscolhido } = negocio;
 
   return (
     <>
@@ -71,6 +72,13 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
           <Typography variant="body2" color="text.secondary">
             desde {formatoDataHora.format(negocio.atualizadoEm)}
           </Typography>
+          {negocio.foraDoOrcamento && (
+            <Chip
+              label="Fora do orçamento"
+              color="warning"
+              variant="outlined"
+            />
+          )}
         </Stack>
         {negocio.etapa === "perdido" && (
           <Alert severity="warning">
@@ -144,6 +152,54 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
         ) : (
           <Typography color="text.secondary">
             Nenhum lote escolhido ainda.
+          </Typography>
+        )}
+      </Secao>
+
+      <Secao titulo="Orçamento e plano">
+        <Paper variant="outlined" sx={{ p: 2 }}>
+          <Stack spacing={0.5}>
+            {negocio.orcamentoEntrada === null ||
+            negocio.orcamentoParcelaMaxima === null ? (
+              <Typography color="text.secondary">
+                Orçamento ainda não informado.
+              </Typography>
+            ) : (
+              <>
+                <Typography>
+                  Entrada de até {formatarReais(negocio.orcamentoEntrada / 100)}
+                </Typography>
+                <Typography>
+                  Parcela de até{" "}
+                  {formatarReais(negocio.orcamentoParcelaMaxima / 100)} por mês
+                </Typography>
+              </>
+            )}
+            {negocio.foraDoOrcamento && (
+              <Typography color="warning.main">
+                Nenhuma opção coube no orçamento; o assistente ofereceu a mais
+                próxima.
+              </Typography>
+            )}
+          </Stack>
+        </Paper>
+        {planoEscolhido ? (
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Stack spacing={0.5}>
+              <Typography>Plano escolhido: {planoEscolhido.nome}</Typography>
+              {planoEscolhido.calculo && (
+                <Typography color="text.secondary">
+                  {formatarReais(planoEscolhido.calculo.precoTotal)} · entrada
+                  de {formatarReais(planoEscolhido.calculo.entrada)} +{" "}
+                  {planoEscolhido.calculo.parcelas}x de{" "}
+                  {formatarReais(planoEscolhido.calculo.parcela)}
+                </Typography>
+              )}
+            </Stack>
+          </Paper>
+        ) : (
+          <Typography color="text.secondary">
+            Nenhum plano escolhido ainda.
           </Typography>
         )}
       </Secao>
