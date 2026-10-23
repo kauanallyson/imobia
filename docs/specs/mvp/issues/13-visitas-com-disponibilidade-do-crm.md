@@ -1,13 +1,14 @@
 # 13: Visitas com disponibilidade do CRM
 
-**What to build:** O corretor cadastra disponibilidade semanal e datas bloqueadas. O assistente oferece horários livres ao cliente e agenda a visita direto, no endereço do empreendimento, enviando a localização na confirmação; o corretor pode alterar o local. O negócio vai para Visita agendada. Este ticket cria o **worker** de jobs agendados, que envia lembretes ao cliente e ao corretor no dia anterior e na manhã da visita; o cliente pode remarcar. "Fechar agora" pula a visita e leva a Coletando dados.
+**What to build:** O corretor cadastra disponibilidade semanal e datas bloqueadas. O assistente oferece horários livres ao cliente apenas até o fim da semana corrente (segunda a domingo, horário de Brasília), em visitas de 60 minutos, e agenda direto; se não houver horário nessa semana, orienta o cliente a falar com o corretor. A visita fica no endereço do empreendimento, com localização enviada na confirmação; o corretor pode alterar o local. O negócio vai para Visita agendada. Este ticket cria o **worker** de jobs agendados, que envia lembretes ao cliente e ao corretor no dia anterior e na manhã da visita; o cliente pode remarcar. "Fechar agora" pula a visita e leva a Coletando dados.
 
 **Blocked by:** 09 (Assistente: primeiro atendimento)
 
 **Status:** ready-for-agent
 
 - [ ] Corretor cadastra janelas semanais e datas bloqueadas
-- [ ] Horários oferecidos ficam só dentro da disponibilidade e sem conflito com outras visitas
+- [ ] Horários oferecidos ficam só dentro da disponibilidade, sem conflito com outras visitas, duram 60 minutos e não ultrapassam o fim da semana corrente
+- [ ] Sem horário disponível na semana corrente, o assistente orienta o cliente a falar com o corretor
 - [ ] Agendamento cria a visita com local padrão do empreendimento, envia localização e move o negócio para Visita agendada
 - [ ] Corretor altera o local de uma visita
 - [ ] Worker envia lembretes no dia anterior e na manhã da visita (teste com `setSystemTime`)

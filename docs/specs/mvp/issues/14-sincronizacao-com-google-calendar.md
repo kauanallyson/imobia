@@ -1,6 +1,6 @@
 # 14: Sincronização com Google Calendar
 
-**What to build:** O corretor conecta a conta Google por OAuth. Os horários livres passam a ser a disponibilidade do CRM menos os compromissos do Google Calendar. Cada visita agendada vira um evento no calendário do corretor. Se o corretor mover ou apagar o evento no Google, o sistema atualiza a visita e o assistente avisa o cliente (oferecendo novo horário quando apagado). Corretor sem Google continua usando só a disponibilidade do CRM (a obrigatoriedade ainda está em aberto).
+**What to build:** O corretor pode conectar a conta Google por OAuth. Quando conectado, os horários livres são a disponibilidade do CRM menos os compromissos do Google Calendar e cada visita agendada vira um evento no calendário do corretor. Se o corretor mover ou apagar o evento no Google, o sistema atualiza a visita e o assistente avisa o cliente (oferecendo novo horário quando apagado). Google Calendar é opcional; sem conexão, o corretor usa só a disponibilidade do CRM.
 
 **Blocked by:** 13 (Visitas com disponibilidade do CRM)
 
