@@ -2,12 +2,18 @@
   "type": "diff",
   "version": "9",
   "dialect": "postgres",
-  "id": "e1099641-88fe-451b-84fe-6677e58fab79",
-  "prevIds": ["9a6ee699-d04c-4b5f-ac26-66d338b50108"],
+  "id": "637d2a6e-1a54-4d14-9e16-59d33363381c",
+  "prevIds": [
+    "c3baa2ca-3182-4903-ae31-855dbfecb58d"
+  ],
   "footprints": [
     {
       "statementType": "create_table",
-      "statementTarget": ["table", "public", "materiais_de_marketing"],
+      "statementTarget": [
+        "table",
+        "public",
+        "materiais_de_marketing"
+      ],
       "writes": [
         "s|tbl|public.materiais_de_marketing",
         "n|tbl|public.materiais_de_marketing",
@@ -17,11 +23,17 @@
         "n|rel|public.materiais_de_marketing_pkey",
         "n|rel|public.materiais_de_marketing_chave_key"
       ],
-      "reads": ["n|sch|public"]
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
       "statementType": "create_table",
-      "statementTarget": ["table", "public", "planos_de_pagamento"],
+      "statementTarget": [
+        "table",
+        "public",
+        "planos_de_pagamento"
+      ],
       "writes": [
         "s|tbl|public.planos_de_pagamento",
         "n|tbl|public.planos_de_pagamento",
@@ -30,7 +42,9 @@
         "n|type|public.planos_de_pagamento",
         "n|rel|public.planos_de_pagamento_pkey"
       ],
-      "reads": ["n|sch|public"]
+      "reads": [
+        "n|sch|public"
+      ]
     },
     {
       "statementType": "create_index",
@@ -74,7 +88,11 @@
     },
     {
       "statementType": "create_fk",
-      "statementTarget": ["table", "public", "materiais_de_marketing"],
+      "statementTarget": [
+        "table",
+        "public",
+        "materiais_de_marketing"
+      ],
       "writes": [
         "s|fk|public.materiais_de_marketing.materiais_de_marketing_7cLOsXr6MB4P_fkey",
         "n|fk|public.materiais_de_marketing.materiais_de_marketing_7cLOsXr6MB4P_fkey",
@@ -93,7 +111,11 @@
     },
     {
       "statementType": "create_fk",
-      "statementTarget": ["table", "public", "planos_de_pagamento"],
+      "statementTarget": [
+        "table",
+        "public",
+        "planos_de_pagamento"
+      ],
       "writes": [
         "s|fk|public.planos_de_pagamento.planos_de_pagamento_empreendimento_id_empreendimentos_id_fkey",
         "n|fk|public.planos_de_pagamento.planos_de_pagamento_empreendimento_id_empreendimentos_id_fkey",
@@ -441,10 +463,14 @@
         "table": "materiais_de_marketing",
         "name": "materiais_de_marketing_7cLOsXr6MB4P_fkey",
         "nameExplicit": false,
-        "columns": ["empreendimento_id"],
+        "columns": [
+          "empreendimento_id"
+        ],
         "schemaTo": "public",
         "tableTo": "empreendimentos",
-        "columnsTo": ["id"],
+        "columnsTo": [
+          "id"
+        ],
         "onUpdate": "NO ACTION",
         "onDelete": "NO ACTION",
         "entityType": "fks"
@@ -457,10 +483,14 @@
         "table": "planos_de_pagamento",
         "name": "planos_de_pagamento_empreendimento_id_empreendimentos_id_fkey",
         "nameExplicit": false,
-        "columns": ["empreendimento_id"],
+        "columns": [
+          "empreendimento_id"
+        ],
         "schemaTo": "public",
         "tableTo": "empreendimentos",
-        "columnsTo": ["id"],
+        "columnsTo": [
+          "id"
+        ],
         "onUpdate": "NO ACTION",
         "onDelete": "NO ACTION",
         "entityType": "fks"
@@ -472,7 +502,9 @@
         "schema": "public",
         "table": "materiais_de_marketing",
         "name": "materiais_de_marketing_pkey",
-        "columns": ["id"],
+        "columns": [
+          "id"
+        ],
         "nameExplicit": false,
         "entityType": "pks"
       }
@@ -483,7 +515,9 @@
         "schema": "public",
         "table": "planos_de_pagamento",
         "name": "planos_de_pagamento_pkey",
-        "columns": ["id"],
+        "columns": [
+          "id"
+        ],
         "nameExplicit": false,
         "entityType": "pks"
       }
@@ -495,7 +529,9 @@
         "table": "materiais_de_marketing",
         "name": "materiais_de_marketing_chave_key",
         "nameExplicit": false,
-        "columns": ["chave"],
+        "columns": [
+          "chave"
+        ],
         "nullsNotDistinct": false,
         "entityType": "uniques"
       }

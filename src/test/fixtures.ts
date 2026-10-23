@@ -1,5 +1,7 @@
+import { criarCliente } from "@/data/clientes";
 import { criarCorretor } from "@/data/corretores";
 import { criarImobiliaria } from "@/data/imobiliarias";
+import { criarNegocio } from "@/data/negocios";
 import type { Session } from "@/data/session";
 import {
   aceitarRiscoDoWhatsapp,
@@ -47,6 +49,19 @@ export async function conectarWhatsappDaAna() {
   simularEstado(qr.instancia, "open");
   await atualizarEstadoDaConexao(qr.instancia, "open");
   return { imobiliaria, corretor, session, instancia: qr.instancia };
+}
+
+// Ana com o cliente Carlos Lima cadastrado à mão e um negócio em Novo.
+export async function criarNegocioDaAna() {
+  const { imobiliaria, corretor } = await criarAna();
+  const session = sessaoDe(corretor, imobiliaria);
+  const cliente = await criarCliente(session, {
+    nome: "Carlos Lima",
+    telefone: "5588999990000",
+  });
+  const negocio = await criarNegocio(session, { clienteId: cliente.id });
+  if (!negocio) throw new Error("criarNegocioDaAna: negócio não criado");
+  return { imobiliaria, corretor, session, cliente, negocio };
 }
 
 // Segundo corretor da mesma imobiliária da Ana (catálogo compartilhado).

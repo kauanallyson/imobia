@@ -39,7 +39,12 @@ describe("mensagens recebidas", () => {
     const [negocio] = await listarNegocios(session);
     expect(negocio).toMatchObject({ clienteId: cliente.id, etapa: "novo" });
     expect(await historicoDeEtapas(session, negocio.id)).toEqual([
-      { de: null, para: "novo", em: new Date("2026-10-23T14:00:00-03:00") },
+      {
+        de: null,
+        para: "novo",
+        autor: "sistema",
+        em: new Date("2026-10-23T14:00:00-03:00"),
+      },
     ]);
     const mensagens = await listarMensagens(session, conversaDe(result));
     expect(mensagens).toEqual([

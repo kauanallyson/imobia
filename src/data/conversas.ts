@@ -9,9 +9,8 @@ import {
   whatsappConexoes,
 } from "@/lib/db/schema";
 import type { MensagemRecebida } from "@/lib/whatsapp";
-import { requireCorretor } from "./clientes";
 import { inserirNegocioEmNovo } from "./negocios";
-import type { Session } from "./session";
+import { requireCorretor, type Session } from "./session";
 
 const mensagemColumns = {
   id: mensagens.id,
