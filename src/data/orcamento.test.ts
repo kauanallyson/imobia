@@ -149,23 +149,27 @@ describe("orçamento: filtro de opções (lógica pura)", () => {
 
   test("menor valor total prevalece sobre um estouro menor do orçamento", () => {
     const opcoes = montarOpcoes({ interesse: "lote", lotes, planos });
+    const [opcaoBarata, opcaoCara] = opcoes;
+    if (!opcaoBarata || !opcaoCara) throw new Error("fixtures incompletos");
     const maisBarata = {
-      ...opcoes[0]!,
+      ...opcaoBarata,
       precoTotal: 60000,
       entrada: 30000,
       parcela: 1000,
     };
     const maisCara = {
-      ...opcoes[1]!,
+      ...opcaoCara,
       precoTotal: 85000,
       entrada: 0,
       parcela: 600,
     };
 
-    expect(opcaoMaisProxima([maisCara, maisBarata], {
-      entrada: 0,
-      parcelaMaxima: 500,
-    })).toMatchObject({ precoTotal: 60000 });
+    expect(
+      opcaoMaisProxima([maisCara, maisBarata], {
+        entrada: 0,
+        parcelaMaxima: 500,
+      }),
+    ).toMatchObject({ precoTotal: 60000 });
   });
 
   test("empate no estouro prefere o lote mais barato", () => {

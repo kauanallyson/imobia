@@ -270,9 +270,9 @@ export const ferramentas: Ferramenta[] = [
   ferramentaEnviarMaterialDeMarketing,
   ferramentaRegistrarInteresse,
   ferramentaMudarEtapa,
-...ferramentasDePausaEOptOut, // ticket 10
+  ...ferramentasDePausaEOptOut, // ticket 10
   ...ferramentasDePendencias, // ticket 11
-...ferramentasDoOrcamento, // ticket 12
+  ...ferramentasDoOrcamento, // ticket 12
 ];
 
 // JSON Schema que vai para a Responses API.

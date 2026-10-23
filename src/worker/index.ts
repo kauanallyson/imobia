@@ -18,7 +18,8 @@ function heartbeat() {
 async function retomarAssistentes() {
   try {
     const retomadas = await retomarAssistentesPausados();
-    if (retomadas > 0) console.log(`[worker] assistente retomado em ${retomadas} conversa(s)`);
+    if (retomadas > 0)
+      console.log(`[worker] assistente retomado em ${retomadas} conversa(s)`);
   } catch (error) {
     console.error("[worker] falha ao retomar assistentes pausados", error);
   }

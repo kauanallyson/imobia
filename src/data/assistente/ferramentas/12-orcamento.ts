@@ -13,8 +13,8 @@ import {
   registrarOrcamento,
 } from "../../negocios";
 import { type Opcao, opcoesDentroDoOrcamento } from "../../orcamento";
-import type { ContextoDoAtendimento } from "../contexto";
 import { criarPendencia } from "../../pendencias";
+import type { ContextoDoAtendimento } from "../contexto";
 import type { Ferramenta } from "../ferramentas";
 
 // Ferramentas de orçamento e planos (ticket 12). O modelo nunca calcula nem

@@ -60,7 +60,7 @@ export function montarInstrucoes(
       : "- Empreendimento em foco: ainda não definido.",
     "- Empreendimentos da imobiliária:",
     listaDeEmpreendimentos,
-secaoDeOptOut, // ticket 10
-`\n${secaoDoPromptDeOrcamento}`, // ticket 12
+    secaoDeOptOut, // ticket 10
+    `\n${secaoDoPromptDeOrcamento}`, // ticket 12
   ].join("\n");
 }
