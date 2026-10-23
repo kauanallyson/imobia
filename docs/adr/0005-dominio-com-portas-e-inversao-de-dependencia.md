@@ -1,3 +1,7 @@
+---
+status: superseded by ADR-0006
+---
+
 # Domínio com portas e inversão de dependência, servido como Data Access Layer do Next.js
 
 O domínio (`src/domain`) declara portas (repositórios por agregado, transação, WhatsApp, LLM, Calendar, Storage, Clock) e não importa Drizzle, Next.js nem SDKs. Implementações ficam em `src/db/repositories` e `src/adapters`, e uma raiz de composição `server-only` (`src/server/container.ts`) as monta. Para o Next.js, o domínio é a Data Access Layer recomendada no guia de segurança de dados: roda só no servidor, aplica autorização por uma `Session` explícita e devolve DTOs mínimos. Server Actions e páginas ficam finas e revalidam sessão e permissão em cada entrada.

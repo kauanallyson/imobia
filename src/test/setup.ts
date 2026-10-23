@@ -1,11 +1,45 @@
-import { afterAll } from "bun:test";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { ensureContainer, testDb, waitForDatabase } from "./database";
+import { afterAll, beforeEach, mock, setSystemTime } from "bun:test";
+import { ensureContainer, testDatabaseUrl } from "./database";
+
+// Antes de qualquer import da aplicação: o db de @/lib/db lê esta URL.
+process.env.DATABASE_URL = testDatabaseUrl;
+if (!new URL(testDatabaseUrl).pathname.endsWith("_test")) {
+  throw new Error(
+    "O banco de teste precisa terminar em _test (é limpo a cada teste)",
+  );
+}
+
+// `server-only` só existe no ambiente React Server; fora dele, lança erro.
+mock.module("server-only", () => ({}));
 
 await ensureContainer();
-await waitForDatabase();
-await migrate(testDb, { migrationsFolder: "./drizzle" });
+
+const { db } = await import("@/lib/db");
+const { migrate } = await import("drizzle-orm/node-postgres/migrator");
+
+const deadline = Date.now() + 30_000;
+for (;;) {
+  try {
+    await db.execute("select 1");
+    break;
+  } catch (error) {
+    if (Date.now() > deadline) throw error;
+    await Bun.sleep(250);
+  }
+}
+await migrate(db, { migrationsFolder: "./drizzle" });
+
+beforeEach(async () => {
+  setSystemTime();
+  await db.execute(`
+    do $$ declare t text; begin
+      for t in select tablename from pg_tables where schemaname = 'public' loop
+        execute format('truncate table %I cascade', t);
+      end loop;
+    end $$;
+  `);
+});
 
 afterAll(async () => {
-  await testDb.$client.end();
+  await db.$client.end();
 });

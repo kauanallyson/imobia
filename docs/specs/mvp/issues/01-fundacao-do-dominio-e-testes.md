@@ -8,15 +8,15 @@
 
 - [x] A tabela `users` de tutorial foi removida e há migration com a tabela de imobiliárias
 - [x] O Postgres de desenvolvimento/teste tem a extensão pgvector habilitada
-- [x] Existe um módulo de domínio com nomes em pt-BR (ADR-0003) usado pelo teste de referência
-- [x] As interfaces dos cinco adaptadores existem, cada uma com implementação falsa em memória
+- [x] Existe uma Data Access Layer (`src/data`) com nomes do glossário em pt-BR (ADR-0003) usada pelo teste de referência
+- [x] ~~As interfaces dos cinco adaptadores existem, cada uma com implementação falsa em memória~~ Revisado pelo ADR-0006: cada integração (`src/lib/<serviço>.ts`) e seu falso (`src/test/fakes/`, via `mock.module`) entram no ticket que a usa; o tempo é controlado com `setSystemTime`
 - [x] `bun test` sobe/usa o Postgres em Podman e passa, com cada teste isolando seus dados
 - [x] Há um script no package.json para rodar os testes
 
 ## Comments
 
-**Implementado (2026-10-23).** Domínio em `dominio/` (`criarDominio`), adaptadores com falsos em `adaptadores/`, harness em `test/` (preload em `bunfig.toml`). O socket do Podman não estava ativo, então `bun test` gerencia o próprio container (`crm-postgres-test`, porta 5433, tmpfs) via `podman run` em vez de `podman compose`; `TEST_DATABASE_URL` aponta para outro Postgres. Isolamento padrão por transação revertida (`withRollback`); testes de concorrência (reserva) devem usar uma imobiliária nova por teste. Não havia migration anterior, então não há `DROP TABLE users`.
+**Implementado (2026-10-23).** Estado final, depois de duas revisões de arquitetura (ADR-0005, substituído pelo ADR-0006):
 
-**Atualização (2026-10-23).** Código movido para `src/`, com pastas e padrões em inglês (ADR-0003 atualizado): `src/domain` (`createDomain`), `src/adapters` (`WhatsApp`, `LLM`, `Calendar`, `Storage`, `Clock` e os `*Fake`), `src/test` (`withRollback`, `createTestDomain`).
-
-**Atualização (2026-10-23).** Refatorado para o desenho do ADR-0005: portas em `src/domain/ports` (`ImobiliariaRepository`, `Clock`, `WhatsAppConnection`/`WhatsAppMessenger`, `LLM`, `Calendar`, `Storage`), casos de uso `criarImobiliaria`/`buscarImobiliaria` recebendo uma `Session`, repositório Drizzle em `src/db/repositories`, falsos em `src/adapters/<porta>/fake.ts`, raiz de composição `server-only` em `src/server/container.ts` e fronteiras de import verificadas pelo Biome. A porta `Transaction` fica para o primeiro caso de uso que precisar de atomicidade. Variáveis de ambiente validadas com zod em `src/server/env.ts`, importado por `next.config.ts` e `drizzle.config.ts`.
+- **Código:** DAL em `src/data/imobiliarias.ts` (`criarImobiliaria`, `buscarImobiliaria`, que recebem uma `Session`). Infraestrutura em `src/lib`: `env.ts` com zod, importado por `next.config.ts` e `drizzle.config.ts`; `db/`.
+- **Testes:** `bun test` gerencia o próprio container (`crm-postgres-test`, porta 5433, tmpfs) via `podman run`, porque o socket do Podman não estava ativo e `podman compose` falhava. As migrations são aplicadas no preload, as tabelas são limpas antes de cada teste e `server-only` é trocado por um módulo vazio.
+- **Migrations:** não havia migration anterior, então não há `DROP TABLE users`.

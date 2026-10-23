@@ -10,4 +10,4 @@
 - [ ] A transcrição aparece na conversa ao lado do áudio
 - [ ] O assistente responde ao conteúdo transcrito, em texto
 - [ ] Falha na transcrição gera uma resposta pedindo que o cliente escreva ou reenvie (sem travar a conversa)
-- [ ] Testes usam o `LLMFake`
+- [ ] Testes usam um LLM falso (`mock.module`)

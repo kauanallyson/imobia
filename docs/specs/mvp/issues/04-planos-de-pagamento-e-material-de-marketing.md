@@ -9,5 +9,5 @@
 - [ ] Corretor cadastra planos por empreendimento e vê entrada e parcela calculadas para lote e para lote + casa
 - [ ] O cálculo de plano está concentrado num único ponto, coberto por testes
 - [ ] Corretor envia, lista e remove material de marketing marcado por tipo (lote / lote + casa / ambos)
-- [ ] Arquivos vão para o adaptador `Storage` (`StorageFake` em testes, R2 em produção)
+- [ ] Arquivos vão por `src/lib/storage.ts` (falso em testes, R2 em produção)
 - [ ] Uma consulta de domínio devolve o material certo para "lote" e para "lote + casa"

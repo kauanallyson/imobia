@@ -10,5 +10,5 @@
 - [ ] Escolha entre lote e lote + casa leva ao envio do material de marketing correspondente
 - [ ] Dúvidas são respondidas a partir da busca na base de conhecimento
 - [ ] O negócio passa de Novo para Em atendimento
-- [ ] O assistente só age por ferramentas do módulo de domínio
-- [ ] Testes usam `LLMFake` e `WhatsAppFake` roteirizados: chega mensagem → ferramentas surtem efeito → mensagens saem
+- [ ] O assistente só age por ferramentas que chamam funções de `src/data`
+- [ ] Testes usam LLM e WhatsApp falsos roteirizados: chega mensagem → ferramentas surtem efeito → mensagens saem

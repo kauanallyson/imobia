@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Único ponto da aplicação que lê process.env (ADR-0005). Validado ao ser
+// Único ponto da aplicação que lê process.env. Validado ao ser
 // importado: next.config.ts e drizzle.config.ts importam este módulo, então
 // `next build`, `next dev` e o drizzle-kit falham cedo com env inválida.
 // Sem `import "server-only"` porque next.config.ts roda fora do ambiente

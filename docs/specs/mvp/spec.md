@@ -2,7 +2,7 @@
 
 **Status:** ready-for-agent
 
-Vocabulário: ver `GLOSSARY.md`. Decisões arquiteturais: ver `docs/adr/` (0001 imobiliária desde o dia um, 0003 domínio em pt-BR, 0004 WhatsApp via Evolution API, 0005 portas e inversão de dependência).
+Vocabulário: ver `GLOSSARY.md`. Decisões arquiteturais: ver `docs/adr/` (0001 imobiliária desde o dia um, 0003 domínio em pt-BR, 0004 WhatsApp via Evolution API, 0006 DAL simples do Next.js).
 
 ## Problem Statement
 
@@ -159,55 +159,31 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 
 ### Arquitetura
 
-As dependências apontam para dentro: o domínio não conhece Next.js, Drizzle nem SDKs de terceiros; ele declara **portas** (interfaces) e as camadas de fora as implementam (ADR-0005). Termos do `GLOSSARY.md` em pt-BR no código; pastas técnicas, nomes de padrão e adaptadores em inglês (ADR-0003). Uma pasta com nome de termo do glossário mantém o termo (`src/domain/negocios/`).
+É um MVP: código direto, no estilo que a documentação do Next.js recomenda, sem camadas ou abstrações antes de precisar delas (ADR-0006). Termos do `GLOSSARY.md` em pt-BR no código; pastas, nomes técnicos e integrações em inglês (ADR-0003).
 
-**Camadas e pastas**
+| Pasta | O que tem |
+| --- | --- |
+| `src/app/` | Rotas, layouts, Server Components e Server Actions (`actions.ts` junto da rota). Route Handlers só para webhook da Evolution API e callback do OAuth do Google. |
+| `src/data/` | **Data Access Layer**: funções `async` por assunto (`imobiliarias.ts`, `negocios.ts`, `lotes.ts`...) com as regras de negócio, as consultas Drizzle e a checagem de permissão. Arquivos com `import "server-only"`. |
+| `src/lib/` | Infraestrutura: `env.ts` (envs validadas com zod), `db/` (cliente e schema Drizzle) e um módulo por integração (`whatsapp.ts`, `llm.ts`, `calendar.ts`, `storage.ts`), criado no ticket que precisar dele. |
+| `src/worker/` | Processo de jobs agendados; chama as mesmas funções de `src/data`. |
+| `src/test/` | Harness de testes. |
 
-| Pasta | Papel | Pode importar |
-| --- | --- | --- |
-| `src/domain/` | Regras de negócio e casos de uso, agrupados por agregado (`imobiliarias/`, `negocios/`, `lotes/`...). Declara as portas em `src/domain/ports/`. | Só `src/domain` |
-| `src/db/` | Schema Drizzle e implementações dos repositórios (`src/db/repositories/`). | `src/domain` (portas e tipos) |
-| `src/adapters/<porta>/` | Implementação real (`evolution.ts`, `openai.ts`, `google.ts`, `r2.ts`, `system.ts`) e falsa (`fake.ts`) de cada porta externa. | `src/domain` (portas e tipos) |
-| `src/server/` | **Raiz de composição** (`container.ts`): instancia repositórios e adaptadores reais e monta o domínio. Também a sessão (`auth.ts`) e o ambiente (`env.ts`). Todos os arquivos com `import "server-only"`, exceto `env.ts` (ver abaixo). | Tudo acima |
-| `src/app/` | Next.js: páginas, layouts, Server Components e Server Actions. | `src/server`, tipos de DTO do domínio |
-| `src/worker/` | Processo de jobs agendados; outra raiz de composição sobre a mesma fábrica de `src/server`. | `src/server`, `src/domain` |
-
-Migrations ficam em `drizzle/` na raiz. Só `src/server/env.ts` lê `process.env`, validando com um schema **zod**. `next.config.ts` e `drizzle.config.ts` o importam, então build, dev e drizzle-kit falham cedo com env inválida; por isso ele não usa `server-only`. Adaptadores recebem configuração por parâmetro da raiz de composição.
-
-**Portas**
-
-- **Repositórios** por agregado (`ImobiliariaRepository`, `LoteRepository`, `NegocioRepository`...), com métodos que falam a língua do domínio (`buscarDisponiveis`, `reservar`), não SQL genérico. A implementação Drizzle mapeia linhas para tipos do domínio; o domínio nunca recebe o tipo de linha do Drizzle.
-- **Transação**: uma porta `Transaction` (`run(fn)`) entrega ao caso de uso repositórios ligados à mesma transação, para operações que precisam ser atômicas (reserva, mudança de etapa com histórico). Restrições do banco (ex.: uma reserva ativa por lote) continuam sendo a garantia final; o repositório traduz a violação num erro de domínio (`LoteIndisponivel`).
-- **Adaptadores externos**, cada um com uma implementação real e uma falsa em memória (`<Nome>Fake`):
-  - **WhatsApp**: Evolution API auto-hospedada (ADR-0004). Separada em `WhatsAppConnection` (conectar instância por QR code, estado da conexão) e `WhatsAppMessenger` (enviar texto/mídia/localização), mais a tradução do webhook em `IncomingMessage` (com `fromMe` e indicação de grupo). Nenhum outro módulo conhece a Evolution API, para que migrar para a Cloud API oficial troque só este adaptador.
+- **Regras de negócio ficam em `src/data`.** Páginas, Server Actions, worker e ferramentas do assistente chamam essas funções; nenhum deles consulta o banco por conta própria para regra de negócio.
+- **Permissão**: toda função de `src/data` chamada pela interface recebe a `Session` (administrador, ou corretor com sua imobiliária) e escopa a consulta por imobiliária (ADR-0001) e por corretor. Clientes, negócios, conversas e documentos são do corretor dono; o catálogo e o status de lotes são compartilhados na imobiliária. Fora do escopo devolve `null`, como se não existisse. Worker e assistente usam a sessão do corretor dono do negócio.
+- **Retornos são DTOs**: as funções selecionam só as colunas que a interface usa, nunca a linha inteira.
+- **Server Actions** são endpoints públicos: cada uma obtém a sessão, valida a entrada com zod, chama `src/data` e faz `revalidatePath`/`redirect`. Server Components buscam dados chamando `src/data`. Client Components recebem só props.
+- **Integrações**: cada serviço externo fica num único módulo de `src/lib`, que exporta funções simples. Ninguém mais conhece o SDK ou a API. Para o WhatsApp, isso mantém a saída do ADR-0004: trocar a Evolution pela Cloud API muda só `src/lib/whatsapp.ts`.
+  - **WhatsApp**: Evolution API auto-hospedada (ADR-0004): conectar instância (QR code), estado da conexão, enviar texto/mídia/localização, e traduzir o webhook em mensagem recebida (com `fromMe` e indicação de grupo).
   - **LLM**: OpenAI. `gpt-6-luna` pela Responses API com tool calling; `text-embedding-3-small` para embeddings; transcrição de áudio da OpenAI.
-  - **Calendar** (agenda): Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita. Opcional por corretor (ver Further Notes).
-  - **Storage** (armazenamento): Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas. Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
-  - **Clock** (relógio): abstração de tempo, para que cadências, expiração de reserva e janela de horário sejam testáveis.
-
-**SOLID aplicado**
-
-- **Responsabilidade única**: um caso de uso por arquivo e por operação (`src/domain/negocios/mudarEtapa.ts`). Adaptadores só fazem I/O e tradução de formato; Server Actions só fazem autenticação, validação de entrada, chamada ao caso de uso e efeitos de Next.js (`revalidatePath`, `redirect`).
-- **Aberto/fechado**: comportamento que vai mudar fica atrás de uma porta. O **cálculo do plano de pagamento** é a porta `CalculoDePlano`, com a implementação provisória atual; a regra definitiva com taxas é uma nova implementação, sem mexer em quem a usa. Trocar Evolution pela Cloud API é outra implementação de `WhatsAppMessenger`/`WhatsAppConnection`.
-- **Substituição de Liskov**: falsos e reais cumprem o mesmo contrato, inclusive nos casos de borda (não encontrado devolve `null`, falhas lançam erro). Um falso nunca é mais permissivo que o real.
-- **Segregação de interfaces**: portas pequenas e focadas. Cada caso de uso declara só as dependências que usa (`Pick<DomainDeps, "negocios" | "clock">`), o que deixa explícito o que ele toca e facilita o teste.
-- **Inversão de dependência**: casos de uso são fábricas que recebem as dependências (`criarImobiliaria(deps)`); `createDomain(deps)` monta todos. Nenhum módulo do domínio instancia um repositório ou adaptador nem importa `@/db`, `@/adapters`, `next/*` ou um SDK.
-
-**Next.js**
-
-- O domínio, servido por `src/server`, é a **Data Access Layer** recomendada pelo Next.js: roda só no servidor, aplica autorização e devolve **DTOs** mínimos (objetos simples com só os campos necessários, sem segredos nem linhas do banco).
-- **Autorização no domínio**: todo caso de uso chamado pela interface recebe uma `Session` explícita (administrador, ou corretor com sua imobiliária) e aplica o escopo por imobiliária (ADR-0001) e por corretor. Clientes, negócios, conversas e documentos são escopados pelo corretor dono; o catálogo e o status de lotes são compartilhados na imobiliária. O worker e o assistente usam uma `Session` de corretor montada a partir do dono do negócio, não da requisição.
-- **Sessão**: `src/server/auth.ts` expõe `getSession()` envolto em `cache` do React, para ser lido em vários Server Components da mesma requisição sem ser passado adiante.
-- **Server Actions** (`"use server"`, em `actions.ts` junto da rota) são endpoints POST públicos: cada uma revalida sessão e permissão por conta própria (não confia na checagem da página), valida a entrada com um schema **zod** e só então chama o caso de uso. O mesmo vale para Route Handlers (payload do webhook).
-- **Server Components** buscam dados chamando o domínio via `src/server`; Client Components nunca importam `src/server`, `src/domain`, `src/db` nem `src/adapters` e recebem só as props de que precisam.
-- **Route Handlers** (`src/app/api/.../route.ts`) só para entradas de máquina: webhook da Evolution API, callback do OAuth do Google. Eles validam a origem e delegam ao domínio.
-- Recursos de cache e revalidação do Next.js ficam na camada `src/app`; o domínio não sabe que existe cache.
-
-**Outros componentes**
-
-- **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar. Ele lê o estado pelos casos de uso do domínio e nunca acessa o banco diretamente.
-- **Autenticação**: Better Auth com Drizzle no mesmo Postgres, configurado em `src/server/auth.ts`. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público.
+  - **Calendar**: Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita. Opcional por corretor (ver Further Notes).
+  - **Storage**: Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas. Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
+- **Tempo**: o código usa `new Date()`; os testes controlam o relógio com `setSystemTime` do Bun.
+- **Envs**: `src/lib/env.ts` é o único lugar que lê `process.env`. `next.config.ts` e `drizzle.config.ts` o importam, então build, dev e drizzle-kit falham cedo com env inválida. O harness de testes é a exceção: ele aponta `DATABASE_URL` para o banco de teste.
+- **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar.
+- **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público.
 - **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `docker-compose.yml` atual é a base.
+- **Dívida técnica aceita**: sem camadas de abstração sobre Drizzle e integrações. Se o produto validar e uma integração precisar de troca real ou de várias implementações, extraímos a interface nesse momento.
 
 ### Modelo de domínio
 
@@ -215,7 +191,7 @@ Migrations ficam em `drizzle/` na raiz. Só `src/server/env.ts` lê `process.env
 - **Incorporadora** → **Empreendimento** (nome, cidade, endereço/localização, base de conhecimento, material de marketing, planos de pagamento, modelo de proposta herdado da incorporadora).
 - **Lote**: quadra, número, área, frente, fundo, preço, status `disponível | reservado | vendido`. A importação por planilha cria ou atualiza lotes por quadra + número.
 - **Modelo de casa**: área construída, quartos, banheiros, suítes, vagas, preço; pertence a um empreendimento.
-- **Plano de pagamento**: pertence a um empreendimento. Estrutura provisória: percentual de entrada, número de parcelas e texto livre de condições (correção, taxas). O cálculo de entrada e parcela fica atrás da porta `CalculoDePlano`, porque **a regra definitiva (com taxas) ainda será definida** e vai substituir só esse cálculo.
+- **Plano de pagamento**: pertence a um empreendimento. Estrutura provisória: percentual de entrada, número de parcelas e texto livre de condições (correção, taxas). O cálculo de entrada e parcela fica numa única função de `src/data`, porque **a regra definitiva (com taxas) ainda será definida** e vai substituir só esse cálculo.
 - **Cliente**: pertence a um corretor; nome, telefone, e-mail, CPF, documentos, duas referências, forma de pagamento pretendida, dia de pagamento preferido.
 - **Negócio**: pertence a um cliente e ao corretor dono; tem lote e modelo de casa de interesse (opcionais), plano escolhido, orçamento informado (entrada e parcela máxima), indicador "fora do orçamento", etapa, motivo de perda e histórico de mudanças de etapa.
 - **Etapas fixas**: Novo → Em atendimento → Visita agendada → Coletando dados → Proposta em revisão → Aguardando assinatura → Aguardando pagamento → Ganho | Perdido. "Fechar agora" pula Visita agendada. Só o corretor (ou a recusa explícita do cliente) leva a Perdido.
@@ -232,7 +208,7 @@ Migrations ficam em `drizzle/` na raiz. Só `src/server/env.ts` lê `process.env
 
 - Um assistente por corretor; atende pelo número do corretor.
 - **Quem ele atende**: só números sem histórico de conversa com o corretor no momento da primeira mensagem; grupos são sempre ignorados; o corretor pode ligar/desligar por conversa. Conversas antigas não são importadas; o histórico do WhatsApp só é consultado para decidir se o número é novo.
-- **Ferramentas** (tool calling), cada uma uma chamada a um caso de uso do domínio com a `Session` do corretor: buscar na base de conhecimento, enviar material de marketing (lote / lote + casa), listar planos e lotes que cabem no orçamento, calcular plano, registrar dados do cliente, registrar documento recebido, listar horários livres, agendar/remarcar visita, escolher lote, solicitar proposta, criar pendência, mudar etapa, registrar opt-out. O assistente não acessa o banco diretamente e nunca produz valores que não venham de uma ferramenta.
+- **Ferramentas** (tool calling), cada uma uma chamada a uma função de `src/data` com a `Session` do corretor: buscar na base de conhecimento, enviar material de marketing (lote / lote + casa), listar planos e lotes que cabem no orçamento, calcular plano, registrar dados do cliente, registrar documento recebido, listar horários livres, agendar/remarcar visita, escolher lote, solicitar proposta, criar pendência, mudar etapa, registrar opt-out. O assistente não acessa o banco diretamente e nunca produz valores que não venham de uma ferramenta.
 - **Identidade**: apresenta-se como "assistente virtual do(a) {corretor}" e diz que é IA quando perguntado.
 - **Limites**: não negocia preço nem dá desconto; não promete o que não está na base de conhecimento (cria pendência); passa para o corretor quando o cliente pede uma pessoa.
 - **Pausa**: mensagem `fromMe` do celular do corretor pausa o assistente naquela conversa; ele retoma com "devolver ao assistente" ou automaticamente após 24h sem mensagem do corretor.
@@ -250,14 +226,14 @@ Migrations ficam em `drizzle/` na raiz. Só `src/server/env.ts` lê `process.env
 
 ## Testing Decisions
 
-- **Um bom teste exercita comportamento externo** pelo módulo de domínio: dado um estado e um evento (mensagem recebida, ação do corretor, passagem do tempo), verifica o estado resultante e os efeitos nos adaptadores falsos (mensagens enviadas, eventos de agenda, arquivos). Testes não inspecionam detalhes internos nem chamam funções auxiliares privadas.
-- **Seam principal**: os casos de uso do domínio, montados por `createTestDomain` com os **repositórios Drizzle reais contra Postgres real** (container Podman com pgvector) e os adaptadores externos falsos. Não há repositórios falsos em memória: o banco é parte do comportamento (restrições, transações, pgvector). Cada teste isola seus dados: por padrão uma transação revertida (`withRollback`); testes de concorrência usam uma imobiliária nova por teste.
-- **Adaptadores falsos** (`src/adapters/<porta>/fake.ts`, montados por `createTestDomain`): `WhatsAppFake` (registra envios, simula recebimentos e `fromMe`), `LLMFake` (respostas e chamadas de ferramenta roteirizadas), `CalendarFake` (eventos em memória), `StorageFake` (arquivos em memória), `ClockFake` (avançado pelo teste).
-- **O assistente é testado pelo mesmo seam**: "chega uma mensagem para o corretor X" com o `LLMFake` roteirizado, verificando quais ferramentas surtiram efeito, que mensagens saíram e como o negócio mudou. A qualidade do texto gerado pela IA não é testada automaticamente.
-- **Módulos com testes**: regras de etapas, reserva (incluindo concorrência: duas propostas para o mesmo lote), cálculo de plano, filtro por orçamento, disponibilidade de horários (janelas ∩ agenda), cadência de follow-up e janela de horário, pausa/retomada do assistente, regra de "número novo", escopo por imobiliária e por corretor, importação de lotes.
-- Server Actions e páginas não têm testes automatizados próprios: são finas por construção (autenticação, validação, chamada ao caso de uso). A autorização é testada no domínio, chamando casos de uso com a `Session` de outro corretor ou de outra imobiliária.
-- **Runner**: `bun test`. O ticket de fundação criou o primeiro (`src/domain/imobiliarias.test.ts`), que serve de referência para os demais.
-- Adaptadores reais (Evolution, OpenAI, Google, R2) são finos e verificados manualmente no ambiente de deploy, não por testes automatizados.
+- **Um bom teste exercita comportamento externo** pelas funções de `src/data`: dado um estado e um evento (mensagem recebida, ação do corretor, passagem do tempo), verifica o estado resultante e os efeitos nas integrações falsas (mensagens enviadas, eventos de agenda, arquivos). Testes não inspecionam detalhes internos.
+- **Postgres real** (container Podman com pgvector, gerenciado pelo `bun test`). As tabelas são limpas antes de cada teste, então cada teste monta os próprios dados. Isso inclui testes de concorrência (duas propostas para o mesmo lote).
+- **Integrações falsas**: o teste troca o módulo de `src/lib` com `mock.module` do Bun por um falso em memória (em `src/test/fakes/`) que registra chamadas e devolve respostas roteirizadas: WhatsApp (registra envios, simula recebimentos e `fromMe`), LLM (respostas e chamadas de ferramenta roteirizadas), Calendar (eventos em memória), Storage (arquivos em memória). **Tempo** com `setSystemTime`.
+- **O assistente é testado pelo mesmo caminho**: "chega uma mensagem para o corretor X" com o LLM falso roteirizado, verificando quais ferramentas surtiram efeito, que mensagens saíram e como o negócio mudou. A qualidade do texto gerado pela IA não é testada automaticamente.
+- **O que tem teste**: regras de etapas, reserva (incluindo concorrência), cálculo de plano, filtro por orçamento, disponibilidade de horários (janelas ∩ agenda), cadência de follow-up e janela de horário, pausa/retomada do assistente, regra de "número novo", escopo por imobiliária e por corretor (chamando com a `Session` de outro corretor), importação de lotes.
+- Server Actions e páginas são finas e não têm teste automatizado próprio.
+- **Runner**: `bun test`. O ticket de fundação criou o primeiro (`src/data/imobiliarias.test.ts`), que serve de referência para os demais.
+- Integrações reais (Evolution, OpenAI, Google, R2) são finas e verificadas manualmente no ambiente de deploy, não por testes automatizados.
 
 ## Out of Scope
 

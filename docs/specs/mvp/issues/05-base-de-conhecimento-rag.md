@@ -10,4 +10,4 @@
 - [ ] Salvar reindexa os trechos; editar não deixa trechos antigos órfãos
 - [ ] Busca devolve trechos relevantes do empreendimento pedido
 - [ ] Busca nunca devolve trechos de outra imobiliária (teste dedicado)
-- [ ] Embeddings passam pelo adaptador `LLM` (`LLMFake` em testes)
+- [ ] Embeddings passam por `src/lib/llm.ts` (falso em testes)

@@ -12,4 +12,4 @@
 - [ ] Mensagem de número com histórico e mensagens de grupo não criam cliente nem negócio
 - [ ] Mensagens `fromMe` são guardadas com autor "corretor"
 - [ ] Nenhum histórico anterior à conexão é armazenado
-- [ ] Toda a integração passa pelo adaptador `WhatsApp`; testes usam o `WhatsAppFake`
+- [ ] Toda a integração passa por `src/lib/whatsapp.ts`; testes usam um falso (`mock.module`)
