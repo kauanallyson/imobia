@@ -1,0 +1,376 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "a05d60e0-0b07-43ae-b5fd-568f01d579d5",
+  "prevIds": ["c3baa2ca-3182-4903-ae31-855dbfecb58d"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "trechos_de_conhecimento"],
+      "writes": [
+        "s|tbl|public.trechos_de_conhecimento",
+        "n|tbl|public.trechos_de_conhecimento",
+        "e|tbl|public.trechos_de_conhecimento",
+        "n|rel|public.trechos_de_conhecimento",
+        "n|type|public.trechos_de_conhecimento",
+        "n|rel|public.trechos_de_conhecimento_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "empreendimentos",
+        "base_de_conhecimento"
+      ],
+      "writes": [
+        "s|col|public.empreendimentos.base_de_conhecimento",
+        "n|col|public.empreendimentos.base_de_conhecimento",
+        "e|col|public.empreendimentos.base_de_conhecimento"
+      ],
+      "reads": ["n|tbl|public.empreendimentos", "n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "trechos_de_conhecimento",
+        "trechos_de_conhecimento_empreendimento_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.trechos_de_conhecimento_empreendimento_id_idx",
+        "n|idx|public.trechos_de_conhecimento_empreendimento_id_idx",
+        "e|idx|public.trechos_de_conhecimento_empreendimento_id_idx",
+        "n|rel|public.trechos_de_conhecimento_empreendimento_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.trechos_de_conhecimento",
+        "n|sch|public",
+        "n|col|public.trechos_de_conhecimento.empreendimento_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "trechos_de_conhecimento",
+        "trechos_de_conhecimento_imobiliaria_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.trechos_de_conhecimento_imobiliaria_id_idx",
+        "n|idx|public.trechos_de_conhecimento_imobiliaria_id_idx",
+        "e|idx|public.trechos_de_conhecimento_imobiliaria_id_idx",
+        "n|rel|public.trechos_de_conhecimento_imobiliaria_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.trechos_de_conhecimento",
+        "n|sch|public",
+        "n|col|public.trechos_de_conhecimento.imobiliaria_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "trechos_de_conhecimento",
+        "trechos_de_conhecimento_embedding_idx"
+      ],
+      "writes": [
+        "s|idx|public.trechos_de_conhecimento_embedding_idx",
+        "n|idx|public.trechos_de_conhecimento_embedding_idx",
+        "e|idx|public.trechos_de_conhecimento_embedding_idx",
+        "n|rel|public.trechos_de_conhecimento_embedding_idx"
+      ],
+      "reads": [
+        "n|tbl|public.trechos_de_conhecimento",
+        "n|sch|public",
+        "n|col|public.trechos_de_conhecimento.embedding"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "trechos_de_conhecimento"],
+      "writes": [
+        "s|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_qWNqzKmpC40e_fkey",
+        "n|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_qWNqzKmpC40e_fkey",
+        "e|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_qWNqzKmpC40e_fkey",
+        "n|con|public.trechos_de_conhecimento.trechos_de_conhecimento_qWNqzKmpC40e_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.trechos_de_conhecimento",
+        "n|sch|public",
+        "n|tbl|public.empreendimentos",
+        "n|sch|public",
+        "n|col|public.trechos_de_conhecimento.empreendimento_id",
+        "n|col|public.empreendimentos.id",
+        "e|uniqueness|public.empreendimentos.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "trechos_de_conhecimento"],
+      "writes": [
+        "s|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.trechos_de_conhecimento.trechos_de_conhecimento_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.trechos_de_conhecimento.trechos_de_conhecimento_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.trechos_de_conhecimento",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.trechos_de_conhecimento.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "trechos_de_conhecimento",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "empreendimentos",
+        "name": "base_de_conhecimento",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "empreendimento_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "ordem",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "texto",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "embedding",
+        "type": "vector(1536)",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_empreendimento_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "empreendimento_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_imobiliaria_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "imobiliaria_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_embedding_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "embedding",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": {
+              "name": "vector_cosine_ops",
+              "default": false
+            }
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "hnsw",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_qWNqzKmpC40e_fkey",
+        "nameExplicit": false,
+        "columns": ["empreendimento_id"],
+        "schemaTo": "public",
+        "tableTo": "empreendimentos",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "trechos_de_conhecimento",
+        "name": "trechos_de_conhecimento_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    }
+  ]
+}

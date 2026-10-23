@@ -17,6 +17,9 @@ const envSchema = z
     EVOLUTION_API_KEY: z.string().min(1),
     // Segredo que a Evolution envia no header x-webhook-secret.
     EVOLUTION_WEBHOOK_SECRET: z.string().min(16),
+    // OpenAI (embeddings da base de conhecimento; assistente e transcrição nos
+    // tickets 09 e 19).
+    OPENAI_API_KEY: z.string().min(1),
     // Cloudflare R2 via S3Client do Bun (src/lib/storage.ts). Informe o
     // endpoint completo ou só o id da conta.
     R2_ENDPOINT: z.url().optional(),

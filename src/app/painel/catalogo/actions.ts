@@ -3,6 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
+  buscarNaBaseDeConhecimento,
+  salvarBaseDeConhecimento,
+  type TrechoEncontrado,
+} from "@/data/base-de-conhecimento";
+import {
   criarEmpreendimento,
   editarEmpreendimento,
 } from "@/data/empreendimentos";
@@ -224,4 +229,53 @@ export async function editarModeloDeCasaAction(
   }
   revalidatePath("/painel/catalogo", "layout");
   return { ok: true };
+}
+
+// ---- Base de conhecimento --------------------------------------------------
+
+const baseSchema = z.object({
+  empreendimentoId: z.uuid(),
+  texto: z.string().max(200_000),
+});
+
+export async function salvarBaseDeConhecimentoAction(
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const session = await verificarCorretor();
+  const input = baseSchema.safeParse(formulario(formData));
+  if (!input.success) return { erro: "Texto inválido (até 200 mil letras)." };
+
+  if (!(await salvarBaseDeConhecimento(session, input.data))) {
+    return { erro: "Empreendimento não encontrado." };
+  }
+  revalidatePath("/painel/catalogo/empreendimentos/[id]/conhecimento", "page");
+  return { ok: true };
+}
+
+export type BuscaState = FormState & {
+  pergunta?: string;
+  trechos?: TrechoEncontrado[];
+};
+
+const perguntaSchema = z.object({
+  empreendimentoId: z.uuid(),
+  pergunta: texto,
+});
+
+// Só leitura: mostra ao corretor o que o assistente encontraria.
+export async function testarPerguntaAction(
+  _: BuscaState,
+  formData: FormData,
+): Promise<BuscaState> {
+  const session = await verificarCorretor();
+  const input = perguntaSchema.safeParse(formulario(formData));
+  if (!input.success) return { erro: "Escreva uma pergunta." };
+
+  const trechos = await buscarNaBaseDeConhecimento(session, {
+    ...input.data,
+    limite: 3,
+  });
+  if (!trechos) return { erro: "Empreendimento não encontrado." };
+  return { ok: true, pergunta: input.data.pergunta, trechos };
 }

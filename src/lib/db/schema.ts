@@ -11,6 +11,7 @@ import {
   timestamp,
   unique,
   uuid,
+  vector,
 } from "drizzle-orm/pg-core";
 
 // ADR-0001: toda tabela de domínio referencia a imobiliária dona.
@@ -314,8 +315,8 @@ export const incorporadoras = pgTable(
   (t) => [index("incorporadoras_imobiliaria_id_idx").on(t.imobiliariaId)],
 );
 
-// Base de conhecimento, planos de pagamento e material de marketing entram
-// em tabelas próprias nos tickets 04 e 05, referenciando `empreendimentos.id`.
+// Planos de pagamento e material de marketing entram em tabelas próprias no
+// ticket 04, referenciando `empreendimentos.id`.
 export const empreendimentos = pgTable(
   "empreendimentos",
   {
@@ -331,6 +332,9 @@ export const empreendimentos = pgTable(
     // Endereço/localização em texto livre (ponto de encontro padrão das
     // visitas).
     endereco: text().notNull(),
+    // Texto integral da base de conhecimento (ticket 05), como o corretor
+    // escreveu; os trechos indexados ficam em `trechos_de_conhecimento`.
+    baseDeConhecimento: text("base_de_conhecimento"),
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -396,6 +400,35 @@ export const modelosDeCasa = pgTable(
   },
   (t) => [
     index("modelos_de_casa_empreendimento_id_idx").on(t.empreendimentoId),
+  ],
+);
+
+// Trechos da base de conhecimento com embedding (text-embedding-3-small,
+// 1536 dims). `imobiliaria_id` é redundante com o empreendimento de propósito:
+// a busca filtra por ele sem join (spec: sempre filtrada pela imobiliária).
+export const trechosDeConhecimento = pgTable(
+  "trechos_de_conhecimento",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empreendimentoId: uuid("empreendimento_id")
+      .notNull()
+      .references(() => empreendimentos.id, { onDelete: "cascade" }),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    ordem: integer().notNull(),
+    texto: text().notNull(),
+    embedding: vector({ dimensions: 1536 }).notNull(),
+  },
+  (t) => [
+    index("trechos_de_conhecimento_empreendimento_id_idx").on(
+      t.empreendimentoId,
+    ),
+    index("trechos_de_conhecimento_imobiliaria_id_idx").on(t.imobiliariaId),
+    index("trechos_de_conhecimento_embedding_idx").using(
+      "hnsw",
+      t.embedding.op("vector_cosine_ops"),
+    ),
   ],
 );
 
