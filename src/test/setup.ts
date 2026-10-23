@@ -6,6 +6,10 @@ process.env.DATABASE_URL = testDatabaseUrl;
 process.env.BETTER_AUTH_SECRET =
   "segredo-de-teste-com-pelo-menos-32-caracteres";
 process.env.BETTER_AUTH_URL = "http://localhost:3000";
+process.env.APP_URL = "http://localhost:3000";
+process.env.EVOLUTION_API_URL = "http://evolution.test:8080";
+process.env.EVOLUTION_API_KEY = "chave-de-teste";
+process.env.EVOLUTION_WEBHOOK_SECRET = "segredo-de-teste-com-32-caracteres";
 if (!new URL(testDatabaseUrl).pathname.endsWith("_test")) {
   throw new Error(
     "O banco de teste precisa terminar em _test (é limpo a cada teste)",

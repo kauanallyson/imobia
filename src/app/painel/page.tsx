@@ -1,4 +1,5 @@
 import ApartmentIcon from "@mui/icons-material/Apartment";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -66,16 +67,26 @@ async function Painel() {
         <Typography color="text.secondary">
           Nenhum negócio por enquanto.
         </Typography>
-        <Button
-          component={Link}
-          href="/painel/catalogo"
-          variant="outlined"
-          size="large"
-          startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
-          sx={{ mt: 3 }}
-        >
-          Catálogo
-        </Button>
+        <Stack spacing={1.5} sx={{ mt: 3, width: "100%" }}>
+          <Button
+            component={Link}
+            href="/painel/catalogo"
+            variant="outlined"
+            size="large"
+            startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
+          >
+            Catálogo
+          </Button>
+          <Button
+            component={Link}
+            href="/painel/whatsapp"
+            variant="outlined"
+            size="large"
+            startIcon={<WhatsAppIcon aria-hidden fontSize="small" />}
+          >
+            Conectar WhatsApp
+          </Button>
+        </Stack>
       </Container>
     </>
   );
