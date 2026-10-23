@@ -131,11 +131,10 @@ describe("orçamento: filtro de opções (lógica pura)", () => {
     expect(dentro).toHaveLength(4);
   });
 
-  test("sem combinação possível, a mais próxima é a de menor estouro", () => {
+  test("sem combinação possível, oferece a combinação de menor valor total", () => {
     const opcoes = montarOpcoes({ interesse: "lote", lotes, planos });
 
-    // Entrada cabe em tudo; a parcela de R$ 400 fica abaixo de todas: a que
-    // menos estoura é o lote 1 em 120x (R$ 450).
+    // Com todas as parcelas acima do teto, o lote mais barato é oferecido.
     const proxima = opcaoMaisProxima(opcoes, {
       entrada: 50000,
       parcelaMaxima: 400,
@@ -146,6 +145,27 @@ describe("orçamento: filtro de opções (lógica pura)", () => {
       plano: { nome: "120x" },
       estouro: 50,
     });
+  });
+
+  test("menor valor total prevalece sobre um estouro menor do orçamento", () => {
+    const opcoes = montarOpcoes({ interesse: "lote", lotes, planos });
+    const maisBarata = {
+      ...opcoes[0]!,
+      precoTotal: 60000,
+      entrada: 30000,
+      parcela: 1000,
+    };
+    const maisCara = {
+      ...opcoes[1]!,
+      precoTotal: 85000,
+      entrada: 0,
+      parcela: 600,
+    };
+
+    expect(opcaoMaisProxima([maisCara, maisBarata], {
+      entrada: 0,
+      parcelaMaxima: 500,
+    })).toMatchObject({ precoTotal: 60000 });
   });
 
   test("empate no estouro prefere o lote mais barato", () => {

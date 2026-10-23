@@ -9,6 +9,7 @@ import {
 } from "@/test/fixtures";
 import { receberMensagem } from "./conversas";
 import { buscarNegocio, listarNegocios } from "./negocios";
+import { listarPendencias } from "./pendencias";
 
 const telefone = "5588999990000";
 
@@ -174,8 +175,8 @@ describe("assistente: orçamento e planos", () => {
     ]);
   });
 
-  test("pedido de desconto não negocia: devolve a instrução de encaminhar ao corretor", async () => {
-    const { instancia } = await conectarWhatsappDaAna();
+  test("pedido de desconto cria uma pendência e não negocia", async () => {
+    const { session, instancia } = await conectarWhatsappDaAna();
     roteirizar(
       {
         tipo: "chamadas",
@@ -195,9 +196,15 @@ describe("assistente: orçamento e planos", () => {
 
     expect(resultados(1)).toEqual([
       {
-        registrado: false,
+        registrado: true,
         detalhe: "pediu 10% na entrada",
         instrucao: expect.stringContaining("corretor"),
+      },
+    ]);
+    expect(await listarPendencias(session)).toMatchObject([
+      {
+        tipo: "pedido_desconto",
+        descricao: expect.stringContaining("pediu 10% na entrada"),
       },
     ]);
   });

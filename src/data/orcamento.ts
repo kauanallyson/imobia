@@ -90,8 +90,8 @@ export function filtrarPorOrcamento(
   );
 }
 
-// Quando nada cabe: a combinação que menos passa do orçamento (entrada +
-// parcela); em empate, o lote mais barato.
+// Quando nada cabe, ofereça a combinação disponível de menor valor total.
+// Empates preferem o menor estouro do orçamento e, depois, o lote mais barato.
 export function opcaoMaisProxima(
   opcoes: Opcao[],
   orcamento: Orcamento,
@@ -105,9 +105,11 @@ export function opcaoMaisProxima(
       Math.max(0, centavos(opcao.parcela) - parcela);
     if (
       !melhor ||
-      estouroCentavos < melhor.estouroCentavos ||
-      (estouroCentavos === melhor.estouroCentavos &&
-        centavos(opcao.lote.preco) < centavos(melhor.lote.preco))
+      centavos(opcao.precoTotal) < centavos(melhor.precoTotal) ||
+      (centavos(opcao.precoTotal) === centavos(melhor.precoTotal) &&
+        (estouroCentavos < melhor.estouroCentavos ||
+          (estouroCentavos === melhor.estouroCentavos &&
+            centavos(opcao.lote.preco) < centavos(melhor.lote.preco))))
     ) {
       melhor = { ...opcao, estouro: estouroCentavos / 100, estouroCentavos };
     }
