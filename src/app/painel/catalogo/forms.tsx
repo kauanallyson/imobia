@@ -83,6 +83,21 @@ export function EmpreendimentoForm({
         minRows={2}
         defaultValue={valores?.endereco}
       />
+      <Field
+        label="Latitude"
+        name="latitude"
+        required={false}
+        inputMode="decimal"
+        defaultValue={valores?.latitude ?? ""}
+        helperText="Opcional; com latitude e longitude a confirmação da visita envia a localização."
+      />
+      <Field
+        label="Longitude"
+        name="longitude"
+        required={false}
+        inputMode="decimal"
+        defaultValue={valores?.longitude ?? ""}
+      />
       <Mensagens state={state} salvo={valores && "Empreendimento salvo."} />
       <SubmitButton pending={pending} icon={valores ? SaveIcon : ApartmentIcon}>
         {valores ? "Salvar" : "Criar empreendimento"}

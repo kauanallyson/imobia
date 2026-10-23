@@ -213,6 +213,11 @@ describe("assistente: primeiro atendimento", () => {
       "enviar_material_de_marketing",
       "registrar_interesse",
       "mudar_etapa",
+      // ticket 13
+      "listar_horarios_livres",
+      "agendar_visita",
+      "remarcar_visita",
+      "fechar_agora",
       "registrar_opt_out",
       "criar_pendencia_pergunta_sem_resposta",
       "chamar_corretor",

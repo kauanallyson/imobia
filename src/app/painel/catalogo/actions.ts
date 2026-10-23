@@ -27,6 +27,12 @@ export type FormState = { erro?: string; ok?: boolean };
 const texto = z.string().trim().min(1);
 const medida = z.coerce.number().positive();
 const inteiro = z.coerce.number().int().min(0);
+// Campo opcional: vazio vira null.
+const coordenada = z
+  .string()
+  .trim()
+  .transform((v) => (v === "" ? null : Number(v.replace(",", "."))))
+  .pipe(z.number().min(-180).max(180).nullable());
 
 function formulario(formData: FormData) {
   return Object.fromEntries(formData);
@@ -75,6 +81,8 @@ const empreendimentoSchema = z.object({
   nome: texto,
   cidade: texto,
   endereco: texto,
+  latitude: coordenada,
+  longitude: coordenada,
 });
 const erroEmpreendimento =
   "Preencha nome, cidade, endereço e escolha a incorporadora.";

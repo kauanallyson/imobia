@@ -28,6 +28,8 @@ describe("empreendimentos", () => {
       nome: "Jardim das Flores",
       cidade: "Sobral",
       endereco: "Rod. CE-178, km 2",
+      latitude: null,
+      longitude: null,
       incorporadoraId: incorporadora.id,
       incorporadora: "Terra Nova",
     });
