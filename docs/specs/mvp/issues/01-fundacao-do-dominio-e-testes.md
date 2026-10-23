@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] A tabela `users` de tutorial foi removida e há migration com a tabela de imobiliárias
 - [x] O Postgres de desenvolvimento/teste tem a extensão pgvector habilitada
