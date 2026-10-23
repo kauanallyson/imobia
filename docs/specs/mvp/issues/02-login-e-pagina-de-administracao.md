@@ -4,11 +4,11 @@
 
 **Blocked by:** 01 (Fundação do domínio e harness de testes)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] O administrador cria imobiliárias e corretores pela página de administração
-- [ ] Um corretor não consegue acessar a página de administração
-- [ ] Um corretor entra com e-mail e senha e vê seu painel (layout mobile-first)
-- [ ] Um corretor desativado não consegue entrar
-- [ ] Não existe rota de cadastro público
-- [ ] Testes cobrem as regras de papel e o escopo por imobiliária
+- [x] O administrador cria imobiliárias e corretores pela página de administração
+- [x] Um corretor não consegue acessar a página de administração
+- [x] Um corretor entra com e-mail e senha e vê seu painel (layout mobile-first)
+- [x] Um corretor desativado não consegue entrar
+- [x] Não existe rota de cadastro público
+- [x] Testes cobrem as regras de papel e o escopo por imobiliária

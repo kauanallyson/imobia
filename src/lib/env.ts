@@ -7,6 +7,8 @@ import { z } from "zod";
 // React Server; não importe este módulo em Client Components.
 const envSchema = z.object({
   DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
+  BETTER_AUTH_SECRET: z.string().min(32),
+  BETTER_AUTH_URL: z.url(),
 });
 
 const parsed = envSchema.safeParse(process.env);

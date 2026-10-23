@@ -1,5 +1,11 @@
-// Quem está chamando. Server Actions e páginas obtêm a sessão (ticket 02) e
-// a passam para a DAL; worker e assistente montam a do corretor do negócio.
+import "server-only";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { cache } from "react";
+import { auth } from "@/lib/auth";
+
+// Quem está chamando. Server Actions e páginas obtêm a sessão e a passam
+// para a DAL; worker e assistente montam a do corretor do negócio.
 export type Session =
   | { role: "administrador" }
   | { role: "corretor"; corretorId: string; imobiliariaId: string };
@@ -12,4 +18,50 @@ export function requireAdministrador(session: Session) {
   if (session.role !== "administrador") {
     throw new ForbiddenError("Somente o administrador pode fazer isso");
   }
+}
+
+// Traduz o cookie do Better Auth na Session da DAL. Sem sessão válida, ou
+// com a conta desativada, devolve null.
+export async function sessionFromHeaders(
+  headers: Headers,
+): Promise<Session | null> {
+  const result = await auth.api.getSession({ headers });
+  if (!result?.user.ativo) return null;
+
+  const { user } = result;
+  if (user.role === "administrador") return { role: "administrador" };
+  if (user.role === "corretor" && user.imobiliariaId) {
+    return {
+      role: "corretor",
+      corretorId: user.id,
+      imobiliariaId: user.imobiliariaId,
+    };
+  }
+  return null;
+}
+
+// Sessão do request atual, lida uma vez por render.
+export const getSession = cache(async () =>
+  sessionFromHeaders(await headers()),
+);
+
+// Página inicial de cada papel.
+export function homePath(role: Session["role"]) {
+  return role === "administrador" ? "/admin" : "/painel";
+}
+
+// Para páginas: sem sessão vai para o login; papel errado vai para a página
+// inicial do próprio papel.
+export async function verificarAdministrador() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.role !== "administrador") redirect(homePath(session.role));
+  return session;
+}
+
+export async function verificarCorretor() {
+  const session = await getSession();
+  if (!session) redirect("/login");
+  if (session.role !== "corretor") redirect(homePath(session.role));
+  return session;
 }

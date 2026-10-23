@@ -1,5 +1,5 @@
 import "server-only";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { imobiliarias } from "@/lib/db/schema";
@@ -11,16 +11,25 @@ const columns = {
   criadaEm: imobiliarias.criadaEm,
 };
 
+// `id` vindo do formulário torna a criação idempotente: reenviar o mesmo
+// formulário devolve a imobiliária já criada.
 export async function criarImobiliaria(
   session: Session,
-  input: { nome: string },
+  input: { id?: string; nome: string },
 ) {
   requireAdministrador(session);
-  const [imobiliaria] = await db
+  const [created] = await db
     .insert(imobiliarias)
-    .values({ nome: input.nome, criadaEm: new Date() })
+    .values({ id: input.id, nome: input.nome, criadaEm: new Date() })
+    .onConflictDoNothing({ target: imobiliarias.id })
     .returning(columns);
-  return imobiliaria;
+  if (created || !input.id) return created;
+
+  const [existing] = await db
+    .select(columns)
+    .from(imobiliarias)
+    .where(eq(imobiliarias.id, input.id));
+  return existing;
 }
 
 // Fora do escopo da sessão é o mesmo que não existir: não revela dados de
@@ -34,4 +43,9 @@ export async function buscarImobiliaria(session: Session, id: string) {
     .from(imobiliarias)
     .where(eq(imobiliarias.id, id));
   return imobiliaria ?? null;
+}
+
+export async function listarImobiliarias(session: Session) {
+  requireAdministrador(session);
+  return db.select(columns).from(imobiliarias).orderBy(asc(imobiliarias.nome));
 }

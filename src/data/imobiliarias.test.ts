@@ -1,5 +1,9 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import { buscarImobiliaria, criarImobiliaria } from "./imobiliarias";
+import {
+  buscarImobiliaria,
+  criarImobiliaria,
+  listarImobiliarias,
+} from "./imobiliarias";
 import { ForbiddenError, type Session } from "./session";
 
 const administrador: Session = { role: "administrador" };
@@ -72,5 +76,40 @@ describe("imobiliárias", () => {
     const found = await buscarImobiliaria(administrador, "nao-e-um-uuid");
 
     expect(found).toBeNull();
+  });
+
+  test("o administrador lista as imobiliárias por nome", async () => {
+    const fiel = await criarImobiliaria(administrador, {
+      nome: "Fiel Imóveis",
+    });
+    const casa = await criarImobiliaria(administrador, { nome: "Casa Nova" });
+
+    const found = await listarImobiliarias(administrador);
+
+    expect(found.map((i) => i.id)).toEqual([casa.id, fiel.id]);
+  });
+
+  test("um corretor não lista imobiliárias", async () => {
+    const own = await criarImobiliaria(administrador, { nome: "Fiel Imóveis" });
+
+    await expect(listarImobiliarias(corretorOf(own.id))).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+  });
+
+  test("repetir a criação com o mesmo id não duplica a imobiliária", async () => {
+    const id = crypto.randomUUID();
+
+    const first = await criarImobiliaria(administrador, {
+      id,
+      nome: "Fiel Imóveis",
+    });
+    const again = await criarImobiliaria(administrador, {
+      id,
+      nome: "Fiel Imóveis",
+    });
+
+    expect(again).toEqual(first);
+    expect(await listarImobiliarias(administrador)).toHaveLength(1);
   });
 });
