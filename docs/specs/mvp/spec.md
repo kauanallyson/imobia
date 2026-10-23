@@ -184,7 +184,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 - **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público: sem route handler `/api/auth`, login e logout são Server Actions que chamam `auth.api`, usuários só são criados pela DAL e o primeiro administrador sai de `bun run admin:create`. Corretor desativado perde as sessões e não entra.
 - **Interface**: o app se chama **loteAI**. Componentes MUI com tema claro, ícones `lucide-react` nos botões, fonte Tuffy (fallback Roboto, sans-serif), layout mobile-first.
 - **Idempotência**: botões de ação, webhooks e jobs são idempotentes. Criações levam um `id` gerado pelo servidor e repetir devolve o registro existente; mudanças de estado levam a um estado-alvo; webhooks e jobs usam chave natural única no banco.
-- **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `docker-compose.yml` atual é a base.
+- **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `compose.yaml` atual é a base.
 - **Dívida técnica aceita**: sem camadas de abstração sobre Drizzle e integrações. Se o produto validar e uma integração precisar de troca real ou de várias implementações, extraímos a interface nesse momento.
 
 ### Modelo de domínio

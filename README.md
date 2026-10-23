@@ -6,6 +6,8 @@ Vocabulário em `GLOSSARY.md`, decisões em `docs/adr/`, spec do MVP em `docs/sp
 
 ## Desenvolvimento
 
+Requisitos: [Bun](https://bun.com) e [Podman](https://podman.io). Os serviços ficam em `compose.yaml`, executado pelo `podman compose`.
+
 ```bash
 bun install
 systemctl --user start podman.socket   # `podman compose` precisa do socket
@@ -13,8 +15,10 @@ podman compose up -d postgres          # Postgres 17 + pgvector
 cp .env.example .env                   # preencha BETTER_AUTH_SECRET
 bun run db:migrate
 bun run admin:create <email> <senha> <nome>   # primeiro administrador
-bun dev
+bun run dev
 ```
+
+O Next roda no runtime do Bun (`bun --bun next ...` nos scripts `dev`, `build` e `start`), exigido pelo cliente S3 nativo do Bun usado no storage.
 
 Não há cadastro público. O administrador entra em `/admin`, cria imobiliárias e corretores; corretores entram em `/login` e caem em `/painel`.
 
