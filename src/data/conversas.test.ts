@@ -108,6 +108,7 @@ describe("mensagens recebidas", () => {
 
   test("fromMe numa conversa existente é guardada com autor corretor", async () => {
     const { session, instancia } = await conectarWhatsappDaAna();
+    setSystemTime(new Date("2026-10-23T14:00:00-03:00"));
     const first = await receberMensagem(
       mensagemRecebida({ instancia, telefone }),
     );
