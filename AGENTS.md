@@ -14,6 +14,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Issues and specs live as local markdown files under `docs/specs/<feature>/`. See `docs/agents/issue-tracker.md`.
 
+### Implementing a ticket
+
+Before starting any ticket, read `docs/agents/conventions.md`: branch per ticket, idempotent actions, MUI/Lucide UI rules, test fixtures and browser checks.
+
 ### Triage labels
 
 Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.

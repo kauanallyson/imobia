@@ -13,3 +13,8 @@
 - [ ] Worker envia lembretes no dia anterior e na manhã da visita (teste com `setSystemTime`)
 - [ ] Cliente remarca e a visita é atualizada
 - [ ] "Fechar agora" leva o negócio direto a Coletando dados
+- [ ] Rodar o worker de novo no mesmo horário não reenvia lembretes
+
+## Comments
+
+**2026-10-23 (aprendizados do 02):** o worker (`src/worker/`) importa `src/data`, que usa `server-only`: rode-o com `bun --conditions=react-server`, como o script `admin:create`. Cada lembrete precisa de chave única (visita + tipo de lembrete) no banco.

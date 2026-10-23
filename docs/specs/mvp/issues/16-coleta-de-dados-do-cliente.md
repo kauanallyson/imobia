@@ -13,3 +13,4 @@
 - [ ] Documentos são privados e acessados por URL assinada de curta duração
 - [ ] Corretor apaga dados e documentos do cliente
 - [ ] Lembretes de itens faltantes respeitam a cadência e a janela de horário
+- [ ] Lembretes de itens faltantes não duplicam se o job rodar de novo

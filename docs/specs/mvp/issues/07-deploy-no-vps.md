@@ -12,3 +12,4 @@
 - [ ] Um corretor real conecta o WhatsApp no ambiente do VPS e uma mensagem de número novo cria um negócio
 - [ ] Uploads vão para o R2
 - [ ] Passo a passo de deploy documentado
+- [ ] Variáveis `BETTER_AUTH_SECRET` e `BETTER_AUTH_URL` configuradas no VPS e o primeiro administrador criado com `bun run admin:create`

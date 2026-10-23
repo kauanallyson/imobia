@@ -12,3 +12,8 @@
 - [ ] Perdido exige motivo; negócio perdido pode ser reaberto
 - [ ] Cadastro manual de cliente e negócio funciona; um cliente pode ter mais de um negócio
 - [ ] Corretor não vê negócios de outro corretor (teste dedicado)
+- [ ] Mudar para a etapa em que o negócio já está não gera entrada nova no histórico
+
+## Comments
+
+**2026-10-23 (aprendizados do 02):** o quadro substitui o painel vazio de `src/app/painel/page.tsx`; mantenha a checagem `verificarCorretor` no componente que envolve a página inteira.

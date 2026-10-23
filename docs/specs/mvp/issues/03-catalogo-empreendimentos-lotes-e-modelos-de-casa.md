@@ -11,3 +11,8 @@
 - [ ] Status de lote alterado por um corretor aparece para outro corretor da mesma imobiliária
 - [ ] Nenhum dado de catálogo de outra imobiliária é visível
 - [ ] Testes cobrem importação e escopo por imobiliária
+- [ ] Criar é idempotente: reenviar o formulário não duplica; reimportar a mesma planilha não muda nada
+
+## Comments
+
+**2026-10-23 (aprendizados do 02):** a biblioteca para ler a planilha (CSV/XLSX) ainda não foi escolhida; decida com o usuário antes de instalar. As telas do catálogo seguem `docs/agents/conventions.md` (MUI, mobile-first, `id` gerado pelo servidor nos formulários de criação).

@@ -12,3 +12,4 @@
 - [ ] Confirmação do pagamento move para Ganho, marca o lote como vendido e encerra a reserva
 - [ ] Lembretes nessas etapas seguem a cadência e a janela de horário
 - [ ] O sistema não processa pagamento
+- [ ] Confirmar assinatura ou pagamento de novo não altera nada

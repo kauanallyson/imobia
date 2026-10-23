@@ -11,3 +11,4 @@
 - [ ] Lista de pendências no CRM, com resolução pelo celular
 - [ ] Aviso no WhatsApp do corretor via número de sistema, com link para a pendência
 - [ ] Avisos não urgentes fora de 8h–20h esperam a próxima janela (teste com `setSystemTime`)
+- [ ] Resolver uma pendência já resolvida não muda nada; cada pendência gera um único aviso

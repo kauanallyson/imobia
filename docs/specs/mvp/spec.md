@@ -181,7 +181,9 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 - **Tempo**: o código usa `new Date()`; os testes controlam o relógio com `setSystemTime` do Bun.
 - **Envs**: `src/lib/env.ts` é o único lugar que lê `process.env`. `next.config.ts` e `drizzle.config.ts` o importam, então build, dev e drizzle-kit falham cedo com env inválida. O harness de testes é a exceção: ele aponta `DATABASE_URL` para o banco de teste.
 - **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar.
-- **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público.
+- **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público: sem route handler `/api/auth`, login e logout são Server Actions que chamam `auth.api`, usuários só são criados pela DAL e o primeiro administrador sai de `bun run admin:create`. Corretor desativado perde as sessões e não entra.
+- **Interface**: o app se chama **loteAI**. Componentes MUI com tema claro, ícones `lucide-react` nos botões, fonte Tuffy (fallback Roboto, sans-serif), layout mobile-first.
+- **Idempotência**: botões de ação, webhooks e jobs são idempotentes. Criações levam um `id` gerado pelo servidor e repetir devolve o registro existente; mudanças de estado levam a um estado-alvo; webhooks e jobs usam chave natural única no banco.
 - **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `docker-compose.yml` atual é a base.
 - **Dívida técnica aceita**: sem camadas de abstração sobre Drizzle e integrações. Se o produto validar e uma integração precisar de troca real ou de várias implementações, extraímos a interface nesse momento.
 

@@ -13,3 +13,9 @@
 - [ ] Mensagens `fromMe` são guardadas com autor "corretor"
 - [ ] Nenhum histórico anterior à conexão é armazenado
 - [ ] Toda a integração passa por `src/lib/whatsapp.ts`; testes usam um falso (`mock.module`)
+- [ ] Webhook reentregue com a mesma mensagem (id da Evolution) não duplica mensagem, cliente nem negócio
+- [ ] Aceitar o aviso de novo não cria um segundo registro de aceite
+
+## Comments
+
+**2026-10-23 (aprendizados do 02):** a tela de conexão fica na área do corretor (`/painel`), protegida por `verificarCorretor`. O webhook é Route Handler (exceção prevista na spec) e não tem sessão de usuário: autentique pela Evolution e monte a sessão do corretor dono da instância. Dedupe por chave única no banco, não por consulta prévia.
