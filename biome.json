@@ -35,5 +35,87 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/domain/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/db",
+                      "@/db/**",
+                      "@/adapters/**",
+                      "@/server/**",
+                      "@/app/**",
+                      "@/worker/**",
+                      "next",
+                      "next/**",
+                      "react",
+                      "react/**",
+                      "drizzle-orm",
+                      "drizzle-orm/**",
+                      "pg"
+                    ],
+                    "message": "ADR-0005: o dom\u00ednio s\u00f3 importa a si mesmo; dependa de uma porta em src/domain/ports."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/db/**", "src/adapters/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/server/**",
+                      "@/app/**",
+                      "@/worker/**",
+                      "next",
+                      "next/**"
+                    ],
+                    "message": "ADR-0005: implementa\u00e7\u00f5es de portas n\u00e3o conhecem Next.js nem a raiz de composi\u00e7\u00e3o."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/app/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/db", "@/db/**", "@/adapters/**"],
+                    "message": "ADR-0005: a camada Next.js chega ao dom\u00ednio por src/server (getDomain)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

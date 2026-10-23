@@ -1,12 +1,4 @@
-// Abstração de tempo: cadências, expiração de reserva e janela de horário
-// leem a hora daqui, para que testes controlem a passagem do tempo.
-export interface Clock {
-  now(): Date;
-}
-
-export const systemClock: Clock = {
-  now: () => new Date(),
-};
+import type { Clock } from "@/domain/ports/clock";
 
 export class ClockFake implements Clock {
   #now: Date;

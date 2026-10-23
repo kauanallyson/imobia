@@ -8,5 +8,3 @@ export type Db = PgAsyncDatabase<NodePgQueryResultHKT>;
 export function createDb(url: string) {
   return drizzle(url);
 }
-
-export const db = createDb(process.env.DATABASE_URL!);

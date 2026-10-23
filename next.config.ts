@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+// Importado para validar as variáveis de ambiente no build.
+import "./src/server/env";
 
 const nextConfig: NextConfig = {
   /* config options here */

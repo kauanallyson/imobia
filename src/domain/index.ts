@@ -1,14 +1,17 @@
-import type { Calendar } from "@/adapters/calendar";
-import type { Clock } from "@/adapters/clock";
-import type { LLM } from "@/adapters/llm";
-import type { Storage } from "@/adapters/storage";
-import type { WhatsApp } from "@/adapters/whatsapp";
-import type { Db } from "@/db";
-import { buscarImobiliaria, criarImobiliaria } from "./imobiliarias";
+import { buscarImobiliaria } from "./imobiliarias/buscarImobiliaria";
+import { criarImobiliaria } from "./imobiliarias/criarImobiliaria";
+import type { Calendar } from "./ports/calendar";
+import type { Clock } from "./ports/clock";
+import type { LLM } from "./ports/llm";
+import type { Repositories } from "./ports/repositories";
+import type { Storage } from "./ports/storage";
+import type { WhatsAppConnection, WhatsAppMessenger } from "./ports/whatsapp";
 
-export type DomainDeps = {
-  db: Db;
-  whatsapp: WhatsApp;
+// ADR-0005: o domínio só conhece as próprias portas. Quem monta as
+// dependências reais é a raiz de composição (src/server/container.ts).
+export type DomainDeps = Repositories & {
+  whatsappConnection: WhatsAppConnection;
+  whatsappMessenger: WhatsAppMessenger;
   llm: LLM;
   calendar: Calendar;
   storage: Storage;
@@ -25,4 +28,6 @@ export function createDomain(deps: DomainDeps) {
 }
 
 export type Domain = ReturnType<typeof createDomain>;
-export type { Imobiliaria } from "./imobiliarias";
+export type { Ator } from "./ator";
+export { ForbiddenError } from "./errors";
+export type { Imobiliaria } from "./imobiliarias/imobiliaria";
