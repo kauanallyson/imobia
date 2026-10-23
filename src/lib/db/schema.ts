@@ -194,6 +194,9 @@ export const negocios = pgTable(
       .references(() => clientes.id),
     etapa: text({ enum: etapas }).notNull().default("novo"),
     motivoPerda: text("motivo_perda"),
+    // Lote de interesse (opcional). Sem FK por enquanto: a tabela `lotes`
+    // chega com o ticket do catálogo (03).
+    loteInteresseId: uuid("lote_interesse_id"),
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -207,6 +210,11 @@ export const negocios = pgTable(
   ],
 );
 
+// Quem levou o negócio à etapa: o corretor na interface, o assistente por
+// ferramenta, ou o sistema (criação pela mensagem de número novo, jobs).
+export const autoresDeEtapa = ["corretor", "assistente", "sistema"] as const;
+export type AutorDeEtapa = (typeof autoresDeEtapa)[number];
+
 // Histórico de mudanças de etapa; `de` é nulo na criação.
 export const negocioEtapas = pgTable(
   "negocio_etapas",
@@ -217,6 +225,7 @@ export const negocioEtapas = pgTable(
       .references(() => negocios.id, { onDelete: "cascade" }),
     de: text({ enum: etapas }),
     para: text({ enum: etapas }).notNull(),
+    autor: text({ enum: autoresDeEtapa }).notNull().default("sistema"),
     em: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("negocio_etapas_negocio_id_idx").on(t.negocioId)],
