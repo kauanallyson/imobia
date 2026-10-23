@@ -28,6 +28,6 @@ export function createDomain(deps: DomainDeps) {
 }
 
 export type Domain = ReturnType<typeof createDomain>;
-export type { Ator } from "./ator";
 export { ForbiddenError } from "./errors";
 export type { Imobiliaria } from "./imobiliarias/imobiliaria";
+export type { Session } from "./session";

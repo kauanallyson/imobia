@@ -1,10 +1,10 @@
 import type { DomainDeps } from "..";
-import { type Ator, exigirAdministrador } from "../ator";
+import { requireAdministrador, type Session } from "../session";
 import type { Imobiliaria } from "./imobiliaria";
 
 export const criarImobiliaria =
   ({ imobiliarias, clock }: Pick<DomainDeps, "imobiliarias" | "clock">) =>
-  async (ator: Ator, input: { nome: string }): Promise<Imobiliaria> => {
-    exigirAdministrador(ator);
+  async (session: Session, input: { nome: string }): Promise<Imobiliaria> => {
+    requireAdministrador(session);
     return imobiliarias.inserir({ nome: input.nome, criadaEm: clock.now() });
   };

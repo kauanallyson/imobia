@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import type { Ator } from "@/domain";
+import type { Session } from "@/domain";
 import { ForbiddenError } from "@/domain";
 import { withRollback } from "@/test/database";
 import { createTestDomain } from "@/test/domain";
 
-const administrador: Ator = { tipo: "administrador" };
+const administrador: Session = { role: "administrador" };
 
-const corretorDa = (imobiliariaId: string): Ator => ({
-  tipo: "corretor",
+const corretorDa = (imobiliariaId: string): Session => ({
+  role: "corretor",
   corretorId: crypto.randomUUID(),
   imobiliariaId,
 });
