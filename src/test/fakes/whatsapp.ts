@@ -30,6 +30,7 @@ const proximoId = () => `FAKE-${++contador}`;
 
 export function limpar() {
   enviados.length = 0;
+  avisosDoSistema.length = 0;
   instancias.clear();
   contador = 0;
 }
@@ -92,6 +93,14 @@ export async function enviarTexto(
   texto: string,
 ) {
   enviados.push({ instancia, para, tipo: "texto", texto });
+  return { idMensagem: proximoId() };
+}
+
+// Avisos do número de sistema, separados dos envios dos corretores.
+export const avisosDoSistema: Array<{ para: string; texto: string }> = [];
+
+export async function enviarTextoDoSistema(telefone: string, texto: string) {
+  avisosDoSistema.push({ para: telefone, texto });
   return { idMensagem: proximoId() };
 }
 

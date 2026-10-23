@@ -1,4 +1,5 @@
 import { retomarAssistentesPausados } from "@/data/conversas";
+import { enviarAvisosPendentes } from "@/data/pendencias";
 import { env } from "@/lib/env";
 
 // Processo de jobs agendados, separado do servidor web (spec: follow-ups,
@@ -13,26 +14,30 @@ function heartbeat() {
   );
 }
 
-// Ticket 10: retomada do assistente após 24h sem mensagem do corretor.
-// (Ticket 13 traz o agendador com registro de jobs; até lá, chamada direta.)
+// Ticket 10: retomada após 24h sem mensagem do corretor.
 async function retomarAssistentes() {
   try {
     const retomadas = await retomarAssistentesPausados();
-    if (retomadas > 0) {
-      console.log(`[worker] assistente retomado em ${retomadas} conversa(s)`);
-    }
+    if (retomadas > 0) console.log(`[worker] assistente retomado em ${retomadas} conversa(s)`);
   } catch (error) {
     console.error("[worker] falha ao retomar assistentes pausados", error);
   }
 }
 
-function tick() {
+// Ticket 11: avisos de pendência que esperavam a janela de 8h–20h.
+async function tick() {
   heartbeat();
-  void retomarAssistentes();
+  await retomarAssistentes();
+  try {
+    const enviados = await enviarAvisosPendentes();
+    if (enviados > 0) console.log(`[worker] ${enviados} aviso(s) enviado(s)`);
+  } catch (error) {
+    console.error("[worker] enviarAvisosPendentes falhou", error);
+  }
 }
 
-tick();
-const timer = setInterval(tick, INTERVALO_MS);
+void tick();
+const timer = setInterval(() => void tick(), INTERVALO_MS);
 
 for (const sinal of ["SIGINT", "SIGTERM"] as const) {
   process.on(sinal, () => {

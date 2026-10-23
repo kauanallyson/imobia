@@ -214,6 +214,8 @@ describe("assistente: primeiro atendimento", () => {
       "registrar_interesse",
       "mudar_etapa",
       "registrar_opt_out",
+      "criar_pendencia_pergunta_sem_resposta",
+      "chamar_corretor",
     ]);
   });
 

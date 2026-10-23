@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -44,6 +45,9 @@ export const users = pgTable(
     // nenhuma.
     imobiliariaId: uuid("imobiliaria_id").references(() => imobiliarias.id),
     ativo: boolean().notNull().default(true),
+    // WhatsApp do corretor (só dígitos com DDI), para os avisos do número de
+    // sistema (ticket 11). Nulo: o corretor não recebe avisos.
+    telefone: text(),
   },
   (t) => [
     check(
@@ -518,3 +522,53 @@ export const materiaisDeMarketing = pgTable(
 // ---- ticket 10: estado do assistente por conversa (só tipo; colunas já
 // existem em `conversas`).
 export type EstadoDoAssistente = (typeof estadosDoAssistente)[number];
+
+// ---- ticket 11: pendências --------------------------------------------------
+// O que o assistente não resolve sozinho e espera o corretor (GLOSSARY →
+// Pendência). Escopo pelo corretor dono do negócio.
+
+export const tiposDePendencia = [
+  "revisar_proposta",
+  "pergunta_sem_resposta",
+  "cliente_pediu_pessoa",
+  "confirmar_assinatura",
+  "confirmar_pagamento",
+] as const;
+export type TipoDePendencia = (typeof tiposDePendencia)[number];
+
+export const estadosDePendencia = ["aberta", "resolvida"] as const;
+export type EstadoDePendencia = (typeof estadosDePendencia)[number];
+
+export const pendencias = pgTable(
+  "pendencias",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    tipo: text({ enum: tiposDePendencia }).notNull(),
+    descricao: text().notNull(),
+    estado: text({ enum: estadosDePendencia }).notNull().default("aberta"),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    resolvidaEm: timestamp("resolvida_em", { withTimezone: true }),
+    // Quando o número de sistema avisou o corretor; nulo enquanto espera a
+    // janela de 8h–20h (ou o telefone do corretor).
+    avisoEnviadoEm: timestamp("aviso_enviado_em", { withTimezone: true }),
+  },
+  (t) => [
+    index("pendencias_corretor_id_idx").on(t.corretorId),
+    index("pendencias_negocio_id_idx").on(t.negocioId),
+    // Chave natural: uma pendência aberta por negócio, tipo e descrição.
+    uniqueIndex("pendencias_aberta_unica")
+      .on(t.negocioId, t.tipo, t.descricao)
+      .where(sql`${t.estado} = 'aberta'`),
+  ],
+);

@@ -16,6 +16,7 @@ import {
   gravarMensagemDoAssistente,
 } from "./contexto";
 import { ferramentasDePausaEOptOut } from "./ferramentas/10-pausa-e-opt-out";
+import { ferramentasDePendencias } from "./ferramentas/11-pendencias";
 
 // Registro de ferramentas do assistente (spec → Assistente → Ferramentas).
 // Cada ferramenta é uma chamada a uma função de src/data com a sessão do
@@ -138,8 +139,6 @@ export const ferramentaBuscarBaseDeConhecimento = definir({
       empreendimentoId: empreendimento.id,
       pergunta,
     });
-    // TODO(ticket 11): sem trecho relevante, criar a pendência "pergunta sem
-    // resposta" para o corretor.
     return {
       empreendimento: empreendimento.nome,
       trechos: (trechos ?? []).map((t) => t.texto),
@@ -271,6 +270,7 @@ export const ferramentas: Ferramenta[] = [
   ferramentaRegistrarInteresse,
   ferramentaMudarEtapa,
   ...ferramentasDePausaEOptOut, // ticket 10
+  ...ferramentasDePendencias, // ticket 11
 ];
 
 // JSON Schema que vai para a Responses API.
