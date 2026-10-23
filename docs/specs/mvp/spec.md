@@ -29,7 +29,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 8. Como corretor, quero cadastrar incorporadoras, para associar empreendimentos a quem os desenvolve.
 9. Como corretor, quero cadastrar um empreendimento com nome, cidade, endereço e incorporadora, para que o assistente possa apresentá-lo.
 10. Como corretor, quero cadastrar lotes com quadra, número, área, frente, fundo e preço, para que o assistente saiba o que está à venda.
-11. Como corretor, quero importar lotes de uma planilha, para não cadastrar centenas de lotes um a um.
+11. ~~Como corretor, quero importar lotes de uma planilha, para não cadastrar centenas de lotes um a um.~~ Fora do MVP (ver Out of Scope).
 12. Como corretor, quero ver e alterar o status de cada lote (disponível, reservado, vendido), para manter o catálogo em dia com a incorporadora.
 13. Como corretor, quero que o status dos lotes seja compartilhado por toda a imobiliária, para que dois corretores nunca vendam o mesmo lote.
 14. Como corretor, quero cadastrar modelos de casa com área construída, quartos, banheiros, suítes, vagas e preço para um empreendimento, para oferecer lote + casa.
@@ -177,7 +177,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
   - **WhatsApp**: Evolution API auto-hospedada (ADR-0004): conectar instância (QR code), estado da conexão, enviar texto/mídia/localização, e traduzir o webhook em mensagem recebida (com `fromMe` e indicação de grupo).
   - **LLM**: OpenAI. `gpt-6-luna` pela Responses API com tool calling; `text-embedding-3-small` para embeddings; transcrição de áudio da OpenAI.
   - **Calendar**: Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita. Opcional por corretor (ver Further Notes).
-  - **Storage**: Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas. Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
+  - **Storage**: Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas, pelo `S3Client` nativo do Bun, sem SDK da AWS; por isso o Next roda no runtime do Bun (`bun --bun`). Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
 - **Tempo**: o código usa `new Date()`; os testes controlam o relógio com `setSystemTime` do Bun.
 - **Envs**: `src/lib/env.ts` é o único lugar que lê `process.env`. `next.config.ts` e `drizzle.config.ts` o importam, então build, dev e drizzle-kit falham cedo com env inválida. O harness de testes é a exceção: ele aponta `DATABASE_URL` para o banco de teste.
 - **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar.
@@ -191,7 +191,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 
 - **Imobiliária** → corretores; catálogo compartilhado.
 - **Incorporadora** → **Empreendimento** (nome, cidade, endereço/localização, base de conhecimento, material de marketing, planos de pagamento, modelo de proposta herdado da incorporadora).
-- **Lote**: quadra, número, área, frente, fundo, preço, status `disponível | reservado | vendido`. A importação por planilha cria ou atualiza lotes por quadra + número.
+- **Lote**: quadra, número, área, frente, fundo, preço, status `disponível | reservado | vendido`. Quadra + número é único por empreendimento.
 - **Modelo de casa**: área construída, quartos, banheiros, suítes, vagas, preço; pertence a um empreendimento.
 - **Plano de pagamento**: pertence a um empreendimento. Estrutura provisória: percentual de entrada, número de parcelas e texto livre de condições (correção, taxas). O cálculo de entrada e parcela fica numa única função de `src/data`, porque **a regra definitiva (com taxas) ainda será definida** e vai substituir só esse cálculo.
 - **Cliente**: pertence a um corretor; nome, telefone, e-mail, CPF, documentos, duas referências, forma de pagamento pretendida, dia de pagamento preferido.
@@ -254,6 +254,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 - O assistente enviar áudio; negociação de preço ou desconto pelo assistente.
 - Detecção de cliente duplicado entre corretores.
 - Configuração de etapas ou cadências pelo usuário.
+- Importação de lotes por planilha: no MVP, lotes são cadastrados um a um.
 
 ## Further Notes
 
