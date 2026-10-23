@@ -10,9 +10,9 @@ import {
   whatsappConexoes,
 } from "@/lib/db/schema";
 import * as llm from "@/lib/llm";
-import * as whatsapp from "@/lib/whatsapp";
 import {
   type ContextoDoAtendimento,
+  enviarTextoAoCliente,
   gravarMensagemDoAssistente,
 } from "./assistente/contexto";
 import {
@@ -48,6 +48,7 @@ export async function atenderMensagem(
     .select({
       id: conversas.id,
       assistente: conversas.assistente,
+      optOut: conversas.optOut,
       corretorId: conversas.corretorId,
       imobiliariaId: conversas.imobiliariaId,
       clienteId: conversas.clienteId,
@@ -66,7 +67,7 @@ export async function atenderMensagem(
   if (!conversa || !conversa.instancia) {
     return { atendeu: false, motivo: "conversa_inexistente" };
   }
-  if (conversa.assistente !== "ativo") {
+  if (conversa.assistente !== "ativo" || conversa.optOut) {
     return { atendeu: false, motivo: "assistente_inativo" };
   }
 
@@ -135,11 +136,10 @@ export async function atenderMensagem(
 
   const texto = resposta.texto.trim();
   if (texto) {
-    const { idMensagem } = await whatsapp.enviarTexto(
-      contexto.instancia,
-      contexto.conversa.telefone,
-      texto,
-    );
+    // Ticket 10: com opt-out registrado nesta rodada, este é o último envio.
+    const { idMensagem } = await enviarTextoAoCliente(contexto, texto, {
+      despedida: true,
+    });
     await gravarMensagemDoAssistente(contexto, { idMensagem, texto });
   }
 

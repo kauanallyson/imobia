@@ -13,8 +13,20 @@ import { atenderMensagem } from "./assistente";
 import { inserirNegocioEmNovo } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
+// Estado do assistente por conversa (ticket 10) vive em módulo próprio para
+// as ferramentas do assistente importarem sem ciclo; a interface usa daqui.
+export {
+  buscarConversa,
+  desligarAssistente,
+  devolverAoAssistente,
+  ligarAssistente,
+  registrarOptOut,
+  retomarAssistentesPausados,
+} from "./estado-do-assistente";
+
 const mensagemColumns = {
   id: mensagens.id,
+  evolutionId: mensagens.evolutionId,
   autor: mensagens.autor,
   texto: mensagens.texto,
   midia: mensagens.midia,
@@ -68,7 +80,7 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
     );
 
     let [conversa] = await tx
-      .select({ id: conversas.id })
+      .select({ id: conversas.id, assistente: conversas.assistente })
       .from(conversas)
       .innerJoin(clientes, eq(clientes.id, conversas.clienteId))
       .where(
@@ -106,7 +118,7 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
           clienteId: cliente.id,
           criadaEm: agora,
         })
-        .returning({ id: conversas.id });
+        .returning({ id: conversas.id, assistente: conversas.assistente });
       if (!conversa) throw new Error("conversa não inserida");
       novoCliente = true;
     }
@@ -128,10 +140,20 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
       })
       .returning({ id: mensagens.id });
 
+    // Pausa (spec → Assistente → Pausa, ticket 10): uma mensagem `fromMe`
+    // gravada agora é do corretor pelo celular, e pausa o assistente ativo.
+    // O eco das mensagens do próprio assistente também vem `fromMe`, mas ele
+    // já foi gravado pelo id da Evolution ao enviar: cai no conflito acima
+    // (`gravada` falso) e não chega aqui. Desligado continua desligado.
     if (gravada && mensagem.fromMe) {
       await tx
         .update(conversas)
-        .set({ ultimaMensagemCorretorEm: mensagem.enviadaEm })
+        .set({
+          ultimaMensagemCorretorEm: mensagem.enviadaEm,
+          ...(conversa.assistente === "ativo"
+            ? { assistente: "pausado" as const }
+            : {}),
+        })
         .where(eq(conversas.id, conversa.id));
     }
 
