@@ -2,7 +2,6 @@ import "server-only";
 import { z } from "zod";
 import { interesses } from "@/lib/db/schema";
 import type { FerramentaDoModelo } from "@/lib/llm";
-import * as whatsapp from "@/lib/whatsapp";
 import { buscarNaBaseDeConhecimento } from "../base-de-conhecimento";
 import {
   buscarEmpreendimento,
@@ -13,8 +12,10 @@ import { materiaisPara, urlDoMaterial } from "../materiais-de-marketing";
 import { mudarEtapa, registrarInteresse } from "../negocios";
 import {
   type ContextoDoAtendimento,
+  enviarMidiaAoCliente,
   gravarMensagemDoAssistente,
 } from "./contexto";
+import { ferramentasDePausaEOptOut } from "./ferramentas/10-pausa-e-opt-out";
 
 // Registro de ferramentas do assistente (spec → Assistente → Ferramentas).
 // Cada ferramenta é uma chamada a uma função de src/data com a sessão do
@@ -173,17 +174,13 @@ export const ferramentaEnviarMaterialDeMarketing = definir({
     for (const material of materiais) {
       const url = await urlDoMaterial(contexto.session, material.id);
       if (!url) continue;
-      const { idMensagem } = await whatsapp.enviarMidia(
-        contexto.instancia,
-        contexto.conversa.telefone,
-        {
-          tipo: tipoDeMidia[material.tipoDeArquivo],
-          url,
-          mimetype: material.contentType,
-          legenda: material.nome,
-          nomeDoArquivo: material.nome,
-        },
-      );
+      const { idMensagem } = await enviarMidiaAoCliente(contexto, {
+        tipo: tipoDeMidia[material.tipoDeArquivo],
+        url,
+        mimetype: material.contentType,
+        legenda: material.nome,
+        nomeDoArquivo: material.nome,
+      });
       await gravarMensagemDoAssistente(contexto, {
         idMensagem,
         texto: material.nome,
@@ -273,6 +270,7 @@ export const ferramentas: Ferramenta[] = [
   ferramentaEnviarMaterialDeMarketing,
   ferramentaRegistrarInteresse,
   ferramentaMudarEtapa,
+  ...ferramentasDePausaEOptOut, // ticket 10
 ];
 
 // JSON Schema que vai para a Responses API.

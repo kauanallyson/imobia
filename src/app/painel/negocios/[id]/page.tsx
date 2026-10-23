@@ -1,6 +1,8 @@
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import ReplayIcon from "@mui/icons-material/Replay";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,7 +18,11 @@ import { Suspense } from "react";
 import Link from "@/app/components/link";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
 import { verificarCorretor } from "@/data/session";
-import { criarNegocioAction, reabrirAction } from "../actions";
+import {
+  assistenteDaConversaAction,
+  criarNegocioAction,
+  reabrirAction,
+} from "../actions";
 import { formatarTelefone, formatoDataHora, rotuloDaEtapa } from "../etapas";
 import { MarcarPerdidoForm, MudarEtapaForm } from "../forms";
 
@@ -149,6 +155,7 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
       </Secao>
 
       <Secao titulo="Conversa">
+        {conversa && <Assistente negocioId={negocio.id} conversa={conversa} />}
         {!conversa ? (
           <Typography color="text.secondary">
             Sem conversa no WhatsApp: este cliente foi cadastrado à mão.
@@ -186,6 +193,91 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
         </Stack>
       </Secao>
     </>
+  );
+}
+
+const rotuloDoAssistente = {
+  ativo: "Assistente ativo",
+  pausado: "Assistente pausado: você assumiu",
+  desligado: "Assistente desligado",
+} as const;
+
+// Ticket 10: estado do assistente nesta conversa e os botões de controle.
+// Com opt-out do cliente não há botão: ninguém religa.
+function Assistente({
+  negocioId,
+  conversa,
+}: {
+  negocioId: string;
+  conversa: Pick<
+    NonNullable<NegocioDetalhado["conversa"]>,
+    "id" | "assistente" | "optOut"
+  >;
+}) {
+  if (conversa.optOut) {
+    return (
+      <Alert severity="info">
+        O cliente pediu para não receber mais mensagens. O assistente está
+        desligado em definitivo nesta conversa.
+      </Alert>
+    );
+  }
+  const botao = (
+    acao: "devolver" | "ligar" | "desligar",
+    rotulo: string,
+    icone: React.ReactNode,
+    variant: "contained" | "outlined",
+  ) => (
+    <form action={assistenteDaConversaAction}>
+      <input type="hidden" name="negocioId" value={negocioId} />
+      <input type="hidden" name="conversaId" value={conversa.id} />
+      <input type="hidden" name="acao" value={acao} />
+      <Button
+        type="submit"
+        variant={variant}
+        size="large"
+        disableElevation
+        fullWidth
+        startIcon={icone}
+      >
+        {rotulo}
+      </Button>
+    </form>
+  );
+  return (
+    <Stack spacing={2}>
+      <Chip
+        label={rotuloDoAssistente[conversa.assistente]}
+        color={
+          conversa.assistente === "ativo"
+            ? "success"
+            : conversa.assistente === "pausado"
+              ? "warning"
+              : "default"
+        }
+        sx={{ alignSelf: "flex-start" }}
+      />
+      {conversa.assistente === "pausado" &&
+        botao(
+          "devolver",
+          "Devolver ao assistente",
+          <SmartToyIcon aria-hidden fontSize="small" />,
+          "contained",
+        )}
+      {conversa.assistente === "desligado"
+        ? botao(
+            "ligar",
+            "Ligar assistente",
+            <PowerSettingsNewIcon aria-hidden fontSize="small" />,
+            "contained",
+          )
+        : botao(
+            "desligar",
+            "Desligar assistente",
+            <PowerSettingsNewIcon aria-hidden fontSize="small" />,
+            "outlined",
+          )}
+    </Stack>
   );
 }
 

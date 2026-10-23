@@ -150,3 +150,42 @@ export async function criarLoteECasaDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lote, modelo };
 }
+
+// Ana com o WhatsApp pareado e a primeira conversa aberta: o cliente
+// 5588999990000 mandou "Oi, vi o anúncio" e o assistente respondeu (fake do
+// LLM roteirizado). Devolve a conversa e o id Evolution da resposta do
+// assistente (para simular o eco `fromMe`). Zera `enviados`/`pedidos` dos
+// fakes para o teste observar só o que vem depois.
+export async function iniciarConversaDaAna() {
+  const { receberMensagem } = await import("@/data/conversas");
+  const { roteirizar, pedidos } = await import("@/test/fakes/llm");
+  const { enviados, mensagemRecebida } = await import("@/test/fakes/whatsapp");
+  const { listarMensagens } = await import("@/data/conversas");
+  const conectado = await conectarWhatsappDaAna();
+  const telefone = "5588999990000";
+  roteirizar({
+    tipo: "texto",
+    texto: "Olá! Sou a assistente virtual da Ana Souza.",
+  });
+  const result = await receberMensagem(
+    mensagemRecebida({
+      instancia: conectado.instancia,
+      telefone,
+      texto: "Oi, vi o anúncio",
+    }),
+  );
+  const conversaId = ok(result?.conversaId, "conversa");
+  const mensagens = await listarMensagens(conectado.session, conversaId);
+  const resposta = ok(
+    mensagens.find((m) => m.autor === "assistente"),
+    "resposta do assistente",
+  );
+  enviados.length = 0;
+  pedidos.length = 0;
+  return {
+    ...conectado,
+    telefone,
+    conversaId,
+    idDaResposta: resposta.evolutionId,
+  };
+}

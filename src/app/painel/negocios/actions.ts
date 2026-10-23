@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { criarCliente, TelefoneDuplicadoError } from "@/data/clientes";
 import {
+  desligarAssistente,
+  devolverAoAssistente,
+  ligarAssistente,
+} from "@/data/conversas";
+import {
   criarNegocio,
   MotivoObrigatorioError,
   marcarPerdido,
@@ -122,4 +127,26 @@ export async function criarNegocioAction(formData: FormData) {
   if (!negocio) return;
   revalidatePath("/painel");
   redirect(detalhe(negocio.id));
+}
+
+// Ticket 10: controle do assistente por conversa, a partir do detalhe do
+// negócio. Botões simples: "levar ao estado X", repetir não altera.
+const assistenteSchema = z.object({
+  negocioId: z.uuid(),
+  conversaId: z.uuid(),
+  acao: z.enum(["devolver", "ligar", "desligar"]),
+});
+
+export async function assistenteDaConversaAction(formData: FormData) {
+  const session = await verificarCorretor();
+  const input = assistenteSchema.safeParse(Object.fromEntries(formData));
+  if (!input.success) return;
+  const { negocioId, conversaId, acao } = input.data;
+  const mudar = {
+    devolver: devolverAoAssistente,
+    ligar: ligarAssistente,
+    desligar: desligarAssistente,
+  }[acao];
+  await mudar(session, conversaId);
+  revalidarNegocio(negocioId);
 }

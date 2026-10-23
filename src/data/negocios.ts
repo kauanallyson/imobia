@@ -232,7 +232,11 @@ export async function buscarNegocio(session: Session, id: string) {
   if (!cliente) return null;
 
   const [conversa] = await db
-    .select({ id: conversas.id, assistente: conversas.assistente })
+    .select({
+      id: conversas.id,
+      assistente: conversas.assistente,
+      optOut: conversas.optOut,
+    })
     .from(conversas)
     .where(
       and(

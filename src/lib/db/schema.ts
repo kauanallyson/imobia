@@ -514,3 +514,7 @@ export const materiaisDeMarketing = pgTable(
     ),
   ],
 );
+
+// ---- ticket 10: estado do assistente por conversa (só tipo; colunas já
+// existem em `conversas`).
+export type EstadoDoAssistente = (typeof estadosDoAssistente)[number];
