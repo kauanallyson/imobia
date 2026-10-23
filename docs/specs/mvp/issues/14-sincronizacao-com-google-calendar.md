@@ -11,4 +11,4 @@
 - [ ] Visita agendada cria evento com cliente, empreendimento e telefone
 - [ ] Evento movido atualiza a visita e avisa o cliente; evento apagado cancela e oferece novo horário
 - [ ] Sem Google conectado, o fluxo de visitas continua funcionando
-- [ ] Testes usam o adaptador de Agenda falso
+- [ ] Testes usam o `CalendarFake`

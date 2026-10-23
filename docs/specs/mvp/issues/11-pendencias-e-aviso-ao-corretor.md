@@ -10,4 +10,4 @@
 - [ ] Pedido de falar com uma pessoa cria pendência urgente e pausa o assistente
 - [ ] Lista de pendências no CRM, com resolução pelo celular
 - [ ] Aviso no WhatsApp do corretor via número de sistema, com link para a pendência
-- [ ] Avisos não urgentes fora de 8h–20h esperam a próxima janela (teste com Relógio falso)
+- [ ] Avisos não urgentes fora de 8h–20h esperam a próxima janela (teste com `ClockFake`)

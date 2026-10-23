@@ -6,10 +6,10 @@
 
 **Status:** ready-for-agent
 
-- [ ] Cadência 1d / 3d / 7d / a cada 2 semanas, contada da última mensagem do cliente (teste com Relógio falso)
+- [ ] Cadência 1d / 3d / 7d / a cada 2 semanas, contada da última mensagem do cliente (teste com `ClockFake`)
 - [ ] Resposta do cliente reinicia a contagem
 - [ ] Após 90 dias sem resposta, envios param e o negócio aparece no filtro de silenciosos
 - [ ] Nada é enviado fora de 8h–20h ou aos domingos; o envio vai para a próxima janela
 - [ ] Conversa pausada não recebe follow-up e o corretor é lembrado
 - [ ] Opt-out e conversas desligadas nunca recebem follow-up
-- [ ] O conteúdo do follow-up é gerado com o contexto da conversa (LLM falso em testes)
+- [ ] O conteúdo do follow-up é gerado com o contexto da conversa (`LLMFake` em testes)

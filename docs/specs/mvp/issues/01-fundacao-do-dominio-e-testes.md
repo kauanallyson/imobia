@@ -16,3 +16,5 @@
 ## Comments
 
 **Implementado (2026-10-23).** Domínio em `dominio/` (`criarDominio`), adaptadores com falsos em `adaptadores/`, harness em `test/` (preload em `bunfig.toml`). O socket do Podman não estava ativo, então `bun test` gerencia o próprio container (`crm-postgres-test`, porta 5433, tmpfs) via `podman run` em vez de `podman compose`; `TEST_DATABASE_URL` aponta para outro Postgres. Isolamento padrão por transação revertida (`withRollback`); testes de concorrência (reserva) devem usar uma imobiliária nova por teste. Não havia migration anterior, então não há `DROP TABLE users`.
+
+**Atualização (2026-10-23).** Código movido para `src/`, com pastas e padrões em inglês (ADR-0003 atualizado): `src/domain` (`createDomain`), `src/adapters` (`WhatsApp`, `LLM`, `Calendar`, `Storage`, `Clock` e os `*Fake`), `src/test` (`withRollback`, `createTestDomain`).

@@ -11,4 +11,4 @@
 - [ ] Aprovação envia o PDF com instruções do gov.br, cria a reserva de 72h e move para Aguardando assinatura
 - [ ] Duas propostas concorrentes para o mesmo lote: só uma reserva vence (teste de concorrência)
 - [ ] Lote reservado ou vendido não pode entrar em nova proposta
-- [ ] Reserva prorrogada manualmente estende a expiração; reserva expirada libera o lote (teste com Relógio falso)
+- [ ] Reserva prorrogada manualmente estende a expiração; reserva expirada libera o lote (teste com `ClockFake`)

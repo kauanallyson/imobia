@@ -159,15 +159,16 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 
 ### Arquitetura
 
+- **Código em `src/`**: `src/app` (Next.js), `src/db` (schema Drizzle), `src/domain` (módulo de domínio, `createDomain`), `src/adapters` (interfaces e falsos), `src/test` (harness de testes). Migrations ficam em `drizzle/` na raiz.
 - **Um módulo de domínio** é a única porta de entrada para regras de negócio. Páginas e server actions do Next.js, o worker e as ferramentas do assistente chamam esse módulo; nenhum deles acessa o banco diretamente para regras de negócio.
-- Nomes de domínio em pt-BR no código (ADR-0003), seguindo o `GLOSSARY.md`.
+- Termos do `GLOSSARY.md` em pt-BR no código; pastas, nomes de padrão e adaptadores em inglês (ADR-0003).
 - **Toda tabela de domínio referencia a imobiliária** dona (ADR-0001), e toda consulta do módulo de domínio é escopada por imobiliária. Clientes, negócios, conversas e documentos são também escopados pelo corretor dono; o catálogo e o status de lotes são compartilhados na imobiliária.
-- **Adaptadores atrás de módulos próprios**, cada um com uma implementação real e uma falsa em memória para testes:
+- **Adaptadores atrás de módulos próprios**, cada um com uma implementação real e uma falsa em memória para testes (`<Nome>Fake`):
   - **WhatsApp**: Evolution API auto-hospedada (ADR-0004). Interface: conectar instância (QR code), estado da conexão, enviar texto/mídia/localização, e eventos de mensagem recebida, incluindo `fromMe` e indicação de grupo. Nenhum outro módulo conhece a Evolution API, para que migrar para a Cloud API oficial troque só este adaptador.
   - **LLM**: OpenAI. `gpt-6-luna` pela Responses API com tool calling; `text-embedding-3-small` para embeddings; transcrição de áudio da OpenAI.
-  - **Agenda**: Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita.
-  - **Armazenamento**: Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas. Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
-  - **Relógio**: abstração de tempo, para que cadências, expiração de reserva e janela de horário sejam testáveis.
+  - **Calendar** (agenda): Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita.
+  - **Storage** (armazenamento): Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas. Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
+  - **Clock** (relógio): abstração de tempo, para que cadências, expiração de reserva e janela de horário sejam testáveis.
 - **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar. Ele lê o estado do banco e chama o módulo de domínio.
 - **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público.
 - **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `docker-compose.yml` atual é a base.
@@ -214,11 +215,11 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 ## Testing Decisions
 
 - **Um bom teste exercita comportamento externo** pelo módulo de domínio: dado um estado e um evento (mensagem recebida, ação do corretor, passagem do tempo), verifica o estado resultante e os efeitos nos adaptadores falsos (mensagens enviadas, eventos de agenda, arquivos). Testes não inspecionam detalhes internos nem chamam funções auxiliares privadas.
-- **Seam principal**: o módulo de domínio, com **Postgres real** (container Podman com pgvector) em testes. Cada teste isola seus dados (por exemplo, uma imobiliária nova por teste ou transação revertida).
-- **Adaptadores falsos**: WhatsApp (registra envios, simula recebimentos e `fromMe`), LLM (respostas e chamadas de ferramenta roteirizadas), Agenda (eventos em memória), Armazenamento (arquivos em memória), Relógio (avançado pelo teste).
-- **O assistente é testado pelo mesmo seam**: "chega uma mensagem para o corretor X" com o LLM falso roteirizado, verificando quais ferramentas surtiram efeito, que mensagens saíram e como o negócio mudou. A qualidade do texto gerado pela IA não é testada automaticamente.
+- **Seam principal**: o módulo de domínio, com **Postgres real** (container Podman com pgvector) em testes. Cada teste isola seus dados: por padrão uma transação revertida (`withRollback`); testes de concorrência usam uma imobiliária nova por teste.
+- **Adaptadores falsos** (`src/adapters`, montados por `createTestDomain`): `WhatsAppFake` (registra envios, simula recebimentos e `fromMe`), `LLMFake` (respostas e chamadas de ferramenta roteirizadas), `CalendarFake` (eventos em memória), `StorageFake` (arquivos em memória), `ClockFake` (avançado pelo teste).
+- **O assistente é testado pelo mesmo seam**: "chega uma mensagem para o corretor X" com o `LLMFake` roteirizado, verificando quais ferramentas surtiram efeito, que mensagens saíram e como o negócio mudou. A qualidade do texto gerado pela IA não é testada automaticamente.
 - **Módulos com testes**: regras de etapas, reserva (incluindo concorrência: duas propostas para o mesmo lote), cálculo de plano, filtro por orçamento, disponibilidade de horários (janelas ∩ agenda), cadência de follow-up e janela de horário, pausa/retomada do assistente, regra de "número novo", escopo por imobiliária e por corretor, importação de lotes.
-- **Runner**: `bun test`. Não há testes no repositório hoje; o ticket de fundação cria o primeiro e serve de referência para os demais.
+- **Runner**: `bun test`. O ticket de fundação criou o primeiro (`src/domain/imobiliarias.test.ts`), que serve de referência para os demais.
 - Adaptadores reais (Evolution, OpenAI, Google, R2) são finos e verificados manualmente no ambiente de deploy, não por testes automatizados.
 
 ## Out of Scope

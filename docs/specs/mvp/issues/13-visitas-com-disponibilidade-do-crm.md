@@ -10,6 +10,6 @@
 - [ ] Horários oferecidos ficam só dentro da disponibilidade e sem conflito com outras visitas
 - [ ] Agendamento cria a visita com local padrão do empreendimento, envia localização e move o negócio para Visita agendada
 - [ ] Corretor altera o local de uma visita
-- [ ] Worker envia lembretes no dia anterior e na manhã da visita (teste com Relógio falso)
+- [ ] Worker envia lembretes no dia anterior e na manhã da visita (teste com `ClockFake`)
 - [ ] Cliente remarca e a visita é atualizada
 - [ ] "Fechar agora" leva o negócio direto a Coletando dados

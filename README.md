@@ -20,4 +20,6 @@ bun run test
 
 `bun test` cria (ou reinicia) o container Podman `crm-postgres-test` na porta 5433, com dados em tmpfs, e aplica as migrations antes de rodar. Para usar outro Postgres com pgvector, defina `TEST_DATABASE_URL`.
 
-Testes exercitam o módulo de domínio (`dominio/`) com Postgres real e adaptadores falsos (`adaptadores/`). Use `withRollback` (`test/database.ts`) para isolar os dados de cada teste (testes de concorrência, que precisam de várias conexões, criam uma imobiliária nova por teste em vez disso) e `criarDominioDeTeste` (`test/dominio.ts`) para obter o domínio e os falsos. Veja `dominio/imobiliarias.test.ts` como referência.
+Testes exercitam o módulo de domínio (`src/domain/`) com Postgres real e adaptadores falsos (`src/adapters/`). Use `withRollback` (`src/test/database.ts`) para isolar os dados de cada teste (testes de concorrência, que precisam de várias conexões, criam uma imobiliária nova por teste em vez disso) e `createTestDomain` (`src/test/domain.ts`) para obter o domínio e os falsos. Veja `src/domain/imobiliarias.test.ts` como referência.
+
+Nomes: termos do `GLOSSARY.md` em pt-BR; pastas, padrões e adaptadores em inglês (ADR-0003).

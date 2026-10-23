@@ -1,21 +1,21 @@
 import { eq } from "drizzle-orm";
 import { imobiliarias } from "@/db/schema";
-import type { DependenciasDoDominio } from ".";
+import type { DomainDeps } from ".";
 
 export type Imobiliaria = typeof imobiliarias.$inferSelect;
 
 export const criarImobiliaria =
-  ({ db }: DependenciasDoDominio) =>
-  async (dados: { nome: string }): Promise<Imobiliaria> => {
+  ({ db }: DomainDeps) =>
+  async (input: { nome: string }): Promise<Imobiliaria> => {
     const [imobiliaria] = await db
       .insert(imobiliarias)
-      .values({ nome: dados.nome })
+      .values({ nome: input.nome })
       .returning();
     return imobiliaria;
   };
 
 export const buscarImobiliaria =
-  ({ db }: DependenciasDoDominio) =>
+  ({ db }: DomainDeps) =>
   async (id: string): Promise<Imobiliaria | null> => {
     const [imobiliaria] = await db
       .select()
