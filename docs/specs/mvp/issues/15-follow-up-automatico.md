@@ -13,3 +13,4 @@
 - [ ] Conversa pausada não recebe follow-up e o corretor é lembrado
 - [ ] Opt-out e conversas desligadas nunca recebem follow-up
 - [ ] O conteúdo do follow-up é gerado com o contexto da conversa (falso em testes)
+- [ ] Cada follow-up sai uma única vez, mesmo se o job rodar de novo

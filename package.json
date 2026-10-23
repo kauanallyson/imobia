@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
     "lint": "biome check",
     "format": "biome format --write",
     "db:generate": "drizzle-kit generate",
@@ -14,7 +14,7 @@
     "db:studio": "drizzle-kit studio",
     "admin:create": "bun --conditions=react-server src/scripts/criar-administrador.ts",
     "test": "bun test",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "bun --bun next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

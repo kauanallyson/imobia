@@ -12,3 +12,4 @@
 - [ ] Duas propostas concorrentes para o mesmo lote: só uma reserva vence (teste de concorrência)
 - [ ] Lote reservado ou vendido não pode entrar em nova proposta
 - [ ] Reserva prorrogada manualmente estende a expiração; reserva expirada libera o lote (teste com `setSystemTime`)
+- [ ] Aprovar duas vezes envia a proposta e cria a reserva uma única vez

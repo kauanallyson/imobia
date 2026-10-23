@@ -12,3 +12,4 @@
 - [ ] Evento movido atualiza a visita e avisa o cliente; evento apagado cancela e oferece novo horário
 - [ ] Sem Google conectado, o fluxo de visitas continua funcionando
 - [ ] Testes usam um Calendar falso (`mock.module`)
+- [ ] Repetir a sincronização não cria evento duplicado no Google Calendar
