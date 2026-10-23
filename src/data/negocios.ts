@@ -15,6 +15,12 @@ import {
   negocioEtapas,
   negocios,
 } from "@/lib/db/schema";
+import { buscarLote } from "./lotes";
+import { buscarModeloDeCasa } from "./modelos-de-casa";
+import {
+  buscarPlanoDePagamento,
+  calcularPlanoParaLote,
+} from "./planos-de-pagamento";
 import { requireCorretor, type Session } from "./session";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -27,6 +33,11 @@ export const negocioColumns = {
   loteInteresseId: negocios.loteInteresseId,
   empreendimentoInteresseId: negocios.empreendimentoInteresseId,
   interesse: negocios.interesse,
+  orcamentoEntrada: negocios.orcamentoEntrada,
+  orcamentoParcelaMaxima: negocios.orcamentoParcelaMaxima,
+  foraDoOrcamento: negocios.foraDoOrcamento,
+  planoEscolhidoId: negocios.planoEscolhidoId,
+  modeloDeCasaEscolhidoId: negocios.modeloDeCasaEscolhidoId,
   criadoEm: negocios.criadoEm,
   atualizadoEm: negocios.atualizadoEm,
 };
@@ -280,13 +291,41 @@ export async function buscarNegocio(session: Session, id: string) {
         .where(eq(lotes.id, negocio.loteInteresseId))
     : [];
 
+  // Plano escolhido (ticket 12) com o cálculo para o lote de interesse,
+  // quando há lote; os valores vêm só de `calcularPlano`.
+  const planoEscolhido = negocio.planoEscolhidoId
+    ? await planoEscolhidoDoNegocio(session, negocio)
+    : null;
+
   return {
     ...negocio,
     cliente,
     lote: lote ?? null,
+    planoEscolhido,
     conversa: conversa ? { ...conversa, mensagens: listaDeMensagens } : null,
     historico,
   };
+}
+
+async function planoEscolhidoDoNegocio(
+  session: Session,
+  negocio: {
+    planoEscolhidoId: string | null;
+    loteInteresseId: string | null;
+    modeloDeCasaEscolhidoId: string | null;
+  },
+) {
+  if (!negocio.planoEscolhidoId) return null;
+  const plano = await buscarPlanoDePagamento(session, negocio.planoEscolhidoId);
+  if (!plano) return null;
+  const calculo = negocio.loteInteresseId
+    ? await calcularPlanoParaLote(session, {
+        loteId: negocio.loteInteresseId,
+        planoId: plano.id,
+        modeloDeCasaId: negocio.modeloDeCasaEscolhidoId ?? undefined,
+      })
+    : null;
+  return { id: plano.id, nome: plano.nome, calculo };
 }
 
 export type NegocioDetalhado = NonNullable<
@@ -398,4 +437,110 @@ export async function reabrir(session: Session, negocioId: string) {
       return perda?.de ?? "novo";
     },
   });
+}
+
+// ---- ticket 12: orçamento e plano escolhido --------------------------------
+
+// O que o cliente pode pagar, em centavos (como as colunas). Repetir com os
+// mesmos valores não altera nada além de `atualizadoEm`.
+export async function registrarOrcamento(
+  session: Session,
+  negocioId: string,
+  orcamento: { entrada: number; parcelaMaxima: number },
+) {
+  const { corretorId } = requireCorretor(session);
+  if (!z.uuid().safeParse(negocioId).success) return null;
+  const [updated] = await db
+    .update(negocios)
+    .set({
+      orcamentoEntrada: Math.max(0, Math.round(orcamento.entrada)),
+      orcamentoParcelaMaxima: Math.max(0, Math.round(orcamento.parcelaMaxima)),
+      // Novo orçamento: a avaliação anterior deixa de valer.
+      foraDoOrcamento: false,
+      atualizadoEm: new Date(),
+    })
+    .where(and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)))
+    .returning(negocioColumns);
+  return updated ?? null;
+}
+
+// "Levar ao plano X" (e, se informados, ao lote e modelo de interesse). Tudo
+// precisa estar na imobiliária e no mesmo empreendimento; senão null. Mesmos
+// valores → nada muda.
+export async function escolherPlano(
+  session: Session,
+  negocioId: string,
+  input: {
+    planoId: string;
+    loteId?: string | null;
+    modeloDeCasaId?: string | null;
+  },
+) {
+  const { corretorId } = requireCorretor(session);
+  if (!z.uuid().safeParse(negocioId).success) return null;
+  const plano = await buscarPlanoDePagamento(session, input.planoId);
+  if (!plano) return null;
+  const lote = input.loteId ? await buscarLote(session, input.loteId) : null;
+  if (input.loteId && !lote) return null;
+  if (lote && lote.empreendimentoId !== plano.empreendimentoId) return null;
+  const modelo = input.modeloDeCasaId
+    ? await buscarModeloDeCasa(session, input.modeloDeCasaId)
+    : null;
+  if (input.modeloDeCasaId && !modelo) return null;
+  if (modelo && modelo.empreendimentoId !== plano.empreendimentoId) return null;
+
+  const atual = await buscarNegocioResumido(session, negocioId);
+  if (!atual) return null;
+  const set = {
+    planoEscolhidoId: plano.id,
+    empreendimentoInteresseId: plano.empreendimentoId,
+    loteInteresseId: lote?.id ?? atual.loteInteresseId,
+    modeloDeCasaEscolhidoId:
+      modelo?.id ?? (lote ? null : atual.modeloDeCasaEscolhidoId),
+    interesse: modelo
+      ? ("lote_e_casa" as const)
+      : lote
+        ? ("lote" as const)
+        : atual.interesse,
+  };
+  if (
+    set.planoEscolhidoId === atual.planoEscolhidoId &&
+    set.empreendimentoInteresseId === atual.empreendimentoInteresseId &&
+    set.loteInteresseId === atual.loteInteresseId &&
+    set.modeloDeCasaEscolhidoId === atual.modeloDeCasaEscolhidoId &&
+    set.interesse === atual.interesse
+  ) {
+    return atual;
+  }
+  const [updated] = await db
+    .update(negocios)
+    .set({ ...set, atualizadoEm: new Date() })
+    .where(and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)))
+    .returning(negocioColumns);
+  return updated ?? null;
+}
+
+// Nada coube no orçamento: o negócio segue aberto, só marcado. Repetir não
+// altera.
+export async function marcarForaDoOrcamento(
+  session: Session,
+  negocioId: string,
+) {
+  const atual = await buscarNegocioResumido(session, negocioId);
+  if (!atual) return null;
+  if (atual.foraDoOrcamento) return atual;
+  const [updated] = await db
+    .update(negocios)
+    .set({ foraDoOrcamento: true, atualizadoEm: new Date() })
+    .where(eq(negocios.id, atual.id))
+    .returning(negocioColumns);
+  return updated ?? null;
+}
+
+// Resumo do negócio para o assistente (orçamento, interesse, plano).
+export async function buscarResumoDoNegocio(
+  session: Session,
+  negocioId: string,
+) {
+  return buscarNegocioResumido(session, negocioId);
 }

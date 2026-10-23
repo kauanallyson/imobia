@@ -3,6 +3,7 @@ import type { Empreendimento } from "../empreendimentos";
 import type { ContextoDoAtendimento } from "./contexto";
 import { secaoDeOptOut } from "./ferramentas/10-pausa-e-opt-out";
 import { secaoDePendencias } from "./ferramentas/11-pendencias";
+import { secaoDoPromptDeOrcamento } from "./ferramentas/12-orcamento";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -59,6 +60,7 @@ export function montarInstrucoes(
       : "- Empreendimento em foco: ainda não definido.",
     "- Empreendimentos da imobiliária:",
     listaDeEmpreendimentos,
-    secaoDeOptOut, // ticket 10
+secaoDeOptOut, // ticket 10
+`\n${secaoDoPromptDeOrcamento}`, // ticket 12
   ].join("\n");
 }

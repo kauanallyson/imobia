@@ -214,6 +214,22 @@ export const negocios = pgTable(
     // O que o cliente procura: só o lote ou lote + casa (GLOSSARY →
     // Material de marketing). Registrado pelo assistente.
     interesse: text({ enum: interesses }),
+    // ---- ticket 12: orçamento do cliente e plano escolhido. Valores em
+    // centavos inteiros (o cálculo em src/data/planos-de-pagamento.ts também
+    // trabalha em centavos; a interface e as ferramentas convertem).
+    orcamentoEntrada: integer("orcamento_entrada"),
+    orcamentoParcelaMaxima: integer("orcamento_parcela_maxima"),
+    // Nenhuma combinação plano + lote coube no orçamento; o negócio segue
+    // aberto com a opção mais próxima oferecida.
+    foraDoOrcamento: boolean("fora_do_orcamento").notNull().default(false),
+    planoEscolhidoId: uuid("plano_escolhido_id").references(
+      () => planosDePagamento.id,
+    ),
+    // Modelo de casa da opção escolhida (só para lote + casa).
+    modeloDeCasaEscolhidoId: uuid("modelo_de_casa_escolhido_id").references(
+      () => modelosDeCasa.id,
+    ),
+    // ---- fim ticket 12
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),

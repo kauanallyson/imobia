@@ -213,9 +213,14 @@ describe("assistente: primeiro atendimento", () => {
       "enviar_material_de_marketing",
       "registrar_interesse",
       "mudar_etapa",
-      "registrar_opt_out",
+"registrar_opt_out",
       "criar_pendencia_pergunta_sem_resposta",
       "chamar_corretor",
+// ticket 12
+      "registrar_orcamento",
+      "listar_opcoes_no_orcamento",
+      "escolher_plano",
+      "pedido_de_desconto",
     ]);
   });
 
