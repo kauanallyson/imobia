@@ -15,6 +15,7 @@ import {
   type ContextoDoAtendimento,
   gravarMensagemDoAssistente,
 } from "./contexto";
+import { ferramentasDeVisita } from "./ferramentas/13-visitas";
 
 // Registro de ferramentas do assistente (spec → Assistente → Ferramentas).
 // Cada ferramenta é uma chamada a uma função de src/data com a sessão do
@@ -273,6 +274,7 @@ export const ferramentas: Ferramenta[] = [
   ferramentaEnviarMaterialDeMarketing,
   ferramentaRegistrarInteresse,
   ferramentaMudarEtapa,
+  ...ferramentasDeVisita, // ticket 13
 ];
 
 // JSON Schema que vai para a Responses API.

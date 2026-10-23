@@ -150,3 +150,60 @@ export async function criarLoteECasaDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lote, modelo };
 }
+
+// Ticket 13: Ana com WhatsApp conectado, o cliente Carlos Lima (que chegou
+// pelo WhatsApp e já foi atendido, negócio em Em atendimento) interessado no
+// Jardim das Flores (com coordenadas) e disponibilidade de segunda a sexta,
+// 09:00–12:00. Limpa os envios e pedidos ao modelo que a chegada gerou.
+export async function criarCenarioDeVisitaDaAna() {
+  const { criarJanela } = await import("@/data/disponibilidade");
+  const { editarEmpreendimento } = await import("@/data/empreendimentos");
+  const { registrarInteresse, listarNegocios } = await import(
+    "@/data/negocios"
+  );
+  const { receberMensagem } = await import("@/data/conversas");
+  const { listarClientes } = await import("@/data/clientes");
+  const llm = await import("@/test/fakes/llm");
+  const whatsapp = await import("@/test/fakes/whatsapp");
+
+  const conexao = await conectarWhatsappDaAna();
+  const { session, instancia } = conexao;
+  const { incorporadora, empreendimento: base } =
+    await criarEmpreendimentoDaAna(session);
+  const empreendimento = ok(
+    await editarEmpreendimento(session, base.id, {
+      incorporadoraId: incorporadora.id,
+      nome: base.nome,
+      cidade: base.cidade,
+      endereco: base.endereco,
+      latitude: -3.6891,
+      longitude: -40.3482,
+    }),
+  );
+
+  llm.roteirizar({ tipo: "texto", texto: "Olá! Sou a assistente da Ana." });
+  await receberMensagem(
+    whatsapp.mensagemRecebida({
+      instancia,
+      telefone: "5588999990000",
+      nomeDoContato: "Carlos Lima",
+      texto: "Oi, vi o anúncio",
+    }),
+  );
+  llm.limpar();
+  whatsapp.enviados.length = 0;
+
+  const [cliente] = await listarClientes(session);
+  const [criado] = await listarNegocios(session);
+  if (!cliente || !criado) throw new Error("cenário de visita: sem negócio");
+  const negocio = ok(
+    await registrarInteresse(session, criado.id, {
+      interesse: "lote",
+      empreendimentoId: empreendimento.id,
+    }),
+  );
+  for (const diaDaSemana of [1, 2, 3, 4, 5]) {
+    await criarJanela(session, { diaDaSemana, inicio: "09:00", fim: "12:00" });
+  }
+  return { ...conexao, empreendimento, cliente, negocio };
+}

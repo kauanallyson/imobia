@@ -1,0 +1,1122 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "3312884f-b8f4-470c-a337-f36f2ccb93ad",
+  "prevIds": ["34eeaa10-655a-4563-a676-20b5b49a6a42"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "datas_bloqueadas"],
+      "writes": [
+        "s|tbl|public.datas_bloqueadas",
+        "n|tbl|public.datas_bloqueadas",
+        "e|tbl|public.datas_bloqueadas",
+        "n|rel|public.datas_bloqueadas",
+        "n|type|public.datas_bloqueadas",
+        "n|rel|public.datas_bloqueadas_pkey",
+        "n|rel|public.datas_bloqueadas_corretor_data"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "disponibilidades"],
+      "writes": [
+        "s|tbl|public.disponibilidades",
+        "n|tbl|public.disponibilidades",
+        "e|tbl|public.disponibilidades",
+        "n|rel|public.disponibilidades",
+        "n|type|public.disponibilidades",
+        "n|rel|public.disponibilidades_pkey",
+        "n|rel|public.disponibilidades_corretor_dia_inicio"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "lembretes_de_visita"],
+      "writes": [
+        "s|tbl|public.lembretes_de_visita",
+        "n|tbl|public.lembretes_de_visita",
+        "e|tbl|public.lembretes_de_visita",
+        "n|rel|public.lembretes_de_visita",
+        "n|type|public.lembretes_de_visita",
+        "n|rel|public.lembretes_de_visita_pkey",
+        "n|rel|public.lembretes_de_visita_visita_tipo"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "visitas"],
+      "writes": [
+        "s|tbl|public.visitas",
+        "n|tbl|public.visitas",
+        "e|tbl|public.visitas",
+        "n|rel|public.visitas",
+        "n|type|public.visitas",
+        "n|rel|public.visitas_pkey"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "empreendimentos", "latitude"],
+      "writes": [
+        "s|col|public.empreendimentos.latitude",
+        "n|col|public.empreendimentos.latitude",
+        "e|col|public.empreendimentos.latitude"
+      ],
+      "reads": ["n|tbl|public.empreendimentos", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "empreendimentos", "longitude"],
+      "writes": [
+        "s|col|public.empreendimentos.longitude",
+        "n|col|public.empreendimentos.longitude",
+        "e|col|public.empreendimentos.longitude"
+      ],
+      "reads": ["n|tbl|public.empreendimentos", "n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "visitas",
+        "visitas_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.visitas_corretor_id_idx",
+        "n|idx|public.visitas_corretor_id_idx",
+        "e|idx|public.visitas_corretor_id_idx",
+        "n|rel|public.visitas_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|col|public.visitas.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "visitas",
+        "visitas_negocio_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.visitas_negocio_id_idx",
+        "n|idx|public.visitas_negocio_id_idx",
+        "e|idx|public.visitas_negocio_id_idx",
+        "n|rel|public.visitas_negocio_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|col|public.visitas.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "visitas",
+        "visitas_corretor_data_hora_ativa"
+      ],
+      "writes": [
+        "s|idx|public.visitas_corretor_data_hora_ativa",
+        "n|idx|public.visitas_corretor_data_hora_ativa",
+        "e|idx|public.visitas_corretor_data_hora_ativa",
+        "n|rel|public.visitas_corretor_data_hora_ativa"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|col|public.visitas.corretor_id",
+        "n|col|public.visitas.data_hora"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "datas_bloqueadas"],
+      "writes": [
+        "s|fk|public.datas_bloqueadas.datas_bloqueadas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.datas_bloqueadas.datas_bloqueadas_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.datas_bloqueadas.datas_bloqueadas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.datas_bloqueadas.datas_bloqueadas_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.datas_bloqueadas",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.datas_bloqueadas.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "datas_bloqueadas"],
+      "writes": [
+        "s|fk|public.datas_bloqueadas.datas_bloqueadas_corretor_id_users_id_fkey",
+        "n|fk|public.datas_bloqueadas.datas_bloqueadas_corretor_id_users_id_fkey",
+        "e|fk|public.datas_bloqueadas.datas_bloqueadas_corretor_id_users_id_fkey",
+        "n|con|public.datas_bloqueadas.datas_bloqueadas_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.datas_bloqueadas",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.datas_bloqueadas.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "disponibilidades"],
+      "writes": [
+        "s|fk|public.disponibilidades.disponibilidades_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.disponibilidades.disponibilidades_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.disponibilidades.disponibilidades_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.disponibilidades.disponibilidades_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.disponibilidades",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.disponibilidades.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "disponibilidades"],
+      "writes": [
+        "s|fk|public.disponibilidades.disponibilidades_corretor_id_users_id_fkey",
+        "n|fk|public.disponibilidades.disponibilidades_corretor_id_users_id_fkey",
+        "e|fk|public.disponibilidades.disponibilidades_corretor_id_users_id_fkey",
+        "n|con|public.disponibilidades.disponibilidades_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.disponibilidades",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.disponibilidades.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "lembretes_de_visita"],
+      "writes": [
+        "s|fk|public.lembretes_de_visita.lembretes_de_visita_visita_id_visitas_id_fkey",
+        "n|fk|public.lembretes_de_visita.lembretes_de_visita_visita_id_visitas_id_fkey",
+        "e|fk|public.lembretes_de_visita.lembretes_de_visita_visita_id_visitas_id_fkey",
+        "n|con|public.lembretes_de_visita.lembretes_de_visita_visita_id_visitas_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.lembretes_de_visita",
+        "n|sch|public",
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|col|public.lembretes_de_visita.visita_id",
+        "n|col|public.visitas.id",
+        "e|uniqueness|public.visitas.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "visitas"],
+      "writes": [
+        "s|fk|public.visitas.visitas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.visitas.visitas_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.visitas.visitas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.visitas.visitas_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.visitas.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "visitas"],
+      "writes": [
+        "s|fk|public.visitas.visitas_corretor_id_users_id_fkey",
+        "n|fk|public.visitas.visitas_corretor_id_users_id_fkey",
+        "e|fk|public.visitas.visitas_corretor_id_users_id_fkey",
+        "n|con|public.visitas.visitas_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.visitas.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "visitas"],
+      "writes": [
+        "s|fk|public.visitas.visitas_negocio_id_negocios_id_fkey",
+        "n|fk|public.visitas.visitas_negocio_id_negocios_id_fkey",
+        "e|fk|public.visitas.visitas_negocio_id_negocios_id_fkey",
+        "n|con|public.visitas.visitas_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.visitas",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.visitas.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "datas_bloqueadas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "disponibilidades",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "lembretes_de_visita",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "visitas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "data",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "dia_da_semana",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "inicio",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "fim",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "empreendimentos",
+        "name": "latitude",
+        "type": "numeric(9,6)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "empreendimentos",
+        "name": "longitude",
+        "type": "numeric(9,6)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "visita_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "tipo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "data_hora",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "local",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "latitude",
+        "type": "numeric(9,6)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "longitude",
+        "type": "numeric(9,6)",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "estado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'agendada'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "evento_calendar_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "atualizada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_negocio_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_corretor_data_hora_ativa",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          },
+          {
+            "value": "data_hora",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"estado\" in ('agendada', 'remarcada')",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "datas_bloqueadas_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "datas_bloqueadas_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "lembretes_de_visita_visita_id_visitas_id_fkey",
+        "nameExplicit": false,
+        "columns": ["visita_id"],
+        "schemaTo": "public",
+        "tableTo": "visitas",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "datas_bloqueadas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "lembretes_de_visita_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "visitas",
+        "name": "visitas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "datas_bloqueadas",
+        "name": "datas_bloqueadas_corretor_data",
+        "nameExplicit": true,
+        "columns": ["corretor_id", "data"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_corretor_dia_inicio",
+        "nameExplicit": true,
+        "columns": ["corretor_id", "dia_da_semana", "inicio"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_visita",
+        "name": "lembretes_de_visita_visita_tipo",
+        "nameExplicit": true,
+        "columns": ["visita_id", "tipo"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_dia_da_semana",
+        "value": "\"dia_da_semana\" between 0 and 6",
+        "entityType": "checks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "disponibilidades",
+        "name": "disponibilidades_inicio_fim",
+        "value": "\"inicio\" < \"fim\"",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

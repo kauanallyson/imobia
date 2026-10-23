@@ -11,6 +11,8 @@ const columns = {
   nome: empreendimentos.nome,
   cidade: empreendimentos.cidade,
   endereco: empreendimentos.endereco,
+  latitude: empreendimentos.latitude,
+  longitude: empreendimentos.longitude,
   incorporadoraId: empreendimentos.incorporadoraId,
   incorporadora: incorporadoras.nome,
 };
@@ -20,6 +22,9 @@ export type Empreendimento = {
   nome: string;
   cidade: string;
   endereco: string;
+  // Coordenadas do ponto de encontro (ticket 13); opcionais.
+  latitude: number | null;
+  longitude: number | null;
   incorporadoraId: string;
   incorporadora: string;
 };
@@ -29,6 +34,8 @@ export type NovoEmpreendimento = {
   nome: string;
   cidade: string;
   endereco: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 function selecionar(where: SQL) {

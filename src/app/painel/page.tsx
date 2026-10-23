@@ -1,4 +1,5 @@
 import ApartmentIcon from "@mui/icons-material/Apartment";
+import EventIcon from "@mui/icons-material/Event";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AppBar from "@mui/material/AppBar";
@@ -69,6 +70,14 @@ async function Painel() {
             startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
           >
             Catálogo
+          </Button>
+          <Button
+            component={Link}
+            href="/painel/agenda"
+            color="inherit"
+            startIcon={<EventIcon aria-hidden fontSize="small" />}
+          >
+            Agenda
           </Button>
           <Button
             component={Link}

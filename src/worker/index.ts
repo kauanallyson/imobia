@@ -1,19 +1,41 @@
 import { env } from "@/lib/env";
+import { type Job, jobs } from "./jobs";
 
-// Processo de jobs agendados, separado do servidor web (spec: follow-ups,
-// lembretes, expiração de reservas, retomada do assistente, Google Calendar).
-// Por enquanto só prova que o serviço sobe e lê o ambiente: os tickets
-// seguintes registram jobs aqui, chamando as funções de `src/data`.
+// Processo de jobs agendados, separado do servidor web (spec → Worker).
+// Roda com `bun --conditions=react-server` (src/data usa server-only).
+// A cada minuto executa todos os jobs de ./jobs.ts, cada um isolado: a falha
+// de um não impede os outros nem derruba o processo.
 const INTERVALO_MS = 60_000;
 
-function heartbeat() {
-  console.log(
-    `[worker] ${new Date().toISOString()} ativo (banco: ${new URL(env.DATABASE_URL).host})`,
-  );
+async function executar(job: Job) {
+  const inicio = Date.now();
+  try {
+    const resultado = await job.executar();
+    console.log(
+      `[worker] ${job.nome} ok em ${Date.now() - inicio}ms`,
+      resultado ?? "",
+    );
+  } catch (error) {
+    console.error(`[worker] ${job.nome} falhou`, error);
+  }
 }
 
-heartbeat();
-const timer = setInterval(heartbeat, INTERVALO_MS);
+let rodando = false;
+async function ciclo() {
+  if (rodando) return; // um ciclo lento não acumula com o próximo
+  rodando = true;
+  try {
+    for (const job of jobs) await executar(job);
+  } finally {
+    rodando = false;
+  }
+}
+
+console.log(
+  `[worker] ${new Date().toISOString()} ativo (banco: ${new URL(env.DATABASE_URL).host}, jobs: ${jobs.map((j) => j.nome).join(", ")})`,
+);
+void ciclo();
+const timer = setInterval(ciclo, INTERVALO_MS);
 
 for (const sinal of ["SIGINT", "SIGTERM"] as const) {
   process.on(sinal, () => {

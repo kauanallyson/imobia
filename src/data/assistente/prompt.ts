@@ -1,6 +1,7 @@
 import "server-only";
 import type { Empreendimento } from "../empreendimentos";
 import type { ContextoDoAtendimento } from "./contexto";
+import { secaoDeVisitas } from "./ferramentas/13-visitas";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -56,5 +57,7 @@ export function montarInstrucoes(
       : "- Empreendimento em foco: ainda não definido.",
     "- Empreendimentos da imobiliária:",
     listaDeEmpreendimentos,
+    "",
+    secaoDeVisitas(contexto), // ticket 13
   ].join("\n");
 }

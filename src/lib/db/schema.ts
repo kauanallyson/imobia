@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
@@ -10,6 +11,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
@@ -343,6 +345,10 @@ export const empreendimentos = pgTable(
     // Endereço/localização em texto livre (ponto de encontro padrão das
     // visitas).
     endereco: text().notNull(),
+    // Coordenadas do ponto de encontro (ticket 13): quando preenchidas, a
+    // confirmação da visita envia a localização pelo WhatsApp.
+    latitude: numeric({ precision: 9, scale: 6, mode: "number" }),
+    longitude: numeric({ precision: 9, scale: 6, mode: "number" }),
     // Texto integral da base de conhecimento (ticket 05), como o corretor
     // escreveu; os trechos indexados ficam em `trechos_de_conhecimento`.
     baseDeConhecimento: text("base_de_conhecimento"),
@@ -513,4 +519,130 @@ export const materiaisDeMarketing = pgTable(
       t.empreendimentoId,
     ),
   ],
+);
+
+// ---- ticket 13: visitas com disponibilidade do CRM --------------------------
+// Disponibilidade do corretor (GLOSSARY → Visita): janelas semanais e datas
+// bloqueadas, sempre no horário de Brasília (America/Sao_Paulo).
+
+export const disponibilidades = pgTable(
+  "disponibilidades",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    // 0 = domingo ... 6 = sábado.
+    diaDaSemana: integer("dia_da_semana").notNull(),
+    // "HH:MM".
+    inicio: text().notNull(),
+    fim: text().notNull(),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("disponibilidades_corretor_dia_inicio").on(
+      t.corretorId,
+      t.diaDaSemana,
+      t.inicio,
+    ),
+    check(
+      "disponibilidades_dia_da_semana",
+      sql`${t.diaDaSemana} between 0 and 6`,
+    ),
+    check("disponibilidades_inicio_fim", sql`${t.inicio} < ${t.fim}`),
+  ],
+);
+
+export const datasBloqueadas = pgTable(
+  "datas_bloqueadas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    // "YYYY-MM-DD" (dia civil em Brasília).
+    data: date({ mode: "string" }).notNull(),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("datas_bloqueadas_corretor_data").on(t.corretorId, t.data)],
+);
+
+export const estadosDaVisita = [
+  "agendada",
+  "remarcada",
+  "cancelada",
+  "realizada",
+] as const;
+export type EstadoDaVisita = (typeof estadosDaVisita)[number];
+
+export const visitas = pgTable(
+  "visitas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    dataHora: timestamp("data_hora", { withTimezone: true }).notNull(),
+    // Padrão: endereço do empreendimento; o corretor pode alterar.
+    local: text().notNull(),
+    latitude: numeric({ precision: 9, scale: 6, mode: "number" }),
+    longitude: numeric({ precision: 9, scale: 6, mode: "number" }),
+    estado: text({ enum: estadosDaVisita }).notNull().default("agendada"),
+    // Evento no Google Calendar (ticket 14).
+    eventoCalendarId: text("evento_calendar_id"),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    atualizadaEm: timestamp("atualizada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("visitas_corretor_id_idx").on(t.corretorId),
+    index("visitas_negocio_id_idx").on(t.negocioId),
+    // O banco garante que duas visitas ativas não começam no mesmo horário.
+    uniqueIndex("visitas_corretor_data_hora_ativa")
+      .on(t.corretorId, t.dataHora)
+      .where(sql`${t.estado} in ('agendada', 'remarcada')`),
+  ],
+);
+
+export const tiposDeLembrete = [
+  "cliente_vespera",
+  "cliente_manha",
+  "corretor_vespera",
+  "corretor_manha",
+] as const;
+export type TipoDeLembrete = (typeof tiposDeLembrete)[number];
+
+// Chave natural (visita, tipo): rodar o worker de novo não reenvia.
+export const lembretesDeVisita = pgTable(
+  "lembretes_de_visita",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    visitaId: uuid("visita_id")
+      .notNull()
+      .references(() => visitas.id, { onDelete: "cascade" }),
+    tipo: text({ enum: tiposDeLembrete }).notNull(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("lembretes_de_visita_visita_tipo").on(t.visitaId, t.tipo)],
 );
