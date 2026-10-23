@@ -2,8 +2,8 @@
   "type": "diff",
   "version": "9",
   "dialect": "postgres",
-  "id": "2a418c1e-41ff-4ebc-bc31-738a1940e43a",
-  "prevIds": ["1bd30ebb-b05e-45f5-867a-863b4efb725d"],
+  "id": "c3baa2ca-3182-4903-ae31-855dbfecb58d",
+  "prevIds": ["9a6ee699-d04c-4b5f-ac26-66d338b50108"],
   "footprints": [
     {
       "statementType": "add_column",
@@ -24,6 +24,25 @@
         "e|col|public.negocios.lote_interesse_id"
       ],
       "reads": ["n|tbl|public.negocios", "n|sch|public"]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "n|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "e|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "n|con|public.negocios.negocios_lote_interesse_id_lotes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.lotes",
+        "n|sch|public",
+        "n|col|public.negocios.lote_interesse_id",
+        "n|col|public.lotes.id",
+        "e|uniqueness|public.lotes.id"
+      ]
     }
   ],
   "deltas": [
@@ -57,6 +76,22 @@
         "generated": null,
         "identity": null,
         "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_lote_interesse_id_lotes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["lote_interesse_id"],
+        "schemaTo": "public",
+        "tableTo": "lotes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
       }
     }
   ]

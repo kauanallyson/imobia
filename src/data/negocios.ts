@@ -7,13 +7,14 @@ import {
   clientes,
   conversas,
   type Etapa,
+  empreendimentos,
   etapas,
+  lotes,
   mensagens,
   negocioEtapas,
   negocios,
 } from "@/lib/db/schema";
-import { requireCorretor } from "./clientes";
-import type { Session } from "./session";
+import { requireCorretor, type Session } from "./session";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -211,9 +212,30 @@ export async function buscarNegocio(session: Session, id: string) {
     : [];
   const historico = await historicoDeEtapas(session, negocio.id);
 
+  // Lote de interesse com quadra, número e empreendimento (catálogo da
+  // imobiliária).
+  const [lote] = negocio.loteInteresseId
+    ? await db
+        .select({
+          id: lotes.id,
+          quadra: lotes.quadra,
+          numero: lotes.numero,
+          status: lotes.status,
+          empreendimentoId: empreendimentos.id,
+          empreendimentoNome: empreendimentos.nome,
+        })
+        .from(lotes)
+        .innerJoin(
+          empreendimentos,
+          eq(empreendimentos.id, lotes.empreendimentoId),
+        )
+        .where(eq(lotes.id, negocio.loteInteresseId))
+    : [];
+
   return {
     ...negocio,
     cliente,
+    lote: lote ?? null,
     conversa: conversa ? { ...conversa, mensagens: listaDeMensagens } : null,
     historico,
   };

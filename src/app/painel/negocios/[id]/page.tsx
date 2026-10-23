@@ -49,7 +49,7 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const negocio = await buscarNegocio(session, id);
   if (!negocio) notFound();
-  const { cliente, conversa, historico } = negocio;
+  const { cliente, conversa, historico, lote } = negocio;
 
   return (
     <>
@@ -132,11 +132,20 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
       </Secao>
 
       <Secao titulo="Lote de interesse">
-        <Typography color="text.secondary">
-          {negocio.loteInteresseId
-            ? `Lote ${negocio.loteInteresseId}`
-            : "Nenhum lote escolhido ainda."}
-        </Typography>
+        {lote ? (
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Typography>
+              Quadra {lote.quadra}, lote {lote.numero}
+            </Typography>
+            <Typography color="text.secondary">
+              {lote.empreendimentoNome} · {rotuloDoStatus[lote.status]}
+            </Typography>
+          </Paper>
+        ) : (
+          <Typography color="text.secondary">
+            Nenhum lote escolhido ainda.
+          </Typography>
+        )}
       </Secao>
 
       <Secao titulo="Conversa">
@@ -179,6 +188,12 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
     </>
   );
 }
+
+const rotuloDoStatus = {
+  disponivel: "disponível",
+  reservado: "reservado",
+  vendido: "vendido",
+} as const;
 
 const autorRotulo = {
   corretor: "você",

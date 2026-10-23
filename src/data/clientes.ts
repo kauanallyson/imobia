@@ -3,7 +3,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { clientes } from "@/lib/db/schema";
-import { ForbiddenError, type Session } from "./session";
+import { requireCorretor, type Session } from "./session";
 
 export const clienteColumns = {
   id: clientes.id,
@@ -16,13 +16,6 @@ export const clienteColumns = {
 
 export class TelefoneDuplicadoError extends Error {
   override name = "TelefoneDuplicadoError";
-}
-
-export function requireCorretor(session: Session) {
-  if (session.role !== "corretor") {
-    throw new ForbiddenError("Somente um corretor acessa a própria carteira");
-  }
-  return session;
 }
 
 // Telefone guardado só com dígitos e DDI (ex.: 5588999990000), como a

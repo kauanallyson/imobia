@@ -63,3 +63,57 @@ export async function criarNegocioDaAna() {
   if (!negocio) throw new Error("criarNegocioDaAna: negócio não criado");
   return { imobiliaria, corretor, session, cliente, negocio };
 }
+
+// Segundo corretor da mesma imobiliária da Ana (catálogo compartilhado).
+export async function criarBruno(imobiliaria: { id: string }) {
+  const corretor = await criarCorretor(administrador, {
+    imobiliariaId: imobiliaria.id,
+    nome: "Bruno Lima",
+    email: "bruno@fiel.com.br",
+    senha: "senha-forte-123",
+  });
+  if (!corretor) throw new Error("criarBruno: imobiliária não encontrada");
+  return corretor;
+}
+
+// Outra imobiliária, "Concorrente", com a corretora Carla: nada dela pode
+// aparecer para a Fiel Imóveis.
+export async function criarConcorrente() {
+  const imobiliaria = await criarImobiliaria(administrador, {
+    nome: "Concorrente",
+  });
+  const corretor = await criarCorretor(administrador, {
+    imobiliariaId: imobiliaria.id,
+    nome: "Carla Dias",
+    email: "carla@concorrente.com.br",
+    senha: "senha-forte-123",
+  });
+  if (!corretor)
+    throw new Error("criarConcorrente: imobiliária não encontrada");
+  return { imobiliaria, corretor, session: sessaoDe(corretor, imobiliaria) };
+}
+
+// Para testes que esperam o registro: falha cedo se a DAL devolveu null.
+export function ok<T>(value: T | null | undefined, what = "registro"): T {
+  if (value == null) throw new Error(`esperava ${what}, veio ${value}`);
+  return value;
+}
+
+// Incorporadora "Terra Nova" e empreendimento "Jardim das Flores" da Fiel
+// Imóveis, cadastrados pela sessão informada (a da Ana, por padrão).
+export async function criarEmpreendimentoDaAna(session: Session) {
+  const { criarIncorporadora } = await import("@/data/incorporadoras");
+  const { criarEmpreendimento } = await import("@/data/empreendimentos");
+  const incorporadora = ok(
+    await criarIncorporadora(session, { nome: "Terra Nova" }),
+  );
+  const empreendimento = ok(
+    await criarEmpreendimento(session, {
+      incorporadoraId: incorporadora.id,
+      nome: "Jardim das Flores",
+      cidade: "Sobral",
+      endereco: "Rod. CE-178, km 2",
+    }),
+  );
+  return { incorporadora, empreendimento };
+}

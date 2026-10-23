@@ -4,11 +4,14 @@ import {
   administrador,
   conectarWhatsappDaAna,
   criarAna,
+  criarEmpreendimentoDaAna,
   criarNegocioDaAna,
+  ok,
   sessaoDe,
 } from "@/test/fixtures";
 import { criarCliente, TelefoneDuplicadoError } from "./clientes";
 import { receberMensagem } from "./conversas";
+import { criarLote } from "./lotes";
 import {
   buscarNegocio,
   criarNegocio,
@@ -132,6 +135,38 @@ describe("detalhe do negócio", () => {
         em: new Date("2026-10-23T11:00:00-03:00"),
       },
     ]);
+  });
+
+  test("lote de interesse vem com quadra, número e empreendimento", async () => {
+    const { session, cliente } = await criarNegocioDaAna();
+    const { empreendimento } = await criarEmpreendimentoDaAna(session);
+    const lote = ok(
+      await criarLote(session, {
+        empreendimentoId: empreendimento.id,
+        quadra: "B",
+        numero: "12",
+        area: 300,
+        frente: 12,
+        fundo: 25,
+        preco: 90000,
+      }),
+    );
+
+    const negocio = ok(
+      await criarNegocio(session, {
+        clienteId: cliente.id,
+        loteInteresseId: lote.id,
+      }),
+    );
+
+    expect((await negocioOuFalha(session, negocio.id)).lote).toEqual({
+      id: lote.id,
+      quadra: "B",
+      numero: "12",
+      status: "disponivel",
+      empreendimentoId: empreendimento.id,
+      empreendimentoNome: "Jardim das Flores",
+    });
   });
 
   test("negócio cadastrado à mão não tem conversa", async () => {

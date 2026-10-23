@@ -3,7 +3,9 @@ import {
   boolean,
   check,
   index,
+  integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
@@ -194,9 +196,8 @@ export const negocios = pgTable(
       .references(() => clientes.id),
     etapa: text({ enum: etapas }).notNull().default("novo"),
     motivoPerda: text("motivo_perda"),
-    // Lote de interesse (opcional). Sem FK por enquanto: a tabela `lotes`
-    // chega com o ticket do catálogo (03).
-    loteInteresseId: uuid("lote_interesse_id"),
+    // Lote de interesse (opcional); escolhido pelo assistente ou na proposta.
+    loteInteresseId: uuid("lote_interesse_id").references(() => lotes.id),
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -293,5 +294,107 @@ export const mensagens = pgTable(
   (t) => [
     unique("mensagens_conversa_evolution_id").on(t.conversaId, t.evolutionId),
     index("mensagens_conversa_id_idx").on(t.conversaId),
+  ],
+);
+
+// Catálogo: compartilhado entre os corretores da imobiliária (spec →
+// Permissão). Lotes e modelos de casa herdam a imobiliária do empreendimento.
+export const incorporadoras = pgTable(
+  "incorporadoras",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    nome: text().notNull(),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("incorporadoras_imobiliaria_id_idx").on(t.imobiliariaId)],
+);
+
+// Base de conhecimento, planos de pagamento e material de marketing entram
+// em tabelas próprias nos tickets 04 e 05, referenciando `empreendimentos.id`.
+export const empreendimentos = pgTable(
+  "empreendimentos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    incorporadoraId: uuid("incorporadora_id")
+      .notNull()
+      .references(() => incorporadoras.id),
+    nome: text().notNull(),
+    cidade: text().notNull(),
+    // Endereço/localização em texto livre (ponto de encontro padrão das
+    // visitas).
+    endereco: text().notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("empreendimentos_imobiliaria_id_idx").on(t.imobiliariaId),
+    index("empreendimentos_incorporadora_id_idx").on(t.incorporadoraId),
+  ],
+);
+
+export const statusDeLote = ["disponivel", "reservado", "vendido"] as const;
+export type StatusDeLote = (typeof statusDeLote)[number];
+
+export const lotes = pgTable(
+  "lotes",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empreendimentoId: uuid("empreendimento_id")
+      .notNull()
+      .references(() => empreendimentos.id),
+    quadra: text().notNull(),
+    numero: text().notNull(),
+    // Medidas em m² e metros; preço em reais.
+    area: numeric({ precision: 12, scale: 2, mode: "number" }).notNull(),
+    frente: numeric({ precision: 12, scale: 2, mode: "number" }).notNull(),
+    fundo: numeric({ precision: 12, scale: 2, mode: "number" }).notNull(),
+    preco: numeric({ precision: 14, scale: 2, mode: "number" }).notNull(),
+    status: text({ enum: statusDeLote }).notNull().default("disponivel"),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("lotes_empreendimento_quadra_numero").on(
+      t.empreendimentoId,
+      t.quadra,
+      t.numero,
+    ),
+  ],
+);
+
+export const modelosDeCasa = pgTable(
+  "modelos_de_casa",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    empreendimentoId: uuid("empreendimento_id")
+      .notNull()
+      .references(() => empreendimentos.id),
+    nome: text().notNull(),
+    areaConstruida: numeric("area_construida", {
+      precision: 12,
+      scale: 2,
+      mode: "number",
+    }).notNull(),
+    quartos: integer().notNull(),
+    banheiros: integer().notNull(),
+    suites: integer().notNull(),
+    vagas: integer().notNull(),
+    preco: numeric({ precision: 14, scale: 2, mode: "number" }).notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("modelos_de_casa_empreendimento_id_idx").on(t.empreendimentoId),
   ],
 );

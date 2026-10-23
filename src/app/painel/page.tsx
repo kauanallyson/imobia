@@ -1,3 +1,4 @@
+import ApartmentIcon from "@mui/icons-material/Apartment";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AppBar from "@mui/material/AppBar";
@@ -61,6 +62,14 @@ async function Painel() {
               {imobiliaria?.nome}
             </Typography>
           </Stack>
+          <Button
+            component={Link}
+            href="/painel/catalogo"
+            color="inherit"
+            startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
+          >
+            Catálogo
+          </Button>
           <Button
             component={Link}
             href="/painel/whatsapp"
