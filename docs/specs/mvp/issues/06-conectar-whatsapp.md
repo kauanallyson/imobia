@@ -1,0 +1,15 @@
+# 06: Conectar WhatsApp
+
+**What to build:** Um corretor lê e aceita o aviso de risco (conexão não oficial, número pode ser banido; ADR-0004), e o aceite é registrado com data e hora. Depois, lê um QR code e o número dele é conectado a uma instância da Evolution API. Ele vê o estado da conexão e consegue reconectar quando cair. Mensagens recebidas ficam guardadas numa conversa. Um número **sem histórico** com o corretor cria um cliente e um negócio em Novo; números conhecidos e grupos são ignorados. Conversas antigas não são importadas.
+
+**Blocked by:** 02 (Login e página de administração)
+
+**Status:** ready-for-agent
+
+- [ ] Sem aceite registrado, não é possível conectar
+- [ ] QR code é exibido e, após o pareamento, o estado mostra "conectado"; queda de conexão aparece e permite reconectar
+- [ ] Mensagem de número novo cria cliente + negócio em Novo e guarda a mensagem na conversa
+- [ ] Mensagem de número com histórico e mensagens de grupo não criam cliente nem negócio
+- [ ] Mensagens `fromMe` são guardadas com autor "corretor"
+- [ ] Nenhum histórico anterior à conexão é armazenado
+- [ ] Toda a integração passa pelo adaptador de WhatsApp; testes usam o falso
