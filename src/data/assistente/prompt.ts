@@ -1,6 +1,7 @@
 import "server-only";
 import type { Empreendimento } from "../empreendimentos";
 import type { ContextoDoAtendimento } from "./contexto";
+import { secaoDePendencias } from "./ferramentas/11-pendencias";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -49,6 +50,7 @@ export function montarInstrucoes(
     "- Se a base de conhecimento não responder, diga que vai verificar com o(a) corretor(a) e retorna. Não prometa o que não está na base.",
     "- Se o cliente pedir para falar com uma pessoa, diga que vai avisar o(a) corretor(a).",
     "",
+    ...secaoDePendencias, // ticket 11
     "## Contexto do atendimento",
     `- Interesse do cliente: ${interesse}.`,
     emFoco

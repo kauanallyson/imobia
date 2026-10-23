@@ -9,16 +9,20 @@ export const userColumns = {
   nome: users.name,
   email: users.email,
   ativo: users.ativo,
+  telefone: users.telefone,
 };
 
 export class DuplicateEmailError extends Error {
   override name = "DuplicateEmailError";
 }
 
-type NewUser = { id?: string; nome: string; email: string; senha: string } & (
-  | { role: "administrador" }
-  | { role: "corretor"; imobiliariaId: string }
-);
+type NewUser = {
+  id?: string;
+  nome: string;
+  email: string;
+  senha: string;
+  telefone?: string | null;
+} & ({ role: "administrador" } | { role: "corretor"; imobiliariaId: string });
 
 // Não há cadastro público: todo usuário (administrador ou corretor) nasce
 // aqui, com a senha na conta "credential" do Better Auth. Quem chama confere a
@@ -40,6 +44,7 @@ export async function createUser(input: NewUser) {
         email: input.email.toLowerCase(),
         role: input.role,
         imobiliariaId,
+        telefone: input.telefone?.replace(/\D/g, "") || null,
         createdAt: now,
         updatedAt: now,
       })

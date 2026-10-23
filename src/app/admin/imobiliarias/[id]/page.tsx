@@ -13,7 +13,7 @@ import { listarCorretores } from "@/data/corretores";
 import { buscarImobiliaria } from "@/data/imobiliarias";
 import { verificarAdministrador } from "@/data/session";
 import { desativarCorretorAction } from "../../actions";
-import { CriarCorretorForm } from "../../forms";
+import { CriarCorretorForm, DefinirTelefoneForm } from "../../forms";
 
 export default function ImobiliariaPage({
   params,
@@ -49,41 +49,50 @@ async function Imobiliaria({ params }: { params: Promise<{ id: string }> }) {
           <Paper variant="outlined">
             <List disablePadding>
               {corretores.map((corretor) => (
-                <ListItem
-                  key={corretor.id}
-                  divider
-                  secondaryAction={
-                    corretor.ativo ? (
-                      <form action={desativarCorretorAction}>
-                        <input
-                          type="hidden"
-                          name="corretorId"
-                          value={corretor.id}
-                        />
-                        <Button
-                          type="submit"
-                          color="error"
-                          startIcon={
-                            <PersonOffIcon aria-hidden fontSize="small" />
-                          }
-                        >
-                          Desativar
-                        </Button>
-                      </form>
-                    ) : (
-                      <Chip label="Desativado" size="small" />
-                    )
-                  }
-                >
-                  <ListItemText
-                    primary={corretor.nome}
-                    secondary={corretor.email}
-                    slotProps={{
-                      primary: { noWrap: true },
-                      secondary: { noWrap: true },
-                    }}
-                    sx={{ pr: 14 }}
-                  />
+                <ListItem key={corretor.id} divider>
+                  <Stack spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center" }}
+                    >
+                      <ListItemText
+                        primary={corretor.nome}
+                        secondary={corretor.email}
+                        slotProps={{
+                          primary: { noWrap: true },
+                          secondary: { noWrap: true },
+                        }}
+                        sx={{ flex: 1, minWidth: 0 }}
+                      />
+                      {corretor.ativo ? (
+                        <form action={desativarCorretorAction}>
+                          <input
+                            type="hidden"
+                            name="corretorId"
+                            value={corretor.id}
+                          />
+                          <Button
+                            type="submit"
+                            color="error"
+                            startIcon={
+                              <PersonOffIcon aria-hidden fontSize="small" />
+                            }
+                          >
+                            Desativar
+                          </Button>
+                        </form>
+                      ) : (
+                        <Chip label="Desativado" size="small" />
+                      )}
+                    </Stack>
+                    {corretor.ativo && (
+                      <DefinirTelefoneForm
+                        corretorId={corretor.id}
+                        telefone={corretor.telefone}
+                      />
+                    )}
+                  </Stack>
                 </ListItem>
               ))}
             </List>

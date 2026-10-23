@@ -150,3 +150,14 @@ export async function criarLoteECasaDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lote, modelo };
 }
+
+// Ana com WhatsApp para receber os avisos do número de sistema (ticket 11).
+export async function darTelefoneAAna(
+  corretor: { id: string },
+  telefone = "5588988880000",
+) {
+  const { definirTelefoneDoCorretor } = await import("@/data/corretores");
+  return ok(
+    await definirTelefoneDoCorretor(administrador, corretor.id, telefone),
+  );
+}

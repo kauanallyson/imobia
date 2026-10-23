@@ -213,6 +213,8 @@ describe("assistente: primeiro atendimento", () => {
       "enviar_material_de_marketing",
       "registrar_interesse",
       "mudar_etapa",
+      "criar_pendencia_pergunta_sem_resposta",
+      "chamar_corretor",
     ]);
   });
 

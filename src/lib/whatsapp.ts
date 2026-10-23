@@ -137,6 +137,19 @@ export async function enviarTexto(
   return { idMensagem: data.key.id };
 }
 
+// Mensagem do número de sistema (instância própria, ADR: chip separado) para
+// o corretor: avisos de pendência. Sem EVOLUTION_SYSTEM_INSTANCE, lança.
+export async function enviarTextoDoSistema(
+  telefone: string,
+  texto: string,
+): Promise<{ idMensagem: string }> {
+  const instancia = env.EVOLUTION_SYSTEM_INSTANCE;
+  if (!instancia) {
+    throw new Error("EVOLUTION_SYSTEM_INSTANCE não configurada");
+  }
+  return enviarTexto(instancia, telefone, texto);
+}
+
 export async function enviarMidia(
   instancia: string,
   para: string,

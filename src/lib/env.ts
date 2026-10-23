@@ -17,6 +17,9 @@ const envSchema = z
     EVOLUTION_API_KEY: z.string().min(1),
     // Segredo que a Evolution envia no header x-webhook-secret.
     EVOLUTION_WEBHOOK_SECRET: z.string().min(16),
+    // Instância Evolution do número de sistema que avisa os corretores
+    // (ticket 11). Sem ela, os avisos ficam pendentes.
+    EVOLUTION_SYSTEM_INSTANCE: z.string().min(1).optional(),
     // OpenAI (embeddings da base de conhecimento; assistente e transcrição nos
     // tickets 09 e 19).
     OPENAI_API_KEY: z.string().min(1),

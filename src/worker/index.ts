@@ -1,3 +1,4 @@
+import { enviarAvisosPendentes } from "@/data/pendencias";
 import { env } from "@/lib/env";
 
 // Processo de jobs agendados, separado do servidor web (spec: follow-ups,
@@ -12,8 +13,19 @@ function heartbeat() {
   );
 }
 
-heartbeat();
-const timer = setInterval(heartbeat, INTERVALO_MS);
+// Ticket 11: avisos de pendência que esperavam a janela de 8h–20h.
+async function tick() {
+  heartbeat();
+  try {
+    const enviados = await enviarAvisosPendentes();
+    if (enviados > 0) console.log(`[worker] ${enviados} aviso(s) enviado(s)`);
+  } catch (error) {
+    console.error("[worker] enviarAvisosPendentes falhou", error);
+  }
+}
+
+void tick();
+const timer = setInterval(() => void tick(), INTERVALO_MS);
 
 for (const sinal of ["SIGINT", "SIGTERM"] as const) {
   process.on(sinal, () => {
