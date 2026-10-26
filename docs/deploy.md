@@ -115,6 +115,7 @@ Inspecionar a Evolution pelo manager, se precisar: `ssh -L 8080:127.0.0.1:8080 u
   ssh-keygen -t ed25519 -f deploy_key -N '' -C github-deploy
   ssh-copy-id -i deploy_key.pub ubuntu@<ip-do-vps>
   ```
+  Com SSH em outra porta, passe-a aqui e no `ssh-keyscan` abaixo (`ssh-copy-id -p <porta> ...`, `ssh-keyscan -p <porta> -H <ip-do-vps>`) e defina `SSH_PORT`; a entrada do known_hosts fica no formato `[ip]:porta`.
 - O clone precisa estar em `~/crm` (ou no `DEPLOY_PATH`), com `origin` apontando para o GitHub. O repositório é público, então o `git fetch` não precisa de credencial.
 
 **No GitHub** (Settings → Environments → `production`):

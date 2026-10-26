@@ -53,10 +53,13 @@ jobs:
           DEPLOY_PATH: ${{ vars.DEPLOY_PATH || 'crm' }}
           COMPOSE_PROFILE: ${{ vars.COMPOSE_PROFILE }}
         run: |
+          # O ssh junta os argumentos numa string só: sem o %q, um
+          # COMPOSE_PROFILE vazio some e o $3 do script quebra no `set -u`.
+          args=$(printf '%q ' "$GITHUB_SHA" "$DEPLOY_PATH" "$COMPOSE_PROFILE")
           ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
             -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 \
             "$SSH_USER@$SSH_HOST" \
-            bash -s -- "$GITHUB_SHA" "$DEPLOY_PATH" "$COMPOSE_PROFILE" <<'EOF'
+            "bash -s -- $args" <<'EOF'
           set -euo pipefail
           sha="$1"; path="$2"; profile="$3"
 
@@ -71,9 +74,11 @@ jobs:
           # O `migrate` roda de novo antes do app novo (idempotente).
           "${compose[@]}" up -d --build --remove-orphans
 
-          # Espera o app responder no loopback do VPS (APP_PORT padrão).
-          for i in $(seq 1 30); do
-            if curl -fsS -o /dev/null http://127.0.0.1:3000/login; then
+          # Espera o app responder no loopback do VPS (APP_PORT padrão). O
+          # --max-time impede que uma requisição presa estoure o prazo.
+          deadline=$((SECONDS + 150))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:3000/login; then
               echo "App no ar em $sha"
               podman image prune -f >/dev/null
               exit 0
