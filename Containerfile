@@ -36,6 +36,7 @@ RUN DATABASE_URL=postgresql://build:build@localhost:5432/build \
     EVOLUTION_API_KEY=build \
     EVOLUTION_WEBHOOK_SECRET=segredo-apenas-para-o-build \
     R2_ACCOUNT_ID=build R2_ACCESS_KEY_ID=build R2_SECRET_ACCESS_KEY=build R2_BUCKET=build \
+    OPENAI_API_KEY=build \
     bun --bun next build
 
 # ---------------------------------------------------------------------------
