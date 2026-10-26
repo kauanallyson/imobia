@@ -13,10 +13,24 @@ import { Suspense } from "react";
 import Link from "@/app/components/link";
 import { buscarPendencia, rotuloDoTipo } from "@/data/pendencias";
 import { verificarCorretor } from "@/data/session";
+import type { TipoDePendencia } from "@/lib/db/schema";
 import { formatarTelefone, formatoDataHora } from "../../negocios/etapas";
 import { resolverPendenciaAction } from "../actions";
 
 export const metadata: Metadata = { title: "Pendência" };
+
+// Onde cada tipo se resolve no detalhe do negócio.
+const ancoraDoTipo: Partial<Record<TipoDePendencia, string>> = {
+  revisar_proposta: "#proposta",
+  confirmar_assinatura: "#fechamento",
+  confirmar_pagamento: "#fechamento",
+};
+
+const rotuloDoLink: Partial<Record<TipoDePendencia, string>> = {
+  revisar_proposta: "Revisar a proposta",
+  confirmar_assinatura: "Conferir a assinatura",
+  confirmar_pagamento: "Conferir o pagamento",
+};
 
 export default function PendenciaPage({
   params,
@@ -95,19 +109,13 @@ async function Pendencia({ params }: { params: Promise<{ id: string }> }) {
 
       <Button
         component={Link}
-        href={
-          pendencia.tipo === "revisar_proposta"
-            ? `/painel/negocios/${pendencia.negocioId}#proposta`
-            : `/painel/negocios/${pendencia.negocioId}`
-        }
+        href={`/painel/negocios/${pendencia.negocioId}${ancoraDoTipo[pendencia.tipo] ?? ""}`}
         variant="outlined"
         size="large"
         fullWidth
         startIcon={<HandshakeIcon aria-hidden fontSize="small" />}
       >
-        {pendencia.tipo === "revisar_proposta"
-          ? "Revisar a proposta"
-          : "Abrir o negócio"}
+        {rotuloDoLink[pendencia.tipo] ?? "Abrir o negócio"}
       </Button>
     </>
   );

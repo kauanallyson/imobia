@@ -7,12 +7,15 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { buscarIncorporadora } from "@/data/incorporadoras";
+import {
+  buscarIncorporadora,
+  buscarInstrucoesDePagamento,
+} from "@/data/incorporadoras";
 import { buscarModeloDeProposta, camposDaProposta } from "@/data/propostas";
 import { verificarCorretor } from "@/data/session";
 import { editarIncorporadoraAction } from "../../actions";
 import { IncorporadoraForm } from "../../forms";
-import { ModeloDePropostaForm } from "./forms";
+import { InstrucoesDePagamentoForm, ModeloDePropostaForm } from "./forms";
 
 const formatoData = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
@@ -38,6 +41,10 @@ async function Incorporadora({ params }: { params: Promise<{ id: string }> }) {
   const incorporadora = await buscarIncorporadora(session, id);
   if (!incorporadora) notFound();
   const modelo = await buscarModeloDeProposta(session, incorporadora.id);
+  const instrucoes = await buscarInstrucoesDePagamento(
+    session,
+    incorporadora.id,
+  );
 
   return (
     <>
@@ -49,6 +56,21 @@ async function Incorporadora({ params }: { params: Promise<{ id: string }> }) {
         id={incorporadora.id}
         valores={incorporadora}
       />
+
+      <Stack component="section" spacing={2} sx={{ pt: 2 }}>
+        <Typography variant="h6" component="h2">
+          Instruções de pagamento
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Enviadas ao cliente quando você confirma a assinatura da proposta,
+          junto com o valor da entrada. Servem para todos os empreendimentos
+          desta incorporadora.
+        </Typography>
+        <InstrucoesDePagamentoForm
+          incorporadoraId={incorporadora.id}
+          instrucoes={instrucoes}
+        />
+      </Stack>
 
       <Stack component="section" spacing={2} sx={{ pt: 2 }}>
         <Typography variant="h6" component="h2">

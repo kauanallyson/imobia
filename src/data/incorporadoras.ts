@@ -86,3 +86,46 @@ export async function editarIncorporadora(
     .returning(columns);
   return edited ?? null;
 }
+
+// ---- ticket 18: instruções de pagamento da entrada --------------------------
+
+// Texto livre e reutilizável (conta, Pix, boleto...) que o assistente envia
+// ao cliente quando o corretor confirma a assinatura. Vazio limpa. Fora do
+// escopo → null.
+export async function definirInstrucoesDePagamento(
+  session: Session,
+  id: string,
+  texto: string,
+): Promise<{ instrucoesDePagamento: string | null } | null> {
+  const { imobiliariaId } = requireCorretor(session);
+  if (!z.uuid().safeParse(id).success) return null;
+  const [updated] = await db
+    .update(incorporadoras)
+    .set({ instrucoesDePagamento: texto.trim() || null })
+    .where(
+      and(
+        eq(incorporadoras.id, id),
+        eq(incorporadoras.imobiliariaId, imobiliariaId),
+      ),
+    )
+    .returning({ instrucoesDePagamento: incorporadoras.instrucoesDePagamento });
+  return updated ?? null;
+}
+
+export async function buscarInstrucoesDePagamento(
+  session: Session,
+  id: string,
+): Promise<string | null> {
+  const { imobiliariaId } = requireCorretor(session);
+  if (!z.uuid().safeParse(id).success) return null;
+  const [found] = await db
+    .select({ instrucoesDePagamento: incorporadoras.instrucoesDePagamento })
+    .from(incorporadoras)
+    .where(
+      and(
+        eq(incorporadoras.id, id),
+        eq(incorporadoras.imobiliariaId, imobiliariaId),
+      ),
+    );
+  return found?.instrucoesDePagamento ?? null;
+}

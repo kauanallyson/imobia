@@ -13,6 +13,7 @@ import {
 import { z } from "zod";
 import { db } from "@/lib/db";
 import {
+  arquivosDoFechamento,
   clientes,
   conversas,
   documentosDoCliente,
@@ -530,8 +531,16 @@ export async function apagarDadosDoCliente(
     .select({ chave: documentosDoCliente.chave })
     .from(documentosDoCliente)
     .where(eq(documentosDoCliente.clienteId, cliente.id));
+  // Ticket 18: proposta assinada e comprovantes também são dados pessoais.
+  const doFechamento = await db
+    .select({ chave: arquivosDoFechamento.chave })
+    .from(arquivosDoFechamento)
+    .innerJoin(negocios, eq(negocios.id, arquivosDoFechamento.negocioId))
+    .where(eq(negocios.clienteId, cliente.id));
   // Arquivos primeiro: se o banco falhar depois, repetir apaga o resto.
-  for (const { chave } of docs) await storage.apagarArquivo(chave);
+  for (const { chave } of [...docs, ...doFechamento]) {
+    await storage.apagarArquivo(chave);
+  }
 
   const anonimizadoEm = cliente.anonimizadoEm ?? new Date();
   await db.transaction(async (tx) => {

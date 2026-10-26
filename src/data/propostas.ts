@@ -117,7 +117,8 @@ const formatoReais = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
-const reais = (valor: number) => formatoReais.format(valor).replace(/ /g, " ");
+export const reais = (valor: number) =>
+  formatoReais.format(valor).replace(/ /g, " ");
 const dataBr = (iso: string) => iso.split("-").reverse().join("/");
 const cpfFormatado = (cpf: string) =>
   cpf.length === 11

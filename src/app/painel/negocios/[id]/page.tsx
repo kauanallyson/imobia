@@ -17,6 +17,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/app/components/link";
 import { formatarReais } from "@/app/painel/catalogo/formatos";
+import { buscarFechamento } from "@/data/assinatura-e-pagamento";
 import { buscarColeta } from "@/data/coleta-de-dados";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
 import { buscarPropostaDoNegocio } from "@/data/propostas";
@@ -29,6 +30,7 @@ import {
 import { formatarTelefone, formatoDataHora, rotuloDaEtapa } from "../etapas";
 import { MarcarPerdidoForm, MudarEtapaForm } from "../forms";
 import { ColetaDeDados } from "./coleta";
+import { FechamentoDoNegocio } from "./fechamento";
 import { PropostaDoNegocioSecao } from "./proposta";
 
 export const metadata: Metadata = { title: "Negócio" };
@@ -64,6 +66,14 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const coleta = await buscarColeta(session, negocio.id);
   const anonimizado = coleta?.cliente.anonimizado ?? false;
   const proposta = await buscarPropostaDoNegocio(session, negocio.id);
+  const fechamento = await buscarFechamento(session, negocio.id);
+  const mostrarFechamento =
+    fechamento !== null &&
+    (["aguardando_assinatura", "aguardando_pagamento", "ganho"].includes(
+      negocio.etapa,
+    ) ||
+      fechamento.propostaAssinada !== null ||
+      fechamento.comprovantes.length > 0);
   const mostrarProposta =
     proposta !== null ||
     [
@@ -179,6 +189,12 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
             proposta={proposta}
             novoId={crypto.randomUUID()}
           />
+        </Secao>
+      )}
+
+      {fechamento && mostrarFechamento && (
+        <Secao titulo="Assinatura e pagamento" id="fechamento">
+          <FechamentoDoNegocio negocioId={negocio.id} fechamento={fechamento} />
         </Secao>
       )}
 

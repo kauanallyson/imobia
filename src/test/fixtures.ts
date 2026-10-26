@@ -555,3 +555,67 @@ export async function outroClienteFechaOLote(
   });
   return negocio;
 }
+
+// Ticket 18: o cliente `telefone` manda um arquivo pelo WhatsApp da Ana (o
+// assistente responde só com texto). `bytes` é o que a Evolution devolve.
+export async function clienteEnviaArquivo(input: {
+  instancia: string;
+  telefone?: string;
+  idMensagem: string;
+  tipo?: "imagem" | "documento";
+  mimetype?: string;
+  nomeDoArquivo?: string | null;
+}) {
+  const { receberMensagem } = await import("@/data/conversas");
+  const llm = await import("@/test/fakes/llm");
+  const whatsapp = await import("@/test/fakes/whatsapp");
+  const mimetype = input.mimetype ?? "application/pdf";
+  whatsapp.simularMidia(input.idMensagem, {
+    bytes: new TextEncoder().encode(input.idMensagem),
+    mimeType: mimetype,
+  });
+  llm.roteirizar({ tipo: "texto", texto: "Recebi, obrigado!" });
+  await receberMensagem(
+    whatsapp.mensagemRecebida({
+      instancia: input.instancia,
+      telefone: input.telefone ?? "5588999990000",
+      idMensagem: input.idMensagem,
+      texto: null,
+      midia: {
+        tipo: input.tipo ?? "documento",
+        mimetype,
+        nomeDoArquivo:
+          input.nomeDoArquivo === undefined
+            ? "proposta-assinada.pdf"
+            : input.nomeDoArquivo,
+        url: null,
+      },
+    }),
+  );
+}
+
+// Ticket 18: o cenário de proposta da Ana com a proposta aprovada e enviada
+// (negócio em Aguardando assinatura, lote A-1 reservado por 72h) e as
+// instruções de pagamento da Terra Nova configuradas.
+export async function criarCenarioDeAssinaturaDaAna(
+  instrucoes = "Pix para a chave financeiro@terranova.com.br (Terra Nova Urbanismo).",
+) {
+  const { definirInstrucoesDePagamento } = await import(
+    "@/data/incorporadoras"
+  );
+  const { aprovarProposta, gerarProposta } = await import("@/data/propostas");
+  const whatsapp = await import("@/test/fakes/whatsapp");
+  const cenario = await criarCenarioDePropostaDaAna();
+  const { session, negocio, empreendimento } = cenario;
+  ok(
+    await definirInstrucoesDePagamento(
+      session,
+      empreendimento.incorporadoraId,
+      instrucoes,
+    ),
+  );
+  const gerada = ok(await gerarProposta(session, negocio.id));
+  const proposta = ok(await aprovarProposta(session, gerada.id));
+  whatsapp.enviados.length = 0;
+  return { ...cenario, proposta };
+}

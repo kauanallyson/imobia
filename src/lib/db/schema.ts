@@ -368,6 +368,9 @@ export const incorporadoras = pgTable(
       .notNull()
       .references(() => imobiliarias.id),
     nome: text().notNull(),
+    // Ticket 18: como pagar a entrada (conta, Pix, boleto...), configurado
+    // pelo corretor e enviado ao cliente quando a assinatura é confirmada.
+    instrucoesDePagamento: text("instrucoes_de_pagamento"),
     criadaEm: timestamp("criada_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -952,7 +955,8 @@ export const propostas = pgTable(
   ],
 );
 
-export const estadosDaReserva = ["ativa", "expirada"] as const;
+// `concluida` (ticket 18): o pagamento foi confirmado e o lote vendido.
+export const estadosDaReserva = ["ativa", "expirada", "concluida"] as const;
 export type EstadoDaReserva = (typeof estadosDaReserva)[number];
 
 // Reserva do lote enquanto a proposta enviada aguarda assinatura. O banco
@@ -985,3 +989,71 @@ export const reservas = pgTable(
   ],
 );
 // ---- fim ticket 17
+
+// ---- ticket 18: assinatura, pagamento e Ganho ----------------------------------
+// Arquivos que o cliente devolve no fechamento: a proposta assinada no gov.br
+// e o comprovante de pagamento da entrada. Privados no R2; a mensagem de
+// origem é a chave natural. `aceito` é a decisão do corretor (null: ainda
+// não decidiu).
+export const tiposDeArquivoDoFechamento = [
+  "proposta_assinada",
+  "comprovante_de_pagamento",
+] as const;
+export type TipoDeArquivoDoFechamento =
+  (typeof tiposDeArquivoDoFechamento)[number];
+
+export const arquivosDoFechamento = pgTable(
+  "arquivos_do_fechamento",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    propostaId: uuid("proposta_id")
+      .notNull()
+      .references(() => propostas.id, { onDelete: "cascade" }),
+    tipo: text({ enum: tiposDeArquivoDoFechamento }).notNull(),
+    // imobiliarias/<id>/negocios/<id>/fechamento/<uuid>
+    chave: text().notNull().unique(),
+    mimeType: text("mime_type").notNull(),
+    aceito: boolean(),
+    mensagemId: uuid("mensagem_id")
+      .notNull()
+      .unique()
+      .references(() => mensagens.id, { onDelete: "cascade" }),
+    recebidoEm: timestamp("recebido_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("arquivos_do_fechamento_negocio_id_idx").on(t.negocioId),
+    index("arquivos_do_fechamento_corretor_id_idx").on(t.corretorId),
+  ],
+);
+
+// Lembrete prático em Aguardando assinatura / pagamento (a cada 2 dias):
+// chave natural negócio + data civil em Brasília.
+export const lembretesDeEtapasFinais = pgTable(
+  "lembretes_de_etapas_finais",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    etapa: text({ enum: etapas }).notNull(),
+    data: date({ mode: "string" }).notNull(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("lembretes_de_etapas_finais_negocio_data").on(t.negocioId, t.data),
+  ],
+);
+// ---- fim ticket 18

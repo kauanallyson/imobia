@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { definirInstrucoesDePagamento } from "@/data/incorporadoras";
 import {
   enviarModeloDeProposta,
   ModeloDePropostaInvalidoError,
@@ -41,6 +42,30 @@ export async function enviarModeloDePropostaAction(
     }
     throw error;
   }
+  revalidatePath("/painel/catalogo/incorporadoras/[id]", "page");
+  return { ok: true };
+}
+
+// Ticket 18: instruções reutilizáveis de pagamento da entrada.
+const instrucoesSchema = z.object({
+  incorporadoraId: z.uuid(),
+  instrucoes: z.string().max(4000),
+});
+
+export async function definirInstrucoesDePagamentoAction(
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const session = await verificarCorretor();
+  const input = instrucoesSchema.safeParse(Object.fromEntries(formData));
+  if (!input.success)
+    return { erro: "Instruções inválidas (até 4000 caracteres)." };
+  const salvo = await definirInstrucoesDePagamento(
+    session,
+    input.data.incorporadoraId,
+    input.data.instrucoes,
+  );
+  if (!salvo) return { erro: "Incorporadora não encontrada." };
   revalidatePath("/painel/catalogo/incorporadoras/[id]", "page");
   return { ok: true };
 }

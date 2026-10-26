@@ -7,6 +7,7 @@ import { secaoDoPromptDeOrcamento } from "./ferramentas/12-orcamento";
 import { secaoDeVisitas } from "./ferramentas/13-visitas";
 import { secaoDeColeta } from "./ferramentas/16-coleta-de-dados";
 import { secaoDaProposta } from "./ferramentas/17-proposta-e-reserva";
+import { secaoDeAssinaturaEPagamento } from "./ferramentas/18-assinatura-e-pagamento";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -69,5 +70,6 @@ export function montarInstrucoes(
     secaoDoPromptDeOrcamento, // ticket 12
     secaoDeColeta(contexto), // ticket 16
     secaoDaProposta, // ticket 17
+    secaoDeAssinaturaEPagamento(contexto), // ticket 18
   ].join("\n");
 }

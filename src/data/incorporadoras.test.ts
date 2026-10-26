@@ -9,7 +9,9 @@ import {
 } from "@/test/fixtures";
 import {
   buscarIncorporadora,
+  buscarInstrucoesDePagamento,
   criarIncorporadora,
+  definirInstrucoesDePagamento,
   editarIncorporadora,
   listarIncorporadoras,
 } from "./incorporadoras";
@@ -105,5 +107,30 @@ describe("incorporadoras", () => {
     expect(a).toEqual(first);
     expect(b).toEqual(first);
     expect(await listarIncorporadoras(session)).toHaveLength(1);
+  });
+
+  test("instruções de pagamento são da incorporadora e compartilhadas na imobiliária", async () => {
+    const { imobiliaria, corretor } = await criarAna();
+    const ana = sessaoDe(corretor, imobiliaria);
+    const bruno = sessaoDe(await criarBruno(imobiliaria), imobiliaria);
+    const { id } = ok(await criarIncorporadora(ana, { nome: "Terra Nova" }));
+    expect(await buscarInstrucoesDePagamento(ana, id)).toBeNull();
+
+    expect(
+      await definirInstrucoesDePagamento(ana, id, "  Pix: chave@terranova  "),
+    ).toEqual({ instrucoesDePagamento: "Pix: chave@terranova" });
+    expect(await buscarInstrucoesDePagamento(bruno, id)).toBe(
+      "Pix: chave@terranova",
+    );
+    const concorrente = await criarConcorrente();
+    expect(
+      await buscarInstrucoesDePagamento(concorrente.session, id),
+    ).toBeNull();
+    expect(
+      await definirInstrucoesDePagamento(concorrente.session, id, "golpe"),
+    ).toBeNull();
+
+    await definirInstrucoesDePagamento(ana, id, " ");
+    expect(await buscarInstrucoesDePagamento(ana, id)).toBeNull();
   });
 });
