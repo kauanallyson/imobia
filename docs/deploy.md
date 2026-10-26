@@ -97,6 +97,40 @@ Entre em `https://crm.exemplo.com.br/admin`, crie a imobiliária e o corretor.
 
 Inspecionar a Evolution pelo manager, se precisar: `ssh -L 8080:127.0.0.1:8080 usuario@vps` e abra `http://localhost:8080/manager` com a `EVOLUTION_API_KEY`.
 
+## Deploy automático (GitHub Actions → OCI)
+
+`.github/workflows/deploy.yml` roda a cada push na `main` (ou à mão, em Actions → Deploy → Run workflow): entra no VPS por SSH com chave privada, faz `git fetch` + `git reset --hard <commit>` no clone e roda `podman compose up -d --build`. Depois espera `http://127.0.0.1:3000/login` responder; se não responder em 150 s, o job falha e imprime os logs de `migrate` e `app`. Os passos 1 a 4 acima continuam manuais e acontecem uma vez só.
+
+**No VPS (OCI).**
+
+- Imagem Ubuntu 24.04; o usuário padrão é `ubuntu`. Shape Ampere A1 (arm64) funciona: as imagens são construídas no próprio VPS, e as de terceiros (`bun`, `pgvector`, `redis`, `caddy`, `evolution-api`) são multi-arch. Confira a Evolution no primeiro `up` (`podman compose logs evolution`).
+- Libere 80/443 em dois lugares: na Security List (ou NSG) da VCN, com regras de ingresso TCP 80 e 443 de `0.0.0.0/0`, e no iptables da imagem, que bloqueia tudo menos a 22:
+  ```bash
+  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+  sudo netfilter-persistent save
+  ```
+- Gere um par de chaves só para o deploy (na sua máquina) e autorize a pública no VPS:
+  ```bash
+  ssh-keygen -t ed25519 -f deploy_key -N '' -C github-deploy
+  ssh-copy-id -i deploy_key.pub ubuntu@<ip-do-vps>
+  ```
+  Com SSH em outra porta, passe-a aqui e no `ssh-keyscan` abaixo (`ssh-copy-id -p <porta> ...`, `ssh-keyscan -p <porta> -H <ip-do-vps>`) e defina `SSH_PORT`; a entrada do known_hosts fica no formato `[ip]:porta`.
+- O clone precisa estar em `~/crm` (ou no `DEPLOY_PATH`), com `origin` apontando para o GitHub. O repositório é público, então o `git fetch` não precisa de credencial.
+
+**No GitHub** (Settings → Environments → `production`):
+
+| Tipo | Nome | Valor |
+|---|---|---|
+| Secret | `SSH_HOST` | IP público do VPS |
+| Secret | `SSH_USER` | `ubuntu` |
+| Secret | `SSH_PRIVATE_KEY` | conteúdo de `deploy_key` (a privada) |
+| Secret | `SSH_KNOWN_HOSTS` | saída de `ssh-keyscan -H <ip-do-vps>` |
+| Variable | `COMPOSE_PROFILE` | `proxy` com o Caddy; não crie sem proxy |
+| Variable | `SSH_PORT`, `DEPLOY_PATH` | opcionais; padrões `22` e `crm` |
+
+`SSH_KNOWN_HOSTS` fixa a chave do servidor (`StrictHostKeyChecking=yes`): se o VPS for recriado, gere de novo. O health check usa a porta 3000 no loopback, que é o padrão de `APP_PORT`; se mudar a porta, ajuste o workflow.
+
 ## Propostas em PDF (LibreOffice)
 
 O corretor envia, por incorporadora, um modelo DOCX com placeholders como `{cliente_nome}` e `{lote_numero}` (lista completa na página da incorporadora no catálogo). Ao gerar a proposta, `src/lib/documentos.ts` substitui os campos no DOCX e chama `soffice --headless --convert-to pdf` com um perfil temporário por conversão. Por isso:

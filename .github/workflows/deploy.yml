@@ -1,0 +1,97 @@
+# Deploy no VPS (OCI) por SSH. O VPS já tem o clone do repositório e o
+# `.env` (docs/deploy.md); o job só leva o checkout para o commit do push e
+# roda o mesmo `podman compose up -d --build` do passo a passo. As imagens são
+# construídas no próprio VPS (sem registry), então a arquitetura (Ampere/arm64
+# ou x86) é sempre a da máquina.
+#
+# Secrets (environment `production`):
+#   SSH_HOST         IP ou domínio do VPS
+#   SSH_USER         usuário do deploy (ex.: ubuntu)
+#   SSH_PRIVATE_KEY  chave privada cuja pública está no authorized_keys do VPS
+#   SSH_KNOWN_HOSTS  saída de `ssh-keyscan -H <host>` (fixa a chave do servidor)
+# Variables (opcionais):
+#   SSH_PORT         padrão 22
+#   DEPLOY_PATH      pasta do clone, relativa ao home; padrão `crm`
+#   COMPOSE_PROFILE  `proxy` para subir o Caddy; vazio sem proxy
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Um deploy por vez; um push novo espera o anterior terminar.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    steps:
+      - name: Configurar SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Atualizar e subir a stack
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PORT: ${{ vars.SSH_PORT || '22' }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || 'crm' }}
+          COMPOSE_PROFILE: ${{ vars.COMPOSE_PROFILE }}
+        run: |
+          # O ssh junta os argumentos numa string só: sem o %q, um
+          # COMPOSE_PROFILE vazio some e o $3 do script quebra no `set -u`.
+          args=$(printf '%q ' "$GITHUB_SHA" "$DEPLOY_PATH" "$COMPOSE_PROFILE")
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=yes -o ServerAliveInterval=30 \
+            "$SSH_USER@$SSH_HOST" \
+            "bash -s -- $args" <<'EOF'
+          set -euo pipefail
+          sha="$1"; path="$2"; profile="$3"
+
+          cd "$path"
+          # .env é ignorado pelo git, então o reset não toca nele.
+          git fetch --prune origin
+          git reset --hard "$sha"
+
+          compose=(podman compose)
+          [ -n "$profile" ] && compose+=(--profile "$profile")
+
+          # O `migrate` roda de novo antes do app novo (idempotente).
+          "${compose[@]}" up -d --build --remove-orphans
+
+          # Espera o app responder no loopback do VPS (APP_PORT padrão). O
+          # --max-time impede que uma requisição presa estoure o prazo.
+          deadline=$((SECONDS + 150))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if curl -fsS --max-time 5 -o /dev/null http://127.0.0.1:3000/login; then
+              echo "App no ar em $sha"
+              podman image prune -f >/dev/null
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "App não respondeu em 150s" >&2
+          "${compose[@]}" ps
+          "${compose[@]}" logs --tail 100 migrate app
+          exit 1
+          EOF
+
+      - name: Remover chave
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
