@@ -8,6 +8,7 @@ import {
   conversas,
   mensagens,
   type motivosDeContatoConhecido,
+  negocios,
   whatsappConexoes,
 } from "@/lib/db/schema";
 import * as llm from "@/lib/llm";
@@ -211,27 +212,51 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
     let novoCliente = false;
 
     if (!conversa) {
-      // História 24: só número que nunca falou com o corretor vira cliente.
-      if (!(await ehNumeroNovo(tx, { ...mensagem, telefone }, conexao))) {
-        return null;
-      }
       const agora = new Date();
-      const [cliente] = await tx
-        .insert(clientes)
-        .values({
+      // Cliente cadastrado à mão: a conversa nasce nele (cliente existente
+      // sempre vence a regra de contatos conhecidos). Sem negócio, abre um
+      // em Novo.
+      let [cliente] = await tx
+        .select({ id: clientes.id })
+        .from(clientes)
+        .where(
+          and(
+            eq(clientes.corretorId, corretorId),
+            eq(clientes.telefone, telefone),
+          ),
+        );
+      if (!cliente) {
+        // História 24: só número que nunca falou com o corretor vira cliente.
+        if (!(await ehNumeroNovo(tx, { ...mensagem, telefone }, conexao))) {
+          return null;
+        }
+        [cliente] = await tx
+          .insert(clientes)
+          .values({
+            imobiliariaId,
+            corretorId,
+            nome: mensagem.nomeDoContato ?? telefone,
+            telefone,
+            criadoEm: agora,
+          })
+          .returning({ id: clientes.id });
+        if (!cliente) throw new Error("cliente não inserido");
+        novoCliente = true;
+      }
+      const [negocio] = novoCliente
+        ? []
+        : await tx
+            .select({ id: negocios.id })
+            .from(negocios)
+            .where(eq(negocios.clienteId, cliente.id))
+            .limit(1);
+      if (!negocio) {
+        await inserirNegocioEmNovo(tx, {
           imobiliariaId,
           corretorId,
-          nome: mensagem.nomeDoContato ?? telefone,
-          telefone,
-          criadoEm: agora,
-        })
-        .returning({ id: clientes.id });
-      if (!cliente) throw new Error("cliente não inserido");
-      await inserirNegocioEmNovo(tx, {
-        imobiliariaId,
-        corretorId,
-        clienteId: cliente.id,
-      });
+          clienteId: cliente.id,
+        });
+      }
       [conversa] = await tx
         .insert(conversas)
         .values({
@@ -242,7 +267,6 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
         })
         .returning({ id: conversas.id, assistente: conversas.assistente });
       if (!conversa) throw new Error("conversa não inserida");
-      novoCliente = true;
     }
 
     // Eco de um envio do assistente que chegou antes de o envio devolver o

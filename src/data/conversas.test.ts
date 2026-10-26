@@ -8,13 +8,14 @@ import {
 import {
   administrador,
   conectarWhatsappDaAna,
+  ok,
   sessaoDe,
 } from "@/test/fixtures";
-import { listarClientes } from "./clientes";
+import { criarCliente, listarClientes } from "./clientes";
 import { listarMensagens, receberMensagem } from "./conversas";
 import { criarCorretor } from "./corretores";
 import { criarImobiliaria } from "./imobiliarias";
-import { historicoDeEtapas, listarNegocios } from "./negocios";
+import { criarNegocio, historicoDeEtapas, listarNegocios } from "./negocios";
 
 const telefone = "5588999990000";
 
@@ -154,6 +155,87 @@ describe("mensagens recebidas", () => {
       await receberMensagem(mensagemRecebida({ instancia, telefone })),
     );
     expect(await listarClientes(session)).toHaveLength(1);
+  });
+
+  describe("cliente cadastrado à mão (sem conversa)", () => {
+    async function clienteDaAna() {
+      const conectado = await conectarWhatsappDaAna();
+      const cliente = await criarCliente(conectado.session, {
+        nome: "Carlos Lima",
+        telefone,
+      });
+      const negocio = ok(
+        await criarNegocio(conectado.session, { clienteId: cliente.id }),
+      );
+      return { ...conectado, cliente, negocio };
+    }
+
+    test("a mensagem dele abre a conversa no mesmo cliente, sem duplicar cliente nem negócio", async () => {
+      const { session, instancia, cliente } = await clienteDaAna();
+
+      const result = await receberMensagem(
+        mensagemRecebida({ instancia, telefone, texto: "Oi, Ana" }),
+      );
+
+      expect(result?.novoCliente).toBe(false);
+      expect((await listarClientes(session)).map((c) => c.id)).toEqual([
+        cliente.id,
+      ]);
+      expect(await listarNegocios(session)).toHaveLength(1);
+      expect(
+        (await listarMensagens(session, conversaDe(result))).map(
+          (m) => m.texto,
+        ),
+      ).toContain("Oi, Ana");
+    });
+
+    test("sem negócio, a mensagem dele abre um negócio em Novo", async () => {
+      const { session, instancia } = await conectarWhatsappDaAna();
+      await criarCliente(session, { nome: "Carlos Lima", telefone });
+
+      conversaDe(
+        await receberMensagem(mensagemRecebida({ instancia, telefone })),
+      );
+
+      expect(await listarClientes(session)).toHaveLength(1);
+      expect(await listarNegocios(session)).toMatchObject([{ etapa: "novo" }]);
+    });
+
+    test("histórico anterior na Evolution não o torna contato ignorado", async () => {
+      const { session, instancia } = await clienteDaAna();
+      simularHistorico(telefone);
+
+      conversaDe(
+        await receberMensagem(mensagemRecebida({ instancia, telefone })),
+      );
+      expect(consultasDeHistorico).toEqual([]);
+      expect(await listarClientes(session)).toHaveLength(1);
+    });
+
+    test("mensagem fromMe do corretor para ele fica na conversa e a resposta também", async () => {
+      const { session, instancia } = await clienteDaAna();
+
+      const doCorretor = await receberMensagem(
+        mensagemRecebida({ instancia, telefone, fromMe: true, texto: "Oi!" }),
+      );
+      const resposta = await receberMensagem(
+        mensagemRecebida({ instancia, telefone, texto: "Oi, tudo bem?" }),
+      );
+
+      expect(conversaDe(resposta)).toBe(conversaDe(doCorretor));
+      expect(
+        (await listarMensagens(session, conversaDe(resposta))).map((m) => [
+          m.autor,
+          m.texto,
+        ]),
+      ).toEqual(
+        expect.arrayContaining([
+          ["corretor", "Oi!"],
+          ["cliente", "Oi, tudo bem?"],
+        ]),
+      );
+      expect(await listarClientes(session)).toHaveLength(1);
+    });
   });
 
   test("fromMe numa conversa existente é guardada com autor corretor", async () => {

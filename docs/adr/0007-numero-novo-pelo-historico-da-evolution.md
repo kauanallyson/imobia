@@ -7,5 +7,6 @@ Na primeira mensagem de um número sem conversa, `receberMensagem` consulta a Ev
 ## Consequências
 
 - Um contato conhecido nunca vira cliente sozinho; o corretor segue a conversa pelo próprio celular.
+- Cliente cadastrado à mão sempre vence: a primeira mensagem (dele ou `fromMe`) abre a conversa nesse cliente, sem consultar a Evolution nem marcar contato conhecido; sem negócio, abre um em Novo.
 - A consulta acontece dentro da transação que serializa o número (advisory lock); a Evolution lenta atrasa só aquele número.
 - Falha da Evolution na primeira mensagem perde o atendimento automático dessa mensagem; preferimos isso a falar com família ou clientes antigos.
