@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, lte, ne } from "drizzle-orm";
+import { and, desc, eq, lte, ne, not, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import {
@@ -677,6 +677,11 @@ export async function prorrogarReserva(
   return atualizada;
 }
 
+// A reserva segura o lote enquanto a assinatura está nas mãos do corretor
+// (PDF assinado à espera da conferência) ou já foi confirmada: daí em diante
+// ela só termina na confirmação do pagamento (história 92).
+const reservaComAssinatura = sql`exists (select 1 from ${propostas} where ${propostas.id} = ${reservas.propostaId} and (${propostas.estado} = 'assinada' or ${propostas.chavePdfAssinado} is not null))`;
+
 // Job do worker (a cada minuto): reservas ativas vencidas expiram, o lote
 // volta a disponível e a proposta fica expirada; o negócio fica onde está.
 // Cada reserva é reivindicada por um update condicional: rodar de novo (ou em
@@ -686,7 +691,13 @@ export async function expirarReservas(): Promise<{ expiradas: number }> {
   const vencidas = await db
     .select({ id: reservas.id })
     .from(reservas)
-    .where(and(eq(reservas.estado, "ativa"), lte(reservas.expiraEm, agora)));
+    .where(
+      and(
+        eq(reservas.estado, "ativa"),
+        lte(reservas.expiraEm, agora),
+        not(reservaComAssinatura),
+      ),
+    );
   let expiradas = 0;
   for (const { id } of vencidas) {
     const expirou = await db.transaction(async (tx) => {
@@ -698,6 +709,7 @@ export async function expirarReservas(): Promise<{ expiradas: number }> {
             eq(reservas.id, id),
             eq(reservas.estado, "ativa"),
             lte(reservas.expiraEm, agora),
+            not(reservaComAssinatura),
           ),
         )
         .returning({

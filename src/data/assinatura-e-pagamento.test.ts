@@ -267,6 +267,49 @@ describe("assinatura: decisão do corretor", () => {
   });
 });
 
+describe("assinatura: reserva", () => {
+  test("com o PDF assinado à espera do corretor, a reserva não expira", async () => {
+    setSystemTime(segunda9h);
+    const c = await criarCenarioDeAssinaturaDaAna();
+    await clienteDevolveAssinada(c);
+
+    setSystemTime(em("2026-11-06T09:00:00"));
+    expect(await expirarReservas()).toEqual({ expiradas: 0 });
+    expect(ok(await buscarLote(c.session, c.lotes.disponivel.id)).status).toBe(
+      "reservado",
+    );
+    expect(
+      ok(await buscarPropostaDoNegocio(c.session, c.negocio.id)).reserva
+        ?.estado,
+    ).toBe("ativa");
+  });
+
+  test("com a proposta assinada (aguardando pagamento), a reserva não expira", async () => {
+    setSystemTime(segunda9h);
+    const c = await criarCenarioDeAssinaturaDaAna();
+    await chegarAoPagamento(c);
+
+    setSystemTime(em("2026-11-06T09:00:00"));
+    expect(await expirarReservas()).toEqual({ expiradas: 0 });
+    const proposta = ok(await buscarPropostaDoNegocio(c.session, c.negocio.id));
+    expect(proposta.estado).toBe("assinada");
+    expect(proposta.reserva?.estado).toBe("ativa");
+    expect(ok(await buscarLote(c.session, c.lotes.disponivel.id)).status).toBe(
+      "reservado",
+    );
+  });
+
+  test("assinatura rejeitada volta a contar o prazo", async () => {
+    setSystemTime(segunda9h);
+    const c = await criarCenarioDeAssinaturaDaAna();
+    await clienteDevolveAssinada(c);
+    await rejeitarAssinatura(c.session, c.negocio.id);
+
+    setSystemTime(em("2026-11-06T09:00:00"));
+    expect(await expirarReservas()).toEqual({ expiradas: 1 });
+  });
+});
+
 describe("pagamento", () => {
   test("comprovante recebido gera a pendência de confirmar pagamento", async () => {
     setSystemTime(segunda9h);
