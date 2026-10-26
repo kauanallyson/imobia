@@ -11,7 +11,6 @@ import {
   lotes,
   modelosDeCasa,
   modelosDeProposta,
-  negocios,
   pendencias,
   planosDePagamento,
   propostas,
@@ -33,7 +32,7 @@ import {
 } from "./coleta-de-dados";
 import { isUniqueViolation } from "./errors";
 import { buscarIncorporadora } from "./incorporadoras";
-import { mudarEtapa } from "./negocios";
+import { mudarEtapa, negocioDoCorretor } from "./negocios";
 import { criarPendencia } from "./pendencias";
 import { calcularPlanoParaLote } from "./planos-de-pagamento";
 import { requireCorretor, type Session } from "./session";
@@ -251,26 +250,6 @@ export type Proposta = {
   criadaEm: Date;
   enviadaEm: Date | null;
 };
-
-async function negocioDoCorretor(session: Session, negocioId: string) {
-  const { corretorId } = requireCorretor(session);
-  if (!z.uuid().safeParse(negocioId).success) return null;
-  const [negocio] = await db
-    .select({
-      id: negocios.id,
-      imobiliariaId: negocios.imobiliariaId,
-      corretorId: negocios.corretorId,
-      clienteId: negocios.clienteId,
-      loteInteresseId: negocios.loteInteresseId,
-      planoEscolhidoId: negocios.planoEscolhidoId,
-      modeloDeCasaEscolhidoId: negocios.modeloDeCasaEscolhidoId,
-    })
-    .from(negocios)
-    .where(
-      and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)),
-    );
-  return negocio ?? null;
-}
 
 // A proposta viva (não expirada) do negócio, se houver.
 async function propostaViva(negocioId: string): Promise<Proposta | null> {

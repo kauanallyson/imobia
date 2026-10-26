@@ -12,7 +12,6 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import { z } from "zod";
 import { db } from "@/lib/db";
 import {
   arquivosDoFechamento,
@@ -39,11 +38,15 @@ import * as whatsapp from "@/lib/whatsapp";
 import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { LoteIndisponivelError } from "./coleta-de-dados";
-import { mudarEtapa } from "./negocios";
+import {
+  mudarEtapa,
+  type NegocioDoCorretor,
+  negocioDoCorretor,
+} from "./negocios";
 import { criarPendencia } from "./pendencias";
 import { calcularPlanoParaLote } from "./planos-de-pagamento";
 import { reais, SemWhatsappError } from "./propostas";
-import { requireCorretor, type Session } from "./session";
+import type { Session } from "./session";
 
 // Assinatura, pagamento e Ganho (ticket 18). O cliente devolve pelo WhatsApp
 // a proposta assinada no gov.br e o comprovante da entrada; o corretor
@@ -76,33 +79,6 @@ const formatoData = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
   minute: "2-digit",
 });
-
-// ---- Escopo ------------------------------------------------------------------
-
-async function negocioDaSessao(session: Session, negocioId: string) {
-  const { corretorId } = requireCorretor(session);
-  if (!z.uuid().safeParse(negocioId).success) return null;
-  const [negocio] = await db
-    .select({
-      id: negocios.id,
-      imobiliariaId: negocios.imobiliariaId,
-      corretorId: negocios.corretorId,
-      clienteId: negocios.clienteId,
-      etapa: negocios.etapa,
-      interesse: negocios.interesse,
-      empreendimentoInteresseId: negocios.empreendimentoInteresseId,
-      loteInteresseId: negocios.loteInteresseId,
-      clienteNome: clientes.nome,
-    })
-    .from(negocios)
-    .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
-    .where(
-      and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)),
-    );
-  return negocio ?? null;
-}
-
-type NegocioDaSessao = NonNullable<Awaited<ReturnType<typeof negocioDaSessao>>>;
 
 // A proposta mais recente que não expirou (enviada ou assinada).
 async function propostaDoFechamento(negocioId: string) {
@@ -187,7 +163,7 @@ const ehPdf = sql`(${mensagens.midia}->>'mimetype' = 'application/pdf' or lower(
 // primeira ainda sem arquivo. A mensagem de origem é a chave natural:
 // repetir devolve o já registrado. Sem mídia → null.
 async function registrarArquivoRecebido(
-  negocio: NegocioDaSessao,
+  negocio: NegocioDoCorretor,
   input: {
     etapa: Etapa;
     tipo: TipoDeArquivoDoFechamento;
@@ -298,7 +274,7 @@ export async function registrarPropostaAssinada(
   session: Session,
   negocioId: string,
 ): Promise<ArquivoDoFechamento | null> {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   if (negocio.etapa !== "aguardando_assinatura") {
     throw new ForaDaEtapaError("O negócio não está em Aguardando assinatura");
@@ -355,7 +331,7 @@ export const TEXTO_DE_REENVIO_DA_ASSINATURA = [
 // (opt-out, sem WhatsApp) desfaz tudo. Confirmar de novo não reenvia.
 // Fora do escopo → null.
 export async function confirmarAssinatura(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const proposta = await propostaDoFechamento(negocio.id);
   if (proposta?.estado === "assinada") {
@@ -440,7 +416,7 @@ export async function confirmarAssinatura(session: Session, negocioId: string) {
 // resolvida e o assistente pede ao cliente que assine e envie de novo.
 // Sem PDF assinado à espera: nada muda. Fora do escopo → null.
 export async function rejeitarAssinatura(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const proposta = await propostaDoFechamento(negocio.id);
   const chave =
@@ -487,7 +463,7 @@ export async function registrarComprovanteDePagamento(
   session: Session,
   negocioId: string,
 ): Promise<ArquivoDoFechamento | null> {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   if (negocio.etapa !== "aguardando_pagamento") {
     throw new ForaDaEtapaError("O negócio não está em Aguardando pagamento");
@@ -517,7 +493,7 @@ export async function registrarComprovanteDePagamento(
 // vendido ou reservado para outra proposta → LoteIndisponivelError. Fora do
 // escopo → null.
 export async function confirmarPagamento(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   if (negocio.etapa === "ganho") return { etapa: negocio.etapa };
   if (negocio.etapa !== "aguardando_pagamento") {
@@ -613,7 +589,7 @@ export async function confirmarPagamento(session: Session, negocioId: string) {
 // PDF assinado e comprovantes do negócio, com URLs assinadas de curta
 // duração (as chaves não saem daqui). Fora do escopo → null.
 export async function buscarFechamento(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const proposta = await propostaDoFechamento(negocio.id);
   const lista = await db

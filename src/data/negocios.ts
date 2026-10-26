@@ -42,6 +42,38 @@ export const negocioColumns = {
   atualizadoEm: negocios.atualizadoEm,
 };
 
+// O negócio do corretor da sessão com o que coleta, proposta e fechamento
+// precisam para agir nele (escopo, cliente, etapa e escolhas). Fora do
+// escopo ou id inválido → null.
+export async function negocioDoCorretor(session: Session, negocioId: string) {
+  const { corretorId } = requireCorretor(session);
+  if (!z.uuid().safeParse(negocioId).success) return null;
+  const [negocio] = await db
+    .select({
+      id: negocios.id,
+      imobiliariaId: negocios.imobiliariaId,
+      corretorId: negocios.corretorId,
+      clienteId: negocios.clienteId,
+      clienteNome: clientes.nome,
+      etapa: negocios.etapa,
+      interesse: negocios.interesse,
+      empreendimentoInteresseId: negocios.empreendimentoInteresseId,
+      loteInteresseId: negocios.loteInteresseId,
+      planoEscolhidoId: negocios.planoEscolhidoId,
+      modeloDeCasaEscolhidoId: negocios.modeloDeCasaEscolhidoId,
+    })
+    .from(negocios)
+    .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
+    .where(
+      and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)),
+    );
+  return negocio ?? null;
+}
+
+export type NegocioDoCorretor = NonNullable<
+  Awaited<ReturnType<typeof negocioDoCorretor>>
+>;
+
 export class MotivoObrigatorioError extends Error {
   override name = "MotivoObrigatorioError";
 }

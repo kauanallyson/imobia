@@ -40,6 +40,7 @@ import { naJanelaDeEnvio } from "./cadencia";
 import { normalizarTelefone } from "./clientes";
 import { refletirVisitaNoGoogle } from "./google-calendar";
 import { buscarLote } from "./lotes";
+import { negocioDoCorretor } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
 // Coleta de dados do cliente (ticket 16): em Coletando dados o assistente
@@ -99,27 +100,6 @@ export type DocumentoDoCliente = {
   recebidoEm: Date;
 };
 
-// O negócio do corretor da sessão (fora do escopo → null).
-async function negocioDaSessao(session: Session, negocioId: string) {
-  const { corretorId } = requireCorretor(session);
-  if (!z.uuid().safeParse(negocioId).success) return null;
-  const [negocio] = await db
-    .select({
-      id: negocios.id,
-      imobiliariaId: negocios.imobiliariaId,
-      corretorId: negocios.corretorId,
-      clienteId: negocios.clienteId,
-      etapa: negocios.etapa,
-      loteInteresseId: negocios.loteInteresseId,
-      empreendimentoInteresseId: negocios.empreendimentoInteresseId,
-    })
-    .from(negocios)
-    .where(
-      and(eq(negocios.id, negocioId), eq(negocios.corretorId, corretorId)),
-    );
-  return negocio ?? null;
-}
-
 async function lerCliente(clienteId: string) {
   const [cliente] = await db
     .select(clienteDaColetaColumns)
@@ -147,7 +127,7 @@ export async function registrarDadosDoCliente(
     contatosExtras?: string[] | null;
   },
 ): Promise<ClienteDaColeta | null> {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const atual = await lerCliente(negocio.clienteId);
   if (!atual) return null;
@@ -172,7 +152,7 @@ export async function registrarReferencia(
   negocioId: string,
   referencia: Referencia,
 ): Promise<ClienteDaColeta | null> {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const atual = await lerCliente(negocio.clienteId);
   if (!atual) return null;
@@ -235,7 +215,7 @@ export async function registrarPagamento(
     primeiraParcela = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
   }
 
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   await db
     .update(clientes)
@@ -256,7 +236,7 @@ export async function escolherLote(
   negocioId: string,
   loteId: string,
 ) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const lote = await buscarLote(session, loteId);
   if (!lote) return null;
@@ -305,7 +285,7 @@ export async function registrarDocumentoRecebido(
   negocioId: string,
   tipo: TipoDeDocumento,
 ): Promise<DocumentoDoCliente | null> {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
 
   // Fotos e arquivos do cliente desde a entrada em Coletando dados, do mais
@@ -480,7 +460,7 @@ async function documentosDoNegocio(negocioId: string) {
 }
 
 export async function statusDaColeta(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const cliente = await lerCliente(negocio.clienteId);
   if (!cliente) return null;
@@ -495,7 +475,7 @@ export async function statusDaColeta(session: Session, negocioId: string) {
 // Para o corretor no detalhe do negócio: dados coletados, documentos com URL
 // assinada de curta duração (a chave nunca sai daqui) e o que falta.
 export async function buscarColeta(session: Session, negocioId: string) {
-  const negocio = await negocioDaSessao(session, negocioId);
+  const negocio = await negocioDoCorretor(session, negocioId);
   if (!negocio) return null;
   const cliente = await lerCliente(negocio.clienteId);
   if (!cliente) return null;
