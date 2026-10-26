@@ -31,6 +31,7 @@ import { partesEmBrasilia, somarDias } from "@/lib/fuso";
 import * as llm from "@/lib/llm";
 import * as storage from "@/lib/storage";
 import * as whatsapp from "@/lib/whatsapp";
+import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { normalizarTelefone } from "./clientes";
 import { buscarLote } from "./lotes";
@@ -607,9 +608,6 @@ export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
       negocioId: negocios.id,
       corretorId: negocios.corretorId,
       imobiliariaId: negocios.imobiliariaId,
-      conversaId: conversas.id,
-      telefone: clientes.telefone,
-      instancia: whatsappConexoes.instancia,
     })
     .from(negocios)
     .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
@@ -619,10 +617,6 @@ export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
         eq(conversas.clienteId, negocios.clienteId),
         eq(conversas.corretorId, negocios.corretorId),
       ),
-    )
-    .innerJoin(
-      whatsappConexoes,
-      eq(whatsappConexoes.corretorId, negocios.corretorId),
     )
     .where(
       and(
@@ -635,7 +629,6 @@ export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
 
   let enviados = 0;
   for (const c of candidatos) {
-    if (!c.instancia) continue;
     const [entrada] = await db
       .select({ em: max(negocioEtapas.em) })
       .from(negocioEtapas)
@@ -669,7 +662,8 @@ export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
     );
     if (!status || status.completa) continue;
 
-    const instancia = c.instancia;
+    const contexto = await contextoDoNegocio(c.negocioId);
+    if (!contexto) continue;
     try {
       const enviou = await db.transaction(async (tx) => {
         const [marcado] = await tx
@@ -678,26 +672,10 @@ export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
           .onConflictDoNothing()
           .returning({ id: lembretesDeColeta.id });
         if (!marcado) return false;
-        const texto = textoDoLembreteDeColeta(status.faltando);
-        const { idMensagem } = await whatsapp.enviarTexto(
-          instancia,
-          c.telefone,
-          texto,
+        await enviarTextoAoCliente(
+          contexto,
+          textoDoLembreteDeColeta(status.faltando),
         );
-        await tx
-          .insert(mensagens)
-          .values({
-            conversaId: c.conversaId,
-            evolutionId: idMensagem,
-            autor: "assistente",
-            texto,
-            fromMe: true,
-            enviadaEm: agora,
-            criadaEm: agora,
-          })
-          .onConflictDoNothing({
-            target: [mensagens.conversaId, mensagens.evolutionId],
-          });
         return true;
       });
       if (enviou) enviados++;

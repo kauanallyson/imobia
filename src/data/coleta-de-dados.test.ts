@@ -2,6 +2,7 @@ import { describe, expect, setSystemTime, test } from "bun:test";
 import { legibilidadesPedidas, roteirizarLegibilidade } from "@/test/fakes/llm";
 import { arquivos } from "@/test/fakes/storage";
 import {
+  aoEnviarEcoar,
   enviados,
   mensagemRecebida,
   simularMidia,
@@ -438,6 +439,19 @@ describe("coleta de dados: lembretes", () => {
     expect(await enviarLembretesDeColeta()).toEqual({ enviados: 0 });
     setSystemTime(em("2026-11-06T10:00:00-03:00"));
     expect(await enviarLembretesDeColeta()).toEqual({ enviados: 1 });
+  });
+
+  test("o eco do lembrete não pausa o assistente", async () => {
+    const { session, negocio } = await preparar();
+    aoEnviarEcoar(receberMensagem);
+    setSystemTime(em("2026-11-04T10:00:00-03:00"));
+    expect(await enviarLembretesDeColeta()).toEqual({ enviados: 1 });
+
+    const conversa = ok((await buscarNegocio(session, negocio.id))?.conversa);
+    expect(conversa.assistente).toBe("ativo");
+    expect(conversa.mensagens.filter((m) => m.autor === "corretor")).toEqual(
+      [],
+    );
   });
 
   test("respeita 8h–20h de segunda a sábado", async () => {
