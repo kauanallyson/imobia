@@ -1,10 +1,12 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
+import { simularCompromisso } from "@/test/fakes/calendar";
 import {
   aoEnviarEcoar,
   avisosDoSistema,
   enviados,
 } from "@/test/fakes/whatsapp";
 import {
+  conectarGoogle,
   criarBruno,
   criarCenarioDeVisitaDaAna,
   criarConcorrente,
@@ -225,6 +227,26 @@ describe("agendar visita", () => {
     expect(await listarVisitas(session)).toHaveLength(1);
   });
 
+  test("as mesmas regras dos horários livres: compromisso no Google e semana corrente", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio } = await criarCenarioDeVisitaDaAna();
+    await conectarGoogle(session);
+    simularCompromisso(
+      new Date("2026-11-03T09:00:00-03:00"),
+      new Date("2026-11-03T10:00:00-03:00"),
+    );
+
+    for (const dataHora of [
+      new Date("2026-11-03T09:30:00-03:00"), // conflita com o Google
+      new Date("2026-11-09T10:00:00-03:00"), // segunda seguinte
+    ]) {
+      await expect(
+        agendarVisita(session, { negocioId: negocio.id, dataHora }),
+      ).rejects.toBeInstanceOf(HorarioIndisponivelError);
+    }
+    expect(await listarVisitas(session)).toHaveLength(0);
+  });
+
   test("repetir com o mesmo id devolve a mesma visita e não reenvia a confirmação", async () => {
     setSystemTime(segunda8h);
     const { session, negocio } = await criarCenarioDeVisitaDaAna();
@@ -303,6 +325,24 @@ describe("remarcar, cancelar e alterar o local", () => {
       id: visita.id,
       dataHora: nova,
     });
+  });
+
+  test("remarcar para um horário que só conflita com o evento da própria visita no Google é aceito", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio } = await criarCenarioDeVisitaDaAna();
+    await conectarGoogle(session);
+    const visita = ok(
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-02T10:00:00-03:00"),
+      }),
+    );
+    expect(visita.eventoCalendarId).not.toBeNull();
+
+    const nova = new Date("2026-11-02T10:30:00-03:00");
+    expect(
+      ok(await remarcarVisita(session, visita.id, { dataHora: nova })).dataHora,
+    ).toEqual(nova);
   });
 
   test("corretor altera o local da visita", async () => {
@@ -462,23 +502,26 @@ describe("lembretes de visita (worker)", () => {
     expect(enviados).toEqual([]);
   });
 
-  test("a véspera de uma visita na segunda não sai no domingo", async () => {
-    setSystemTime(new Date("2026-11-06T09:00:00-03:00"));
-    const cenario = await criarCenarioDeVisitaDaAna();
-    await criarJanela(cenario.session, {
-      diaDaSemana: 1,
+  test("fora da janela nada sai: nem às 20h30 de sábado, nem no domingo", async () => {
+    // Sábado 07/11 às 08:00: visita no domingo 08/11 às 10:00.
+    setSystemTime(new Date("2026-11-07T08:00:00-03:00"));
+    const { session, negocio } = await criarCenarioDeVisitaDaAna();
+    await criarJanela(session, {
+      diaDaSemana: 0,
       inicio: "09:00",
       fim: "12:00",
     });
     ok(
-      await agendarVisita(cenario.session, {
-        negocioId: cenario.negocio.id,
-        dataHora: new Date("2026-11-09T10:00:00-03:00"),
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-08T10:00:00-03:00"),
       }),
     );
     enviados.length = 0;
 
-    setSystemTime(new Date("2026-11-08T10:00:00-03:00"));
+    setSystemTime(new Date("2026-11-07T20:30:00-03:00"));
+    await enviarLembretesDeVisita();
+    setSystemTime(new Date("2026-11-08T09:00:00-03:00"));
     await enviarLembretesDeVisita();
     expect(enviados).toEqual([]);
   });

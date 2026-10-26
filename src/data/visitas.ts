@@ -85,6 +85,17 @@ export async function horariosLivres(
   input: { aPartirDe: Date; dias: number },
 ): Promise<Date[]> {
   const { corretorId } = requireCorretor(session);
+  return encaixesLivres(corretorId, input);
+}
+
+// Ao remarcar, a própria visita (e o evento dela no Google) não ocupa.
+type VisitaIgnorada = { id: string; dataHora: Date };
+
+async function encaixesLivres(
+  corretorId: string,
+  input: { aPartirDe: Date; dias: number },
+  ignorar?: VisitaIgnorada,
+): Promise<Date[]> {
   const partesDeInicio = partesEmBrasilia(input.aPartirDe);
   const diasAteDomingo =
     partesDeInicio.diaDaSemana === 0 ? 1 : 8 - partesDeInicio.diaDaSemana;
@@ -92,7 +103,7 @@ export async function horariosLivres(
   const inicio = partesDeInicio.data;
   const limite = instanteEmBrasilia(somarDias(inicio, dias), "00:00");
 
-  const [janelas, bloqueios, ocupadas, noGoogle] = await Promise.all([
+  const [janelas, bloqueios, ativas, google] = await Promise.all([
     db
       .select({
         diaDaSemana: disponibilidades.diaDaSemana,
@@ -110,6 +121,14 @@ export async function horariosLivres(
   ]);
   if (janelas.length === 0) return [];
   const bloqueadas = new Set(bloqueios.map((b) => b.data));
+  const ocupadas = ativas.filter((v) => v.id !== ignorar?.id);
+  const noGoogle = ignorar
+    ? google.filter(
+        (b) =>
+          b.inicio.getTime() !== ignorar.dataHora.getTime() ||
+          b.fim.getTime() !== fim(ignorar.dataHora).getTime(),
+      )
+    : google;
 
   const livres: Date[] = [];
   for (let i = 0; i < dias; i++) {
@@ -156,56 +175,27 @@ function visitasAtivasEntre(corretorId: string, de: Date, ate: Date) {
     );
 }
 
-// O horário cabe numa janela, não está bloqueado, está na grade de 30 min,
-// é futuro e não conflita com outra visita ativa (fora a própria, ao
-// remarcar). Lança HorarioIndisponivelError.
+// História 53: só se marca um horário que `horariosLivres` ofereceria agora
+// (janelas, bloqueios, outras visitas, Google se conectado, semana corrente),
+// fora a própria visita ao remarcar. Lança HorarioIndisponivelError.
 async function exigirHorarioLivre(
   corretorId: string,
   dataHora: Date,
-  ignorarVisitaId?: string,
+  ignorar?: VisitaIgnorada,
 ) {
-  if (Number.isNaN(dataHora.getTime()) || dataHora <= new Date()) {
+  const agora = new Date();
+  if (Number.isNaN(dataHora.getTime()) || dataHora <= agora) {
     throw new HorarioIndisponivelError("Horário no passado");
   }
-  const p = partesEmBrasilia(dataHora);
-  if (p.minuto % PASSO_MIN !== 0 || dataHora.getSeconds() !== 0) {
-    throw new HorarioIndisponivelError("Horário fora da grade de 30 minutos");
-  }
-  const inicioMin = p.hora * 60 + p.minuto;
-  const [janelas, [bloqueio], ocupadas] = await Promise.all([
-    db
-      .select({ inicio: disponibilidades.inicio, fim: disponibilidades.fim })
-      .from(disponibilidades)
-      .where(
-        and(
-          eq(disponibilidades.corretorId, corretorId),
-          eq(disponibilidades.diaDaSemana, p.diaDaSemana),
-        ),
-      ),
-    db
-      .select({ id: datasBloqueadas.id })
-      .from(datasBloqueadas)
-      .where(
-        and(
-          eq(datasBloqueadas.corretorId, corretorId),
-          eq(datasBloqueadas.data, p.data),
-        ),
-      ),
-    visitasAtivasEntre(corretorId, dataHora, fim(dataHora)),
-  ]);
-  const cabe = janelas.some(
-    (j) =>
-      minutos(j.inicio) <= inicioMin &&
-      inicioMin + DURACAO_DA_VISITA_MIN <= minutos(j.fim),
+  const livres = await encaixesLivres(
+    corretorId,
+    { aPartirDe: agora, dias: 7 },
+    ignorar,
   );
-  if (!cabe) throw new HorarioIndisponivelError("Fora da disponibilidade");
-  if (bloqueio) throw new HorarioIndisponivelError("Data bloqueada");
-  if (
-    ocupadas.some(
-      (v) => v.id !== ignorarVisitaId && sobrepoe(dataHora, v.dataHora),
-    )
-  ) {
-    throw new HorarioIndisponivelError("Já há uma visita nesse horário");
+  if (!livres.some((l) => l.getTime() === dataHora.getTime())) {
+    throw new HorarioIndisponivelError(
+      "Horário indisponível (fora da disponibilidade desta semana, bloqueado ou ocupado)",
+    );
   }
 }
 
@@ -386,7 +376,7 @@ export async function remarcarVisita(
     return null;
   }
   if (atual.dataHora.getTime() === input.dataHora.getTime()) return atual;
-  await exigirHorarioLivre(corretorId, input.dataHora, atual.id);
+  await exigirHorarioLivre(corretorId, input.dataHora, atual);
   let alterada: Visita | undefined;
   try {
     [alterada] = await db
