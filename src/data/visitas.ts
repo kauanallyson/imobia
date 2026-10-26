@@ -10,7 +10,6 @@ import {
   disponibilidades,
   empreendimentos,
   lembretesDeVisita,
-  mensagens,
   negocios,
   type TipoDeLembrete,
   users,
@@ -24,6 +23,13 @@ import {
   somarDias,
 } from "@/lib/fuso";
 import * as whatsapp from "@/lib/whatsapp";
+import {
+  type Canal,
+  enviarLocalizacaoAoCliente,
+  enviarTextoAoCliente,
+  OptOutError,
+} from "./assistente/contexto";
+import { naJanelaDeEnvio } from "./cadencia";
 import { ocupadosNoGoogle, refletirVisitaNoGoogle } from "./google-calendar";
 import { mudarEtapa } from "./negocios";
 import { requireCorretor, type Session } from "./session";
@@ -36,8 +42,6 @@ import { requireCorretor, type Session } from "./session";
 export const DURACAO_DA_VISITA_MIN = 60;
 const PASSO_MIN = 30;
 const ATIVAS = ["agendada", "remarcada"] as const;
-// Lembretes só saem a partir das 8h (spec: 8h–20h).
-const HORA_DE_INICIO_DOS_LEMBRETES = 8;
 
 export class HorarioIndisponivelError extends Error {
   override name = "HorarioIndisponivelError";
@@ -457,6 +461,9 @@ type Destinatario = {
   telefone: string;
   telefoneDoCorretor: string | null;
   conversaId: string | null;
+  // Conversa desligada (pelo corretor ou na exclusão LGPD) ou cliente
+  // anonimizado: os lembretes automáticos não saem.
+  semLembretes: boolean;
   clienteNome: string;
 };
 
@@ -471,7 +478,9 @@ async function destinatarioDaVisita(visita: {
       telefone: clientes.telefone,
       telefoneDoCorretor: users.telefone,
       clienteNome: clientes.nome,
+      anonimizadoEm: clientes.anonimizadoEm,
       conversaId: conversas.id,
+      assistente: conversas.assistente,
     })
     .from(negocios)
     .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
@@ -489,64 +498,41 @@ async function destinatarioDaVisita(visita: {
     )
     .where(eq(negocios.id, visita.negocioId));
   if (!row) return null;
-  return row;
+  const { anonimizadoEm, assistente, ...destino } = row;
+  return {
+    ...destino,
+    semLembretes: anonimizadoEm !== null || assistente === "desligado",
+  };
 }
 
+// Pelo caminho único de envio ao cliente (assistente/contexto.ts): respeita
+// o opt-out (nada sai) e grava na conversa. Com coordenadas, manda também a
+// localização.
 async function enviarAoCliente(
   destino: Destinatario,
   texto: string,
   localizacao?: Visita,
-) {
-  if (!destino.instancia) return;
-  const envio = await whatsapp.enviarTexto(
-    destino.instancia,
-    destino.telefone,
-    texto,
-  );
-  await gravarMensagem(destino, envio.idMensagem, texto);
-  if (localizacao?.latitude != null && localizacao.longitude != null) {
-    const loc = await whatsapp.enviarLocalizacao(
-      destino.instancia,
-      destino.telefone,
-      {
+): Promise<boolean> {
+  if (!destino.instancia) return false;
+  const canal: Canal = {
+    instancia: destino.instancia,
+    conversa: { id: destino.conversaId, telefone: destino.telefone },
+  };
+  try {
+    await enviarTextoAoCliente(canal, texto);
+    if (localizacao?.latitude != null && localizacao.longitude != null) {
+      await enviarLocalizacaoAoCliente(canal, {
         latitude: localizacao.latitude,
         longitude: localizacao.longitude,
         nome: "Local da visita",
         endereco: localizacao.local,
-      },
-    );
-    await gravarMensagem(
-      destino,
-      loc.idMensagem,
-      `[localização] ${localizacao.local}`,
-    );
+      });
+    }
+    return true;
+  } catch (error) {
+    if (error instanceof OptOutError) return false;
+    throw error;
   }
-}
-
-// Fica na conversa como mensagem do assistente (unique conversa + id torna
-// o eco do webhook um no-op). Cliente sem conversa (cadastro manual): só
-// envia.
-async function gravarMensagem(
-  destino: Destinatario,
-  idMensagem: string,
-  texto: string,
-) {
-  if (!destino.conversaId) return;
-  const agora = new Date();
-  await db
-    .insert(mensagens)
-    .values({
-      conversaId: destino.conversaId,
-      evolutionId: idMensagem,
-      autor: "assistente",
-      texto,
-      fromMe: true,
-      enviadaEm: agora,
-      criadaEm: agora,
-    })
-    .onConflictDoNothing({
-      target: [mensagens.conversaId, mensagens.evolutionId],
-    });
 }
 
 const quando = (d: Date) => formatoDataHoraBrasilia.format(d);
@@ -567,13 +553,14 @@ async function notificarCliente(
 
 // --- Lembretes (worker) -------------------------------------------------------
 
-// Histórias 58 e 59: véspera (a partir das 8h do dia anterior) e manhã (das
-// 8h até a hora da visita). Cada lembrete tem chave única (visita, tipo):
+// Histórias 58 e 59: véspera (no dia anterior) e manhã (no dia, até a hora
+// da visita), só na janela 8h–20h de segunda a sábado (spec → Horário);
+// fora dela, esperam a próxima janela. Cada lembrete tem chave única (visita, tipo):
 // rodar o worker de novo não reenvia. Falha no envio desfaz a marcação.
 export async function enviarLembretesDeVisita(): Promise<{ enviados: number }> {
   const agora = new Date();
   const hoje = partesEmBrasilia(agora);
-  if (hoje.hora < HORA_DE_INICIO_DOS_LEMBRETES) return { enviados: 0 };
+  if (!naJanelaDeEnvio(agora)) return { enviados: 0 };
   const amanha = somarDias(hoje.data, 1);
 
   const candidatas = await db
@@ -621,6 +608,9 @@ async function enviarLembrete(
   if (!destino) return false;
   const telefoneDoCorretor = destino.telefoneDoCorretor;
   if (para === "corretor" && !telefoneDoCorretor) return false;
+  if (para === "cliente" && (destino.semLembretes || !destino.instancia)) {
+    return false;
+  }
   return db.transaction(async (tx) => {
     const [marcado] = await tx
       .insert(lembretesDeVisita)
@@ -631,11 +621,11 @@ async function enviarLembrete(
 
     const dia = tipo.endsWith("vespera") ? "amanhã" : "hoje";
     if (para === "cliente") {
-      await enviarAoCliente(
+      // Opt-out: a marcação fica (não tenta de novo), nada sai.
+      return enviarAoCliente(
         destino,
         `Lembrete: sua visita é ${dia}, ${quando(visita.dataHora)}. Local: ${visita.local}. Até lá!`,
       );
-      return true;
     }
     if (!telefoneDoCorretor) return false;
     await whatsapp.enviarTextoDoSistema(

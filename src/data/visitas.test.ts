@@ -1,5 +1,9 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import { avisosDoSistema, enviados } from "@/test/fakes/whatsapp";
+import {
+  aoEnviarEcoar,
+  avisosDoSistema,
+  enviados,
+} from "@/test/fakes/whatsapp";
 import {
   criarBruno,
   criarCenarioDeVisitaDaAna,
@@ -8,7 +12,10 @@ import {
   ok,
   sessaoDe,
 } from "@/test/fixtures";
+import { apagarDadosDoCliente } from "./coleta-de-dados";
+import { receberMensagem } from "./conversas";
 import { bloquearData, criarJanela } from "./disponibilidade";
+import { desligarAssistente, registrarOptOut } from "./estado-do-assistente";
 import { buscarNegocio, listarNegocios } from "./negocios";
 import {
   agendarVisita,
@@ -159,6 +166,27 @@ describe("agendar visita", () => {
     expect(
       detalhe.historico.find((h) => h.para === "visita_agendada"),
     ).toMatchObject({ de: "em_atendimento", autor: "assistente" });
+  });
+
+  test("o eco da confirmação e da localização não pausa o assistente", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio } = await criarCenarioDeVisitaDaAna();
+    aoEnviarEcoar(receberMensagem);
+
+    ok(
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-02T10:00:00-03:00"),
+        autor: "assistente",
+        notificarCliente: true,
+      }),
+    );
+
+    const conversa = ok((await buscarNegocio(session, negocio.id))?.conversa);
+    expect(conversa.assistente).toBe("ativo");
+    expect(conversa.mensagens.filter((m) => m.autor === "corretor")).toEqual(
+      [],
+    );
   });
 
   test("sem notificar (corretor), nada sai pelo WhatsApp", async () => {
@@ -408,4 +436,74 @@ describe("lembretes de visita (worker)", () => {
       texto: expect.stringContaining("Carlos Lima"),
     });
   });
+
+  test("cliente com opt-out não recebe a confirmação da visita", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio } = await criarCenarioDeVisitaDaAna();
+    const conversa = ok((await buscarNegocio(session, negocio.id))?.conversa);
+    await registrarOptOut(session, conversa.id, { autor: "corretor" });
+    enviados.length = 0;
+
+    ok(
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-03T10:00:00-03:00"),
+        notificarCliente: true,
+      }),
+    );
+
+    expect(enviados).toEqual([]);
+  });
+
+  test("só sai entre 8h e 20h, de segunda a sábado", async () => {
+    await visitaDeTerca();
+    setSystemTime(new Date("2026-11-02T20:00:00-03:00"));
+    await enviarLembretesDeVisita();
+    expect(enviados).toEqual([]);
+  });
+
+  test("a véspera de uma visita na segunda não sai no domingo", async () => {
+    setSystemTime(new Date("2026-11-06T09:00:00-03:00"));
+    const cenario = await criarCenarioDeVisitaDaAna();
+    await criarJanela(cenario.session, {
+      diaDaSemana: 1,
+      inicio: "09:00",
+      fim: "12:00",
+    });
+    ok(
+      await agendarVisita(cenario.session, {
+        negocioId: cenario.negocio.id,
+        dataHora: new Date("2026-11-09T10:00:00-03:00"),
+      }),
+    );
+    enviados.length = 0;
+
+    setSystemTime(new Date("2026-11-08T10:00:00-03:00"));
+    await enviarLembretesDeVisita();
+    expect(enviados).toEqual([]);
+  });
+
+  for (const bloqueio of ["opt-out", "desligado", "dados apagados"] as const) {
+    test(`cliente com ${bloqueio} não recebe lembrete; o corretor recebe`, async () => {
+      const { session, corretor, cliente, negocio } = await visitaDeTerca();
+      await darTelefoneAAna(corretor);
+      const conversaId = ok(
+        (await buscarNegocio(session, negocio.id))?.conversa,
+      ).id;
+      if (bloqueio === "opt-out") {
+        await registrarOptOut(session, conversaId, { autor: "corretor" });
+      } else if (bloqueio === "desligado") {
+        await desligarAssistente(session, conversaId);
+      } else {
+        await apagarDadosDoCliente(session, cliente.id);
+      }
+      enviados.length = 0;
+      avisosDoSistema.length = 0;
+
+      setSystemTime(new Date("2026-11-02T09:00:00-03:00"));
+      await enviarLembretesDeVisita();
+      expect(enviados).toEqual([]);
+      expect(avisosDoSistema).toHaveLength(1);
+    });
+  }
 });
