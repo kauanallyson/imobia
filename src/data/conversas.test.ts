@@ -1,5 +1,10 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import { mensagemRecebida } from "@/test/fakes/whatsapp";
+import {
+  consultasDeHistorico,
+  falhas as falhasDoWhatsapp,
+  mensagemRecebida,
+  simularHistorico,
+} from "@/test/fakes/whatsapp";
 import {
   administrador,
   conectarWhatsappDaAna,
@@ -104,6 +109,51 @@ describe("mensagens recebidas", () => {
 
     expect(result).toBeNull();
     expect(await listarClientes(session)).toHaveLength(0);
+  });
+
+  test("número com conversa anterior no WhatsApp (antes do loteAI) não vira cliente", async () => {
+    const { session, instancia } = await conectarWhatsappDaAna();
+    simularHistorico(telefone);
+
+    for (const texto of ["Oi, filho", "Tudo bem?"]) {
+      expect(
+        await receberMensagem(mensagemRecebida({ instancia, telefone, texto })),
+      ).toBeNull();
+    }
+
+    expect(await listarClientes(session)).toHaveLength(0);
+    expect(await listarNegocios(session)).toHaveLength(0);
+    // Conhecido: a Evolution só é consultada na primeira mensagem.
+    expect(consultasDeHistorico).toHaveLength(1);
+  });
+
+  test("a resposta a uma conversa puxada pelo corretor não vira cliente", async () => {
+    const { session, instancia } = await conectarWhatsappDaAna();
+    await receberMensagem(
+      mensagemRecebida({ instancia, telefone, fromMe: true, texto: "Oi!" }),
+    );
+
+    expect(
+      await receberMensagem(
+        mensagemRecebida({ instancia, telefone, texto: "Oi, tudo bem?" }),
+      ),
+    ).toBeNull();
+    expect(await listarClientes(session)).toHaveLength(0);
+  });
+
+  test("sem resposta da Evolution sobre o histórico, nada é gravado e a próxima mensagem consulta de novo", async () => {
+    const { session, instancia } = await conectarWhatsappDaAna();
+    falhasDoWhatsapp.historico = true;
+    expect(
+      await receberMensagem(mensagemRecebida({ instancia, telefone })),
+    ).toBeNull();
+    expect(await listarClientes(session)).toHaveLength(0);
+
+    falhasDoWhatsapp.historico = false;
+    conversaDe(
+      await receberMensagem(mensagemRecebida({ instancia, telefone })),
+    );
+    expect(await listarClientes(session)).toHaveLength(1);
   });
 
   test("fromMe numa conversa existente é guardada com autor corretor", async () => {

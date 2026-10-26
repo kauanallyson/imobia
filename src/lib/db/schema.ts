@@ -1064,3 +1064,36 @@ export const lembretesDeEtapasFinais = pgTable(
   ],
 );
 // ---- fim ticket 18
+
+// ---- revisão final: contatos conhecidos (história 24)
+// Números que já falavam com o corretor antes do loteAI: o corretor puxou a
+// conversa (primeira mensagem `fromMe`) ou a Evolution tem histórico
+// anterior. O assistente não responde e nada é gravado.
+export const motivosDeContatoConhecido = [
+  "corretor_puxou_conversa",
+  "historico_anterior",
+] as const;
+
+export const contatosConhecidos = pgTable(
+  "contatos_conhecidos",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    telefone: text().notNull(),
+    motivo: text({ enum: motivosDeContatoConhecido }).notNull(),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    unique("contatos_conhecidos_corretor_telefone").on(
+      t.corretorId,
+      t.telefone,
+    ),
+  ],
+);

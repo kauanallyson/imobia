@@ -4,8 +4,10 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import {
   clientes,
+  contatosConhecidos,
   conversas,
   mensagens,
+  type motivosDeContatoConhecido,
   whatsappConexoes,
 } from "@/lib/db/schema";
 import * as llm from "@/lib/llm";
@@ -124,6 +126,58 @@ async function transcreverAudioRecebido(
   return false;
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+// Número sem conversa no loteAI: é novo se não está entre os contatos
+// conhecidos, não é o corretor puxando conversa (`fromMe`, que o torna
+// conhecido) e a Evolution não tem histórico anterior com ele (que também o
+// torna conhecido). Sem resposta da Evolution, não é tratado como novo agora
+// e nada é marcado: a próxima mensagem consulta de novo.
+async function ehNumeroNovo(
+  tx: Tx,
+  mensagem: MensagemRecebida & { telefone: string },
+  conexao: { corretorId: string; imobiliariaId: string },
+) {
+  const [conhecido] = await tx
+    .select({ id: contatosConhecidos.id })
+    .from(contatosConhecidos)
+    .where(
+      and(
+        eq(contatosConhecidos.corretorId, conexao.corretorId),
+        eq(contatosConhecidos.telefone, mensagem.telefone),
+      ),
+    );
+  if (conhecido) return false;
+
+  let motivo: (typeof motivosDeContatoConhecido)[number] | null = null;
+  if (mensagem.fromMe) {
+    motivo = "corretor_puxou_conversa";
+  } else {
+    try {
+      const historico = await whatsapp.temHistoricoAnterior(
+        mensagem.instancia,
+        mensagem.remoteJid,
+        mensagem.idMensagem,
+      );
+      if (historico) motivo = "historico_anterior";
+    } catch (error) {
+      console.error("whatsapp: falha ao consultar o histórico", error);
+      return false;
+    }
+  }
+  if (!motivo) return true;
+  await tx
+    .insert(contatosConhecidos)
+    .values({
+      imobiliariaId: conexao.imobiliariaId,
+      corretorId: conexao.corretorId,
+      telefone: mensagem.telefone,
+      motivo,
+    })
+    .onConflictDoNothing();
+  return false;
+}
+
 async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
   if (mensagem.grupo || !mensagem.telefone) return null;
   const { telefone } = mensagem;
@@ -157,7 +211,10 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
     let novoCliente = false;
 
     if (!conversa) {
-      if (mensagem.fromMe) return null;
+      // História 24: só número que nunca falou com o corretor vira cliente.
+      if (!(await ehNumeroNovo(tx, { ...mensagem, telefone }, conexao))) {
+        return null;
+      }
       const agora = new Date();
       const [cliente] = await tx
         .insert(clientes)

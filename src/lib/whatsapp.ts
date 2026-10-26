@@ -217,6 +217,24 @@ export async function baixarMidia(
   };
 }
 
+// História 24: o contato já conversou com este número antes (histórico que a
+// Evolution guarda), fora a própria mensagem `idMensagem`? Duas mensagens
+// bastam para saber.
+export async function temHistoricoAnterior(
+  instancia: string,
+  remoteJid: string,
+  idMensagem: string,
+): Promise<boolean> {
+  const data = await evolution<{
+    messages?: { records?: Array<{ key?: { id?: string } }> };
+  }>("POST", `/chat/findMessages/${encodeURIComponent(instancia)}`, {
+    where: { key: { remoteJid } },
+    page: 1,
+    offset: 2,
+  });
+  return (data.messages?.records ?? []).some((m) => m.key?.id !== idMensagem);
+}
+
 // --- Webhook -----------------------------------------------------------------
 
 const estadoSchema = z.enum(["open", "close", "connecting", "refused"]);

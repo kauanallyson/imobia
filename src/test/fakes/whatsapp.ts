@@ -31,6 +31,15 @@ export const instancias = new Map<string, EstadoDaInstancia>();
 const midias = new Map<string, { bytes: Uint8Array; mimeType: string }>();
 export const downloads: Array<{ instancia: string; idMensagem: string }> = [];
 
+// Números com conversa anterior "na Evolution" (antes do loteAI) e as
+// consultas feitas; `falhas.historico` simula a Evolution fora do ar.
+const comHistorico = new Set<string>();
+export const consultasDeHistorico: Array<{
+  instancia: string;
+  remoteJid: string;
+}> = [];
+export const falhas = { historico: false };
+
 let contador = 0;
 const proximoId = () => `FAKE-${++contador}`;
 
@@ -41,7 +50,24 @@ export function limpar() {
   instancias.clear();
   midias.clear();
   downloads.length = 0;
+  comHistorico.clear();
+  consultasDeHistorico.length = 0;
+  falhas.historico = false;
   contador = 0;
+}
+
+export function simularHistorico(telefone: string) {
+  comHistorico.add(telefone);
+}
+
+export async function temHistoricoAnterior(
+  instancia: string,
+  remoteJid: string,
+  _idMensagem: string,
+) {
+  consultasDeHistorico.push({ instancia, remoteJid });
+  if (falhas.historico) throw new Error("whatsapp falso: Evolution fora do ar");
+  return comHistorico.has(remoteJid.split("@")[0] ?? "");
 }
 
 // Roteiriza o conteúdo que `baixarMidia` devolve para uma mensagem.
