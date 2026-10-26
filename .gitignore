@@ -1,3 +1,9 @@
 node_modules/
 .env*
 !.env.example
+!.env.test
+dist/
+.output/
+.nitro/
+.tanstack/
+*.local
