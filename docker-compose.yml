@@ -1,0 +1,21 @@
+name: imobia
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: imobia
+      POSTGRES_PASSWORD: imobia
+      POSTGRES_DB: imobia
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./docker/create-test-db.sql:/docker-entrypoint-initdb.d/create-test-db.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U imobia]
+      interval: 2s
+      retries: 15
+
+volumes:
+  pgdata:
