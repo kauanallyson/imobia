@@ -12,8 +12,11 @@ Imobia: an AI agent on WhatsApp that answers a solo real-estate broker's clients
 - Writes go through **server functions** (`createServerFn`) called from `useMutation`.
 - **MUI 9** with a custom theme built from zero.
 - **Bun** as runtime, package manager and toolchain.
+- **Zod** for all validation (forms, server function inputs, env).
+- **Postgres** (Docker locally and on the VPS), accessed through **Drizzle** with drizzle-kit migrations.
+- **Better Auth** for login: email + password and Google. Multi-tenant SaaS: any broker signs up and sees only their own data, so domain tables are scoped to the owning user.
 
-Still open, to be decided **after** the domain is modeled: database, auth, WhatsApp provider. Don't pick or install any of them before that. Deploy will target an existing OCI VPS later; there's no deploy workflow yet.
+Still open, to be decided **after** the domain is modeled: WhatsApp provider. Deploy will target an existing OCI VPS later; there's no deploy workflow yet.
 
 ## Commands
 
@@ -42,3 +45,17 @@ bun test -t "test name"          # tests matching a name
 
 - `.env*` files are gitignored except `.env.example`.
 - User-facing text (README, UI) is in Portuguese (pt-BR).
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on kauanallyson/imobia, managed with the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
