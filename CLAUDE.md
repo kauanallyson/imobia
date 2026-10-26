@@ -16,8 +16,9 @@ Imobia: an AI Assistant on WhatsApp that answers a solo Broker's Contacts automa
 - **Zod** for all validation (forms, server function inputs, env).
 - **Postgres** (Docker locally and on the VPS), accessed through **Drizzle** with drizzle-kit migrations.
 - **Better Auth** for login: email + password and Google. Multi-tenant SaaS: any broker signs up and sees only their own data, so domain tables are scoped to the owning user.
+- **WhatsApp**: Meta's official Cloud API, directly (no reseller). Brokers connect their own number through Embedded Signup with coexistence. See `docs/adr/0003-official-whatsapp-cloud-api.md`.
 
-Still open, to be decided **after** the domain is modeled: WhatsApp provider. Deploy will target an existing OCI VPS later; there's no deploy workflow yet.
+Deploy will target an existing OCI VPS later; there's no deploy workflow yet.
 
 ## Commands
 
