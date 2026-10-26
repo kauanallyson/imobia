@@ -10,6 +10,7 @@ Imobia: an AI agent on WhatsApp that answers a solo real-estate broker's clients
 
 - **TanStack Start** for the app, with **TanStack Query** for reads (route `loader` calls `queryClient.ensureQueryData`, components read with `useSuspenseQuery`), and **TanStack Form** for forms.
 - Writes go through **server functions** (`createServerFn`) called from `useMutation`.
+  - Exception: auth. Sign-in, sign-up and sign-out call Better Auth's browser client (`authClient` in `src/auth/client.ts`) directly, and the auth pages (`/login`, `/cadastro`) read with plain route loaders and server functions instead of TanStack Query. Better Auth manages its own requests and cookies; don't wrap it in `useMutation` or a server function.
 - **MUI 9** with a custom theme built from zero.
 - **Bun** as runtime, package manager and toolchain.
 - **Zod** for all validation (forms, server function inputs, env).
