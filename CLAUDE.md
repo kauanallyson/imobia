@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Imobia: an AI agent on WhatsApp that answers a solo real-estate broker's clients automatically, plus a kanban showing each client's stage in a property sale (any property type). The repo was restarted from scratch on 2026-10-26; only the app skeleton exists so far. The local folder is still named `loteAI`, but the old loteAI CRM is gone; don't reference or recreate it.
+Imobia: an AI Assistant on WhatsApp that answers a solo Broker's Contacts automatically, plus a kanban of Deals. The Broker sells only Lots and Off-plan Houses from developers' Developments (see `GLOSSARY.md` and `docs/adr/`). The repo was restarted from scratch on 2026-10-26; only the app skeleton exists so far. The local folder is still named `loteAI`, but the old loteAI CRM is gone; don't reference or recreate it.
 
 ## Stack
 
