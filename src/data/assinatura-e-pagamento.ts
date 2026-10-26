@@ -31,17 +31,12 @@ import {
   propostas,
   reservas,
   type TipoDeArquivoDoFechamento,
-  users,
   whatsappConexoes,
 } from "@/lib/db/schema";
 import { FUSO, partesEmBrasilia, somarDias } from "@/lib/fuso";
 import * as storage from "@/lib/storage";
 import * as whatsapp from "@/lib/whatsapp";
-import {
-  type ContextoDoAtendimento,
-  enviarTextoAoCliente,
-  gravarMensagemDoAssistente,
-} from "./assistente/contexto";
+import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { LoteIndisponivelError } from "./coleta-de-dados";
 import { mudarEtapa } from "./negocios";
@@ -127,61 +122,6 @@ async function propostaDoFechamento(negocioId: string) {
     .orderBy(desc(propostas.criadaEm))
     .limit(1);
   return found ?? null;
-}
-
-// Por onde falar com o cliente: a conversa com o número do corretor.
-async function contextoDoNegocio(
-  negocio: Pick<
-    NegocioDaSessao,
-    | "id"
-    | "imobiliariaId"
-    | "corretorId"
-    | "clienteId"
-    | "etapa"
-    | "interesse"
-    | "empreendimentoInteresseId"
-    | "loteInteresseId"
-  >,
-): Promise<ContextoDoAtendimento | null> {
-  const [canal] = await db
-    .select({
-      conversaId: conversas.id,
-      telefone: clientes.telefone,
-      instancia: whatsappConexoes.instancia,
-      corretorNome: users.name,
-    })
-    .from(clientes)
-    .innerJoin(
-      conversas,
-      and(
-        eq(conversas.clienteId, clientes.id),
-        eq(conversas.corretorId, negocio.corretorId),
-      ),
-    )
-    .innerJoin(
-      whatsappConexoes,
-      eq(whatsappConexoes.corretorId, negocio.corretorId),
-    )
-    .innerJoin(users, eq(users.id, negocio.corretorId))
-    .where(eq(clientes.id, negocio.clienteId));
-  if (!canal?.instancia) return null;
-  return {
-    session: {
-      role: "corretor",
-      corretorId: negocio.corretorId,
-      imobiliariaId: negocio.imobiliariaId,
-    },
-    instancia: canal.instancia,
-    corretor: { nome: canal.corretorNome },
-    conversa: { id: canal.conversaId, telefone: canal.telefone },
-    negocio: {
-      id: negocio.id,
-      etapa: negocio.etapa,
-      interesse: negocio.interesse,
-      empreendimentoInteresseId: negocio.empreendimentoInteresseId,
-      loteInteresseId: negocio.loteInteresseId,
-    },
-  };
 }
 
 async function entradaNaEtapa(negocioId: string, etapa: Etapa) {
@@ -314,7 +254,7 @@ async function registrarArquivoRecebido(
 
   const baixado = await whatsapp.baixarMidia(
     conexao.instancia,
-    midia.evolutionId,
+    midia.evolutionId ?? "",
   );
   const chave = `imobiliarias/${negocio.imobiliariaId}/negocios/${negocio.id}/fechamento/${crypto.randomUUID()}`;
   await storage.salvarArquivo(chave, baixado.bytes, baixado.mimeType);
@@ -461,7 +401,7 @@ export async function confirmarAssinatura(session: Session, negocioId: string) {
     modeloDeCasaId: proposta.modeloDeCasaId ?? undefined,
   });
   if (!calculo) throw new Error("assinatura: plano da proposta não calculável");
-  const contexto = await contextoDoNegocio(negocio);
+  const contexto = await contextoDoNegocio(negocio.id);
   if (!contexto) {
     throw new SemWhatsappError(
       "Sem conversa no WhatsApp com este cliente para enviar as instruções",
@@ -489,10 +429,6 @@ export async function confirmarAssinatura(session: Session, negocioId: string) {
     return enviarTextoAoCliente(contexto, texto);
   });
   if (enviado) {
-    await gravarMensagemDoAssistente(contexto, {
-      idMensagem: enviado.idMensagem,
-      texto,
-    });
     await mudarEtapa(session, negocio.id, "aguardando_pagamento");
     await resolverPendencias(negocio.id, "confirmar_assinatura", new Date());
   }
@@ -513,7 +449,7 @@ export async function rejeitarAssinatura(session: Session, negocioId: string) {
     await resolverPendencias(negocio.id, "confirmar_assinatura", new Date());
     return { rejeitada: false };
   }
-  const contexto = await contextoDoNegocio(negocio);
+  const contexto = await contextoDoNegocio(negocio.id);
   if (!contexto) {
     throw new SemWhatsappError(
       "Sem conversa no WhatsApp com este cliente para pedir o reenvio",
@@ -538,12 +474,6 @@ export async function rejeitarAssinatura(session: Session, negocioId: string) {
       .where(eq(arquivosDoFechamento.chave, chave));
     return enviarTextoAoCliente(contexto, TEXTO_DE_REENVIO_DA_ASSINATURA);
   });
-  if (enviado) {
-    await gravarMensagemDoAssistente(contexto, {
-      idMensagem: enviado.idMensagem,
-      texto: TEXTO_DE_REENVIO_DA_ASSINATURA,
-    });
-  }
   await resolverPendencias(negocio.id, "confirmar_assinatura", new Date());
   return { rejeitada: enviado !== null };
 }
@@ -875,7 +805,7 @@ export async function enviarLembretesDeEtapasFinais(): Promise<{
       );
     }
 
-    const contexto = await contextoDoNegocio(negocio);
+    const contexto = await contextoDoNegocio(negocio.id);
     if (!contexto) continue;
     try {
       const enviado = await db.transaction(async (tx) => {
@@ -893,10 +823,6 @@ export async function enviarLembretesDeEtapasFinais(): Promise<{
         return enviarTextoAoCliente(contexto, texto);
       });
       if (!enviado) continue;
-      await gravarMensagemDoAssistente(contexto, {
-        idMensagem: enviado.idMensagem,
-        texto,
-      });
       enviados++;
     } catch (error) {
       console.error("fechamento: falha ao enviar o lembrete", error);

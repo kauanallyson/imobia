@@ -341,7 +341,10 @@ export const mensagens = pgTable(
       .notNull()
       .references(() => conversas.id, { onDelete: "cascade" }),
     // key.id da Evolution: a chave natural que torna o webhook idempotente.
-    evolutionId: text("evolution_id").notNull(),
+    // Null enquanto a mensagem do assistente está sendo enviada (gravada
+    // antes do envio para o eco `fromMe` ser reconhecido; ver
+    // src/data/assistente/contexto.ts).
+    evolutionId: text("evolution_id"),
     autor: text({ enum: autoresDeMensagem }).notNull(),
     texto: text(),
     midia: jsonb().$type<Midia>(),

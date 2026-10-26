@@ -1,0 +1,1 @@
+ALTER TABLE "mensagens" ALTER COLUMN "evolution_id" DROP NOT NULL;

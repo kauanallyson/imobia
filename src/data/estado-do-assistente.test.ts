@@ -1,6 +1,10 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
 import { pedidos, roteirizar } from "@/test/fakes/llm";
-import { enviados, mensagemRecebida } from "@/test/fakes/whatsapp";
+import {
+  aoEnviarEcoar,
+  enviados,
+  mensagemRecebida,
+} from "@/test/fakes/whatsapp";
 import {
   criarConcorrente,
   criarEmpreendimentoDaAna,
@@ -17,6 +21,7 @@ import {
   desligarAssistente,
   devolverAoAssistente,
   ligarAssistente,
+  listarMensagens,
   receberMensagem,
   registrarOptOut,
   retomarAssistentesPausados,
@@ -74,6 +79,46 @@ describe("pausa pelo corretor", () => {
       assistente: "ativo",
       ultimaMensagemCorretorEm: null,
     });
+  });
+
+  test("o eco que chega antes de o envio do assistente ser gravado também é do assistente", async () => {
+    const { session, instancia, telefone, conversaId } =
+      await iniciarConversaDaAna();
+    aoEnviarEcoar(receberMensagem);
+    roteirizar({ tipo: "texto", texto: "Temos lotes a partir de R$ 60 mil." });
+
+    await receberMensagem(
+      mensagemRecebida({ instancia, telefone, texto: "Quais os preços?" }),
+    );
+
+    expect(ok(await buscarConversa(session, conversaId))).toMatchObject({
+      assistente: "ativo",
+      ultimaMensagemCorretorEm: null,
+    });
+    const lista = await listarMensagens(session, conversaId);
+    expect(lista.filter((m) => m.autor === "corretor")).toEqual([]);
+    const doAssistente = lista.filter((m) => m.autor === "assistente");
+    expect(doAssistente.map((m) => m.texto)).toEqual([
+      "Olá! Sou a assistente virtual da Ana Souza.",
+      "Temos lotes a partir de R$ 60 mil.",
+    ]);
+    expect(doAssistente.every((m) => m.evolutionId)).toBe(true);
+  });
+
+  test("mensagem do corretor com o mesmo texto de um envio antigo do assistente ainda pausa", async () => {
+    const { session, instancia, telefone, conversaId } =
+      await iniciarConversaDaAna();
+    await receberMensagem(
+      mensagemRecebida({
+        instancia,
+        telefone,
+        fromMe: true,
+        texto: "Olá! Sou a assistente virtual da Ana Souza.",
+      }),
+    );
+    expect(ok(await buscarConversa(session, conversaId)).assistente).toBe(
+      "pausado",
+    );
   });
 
   test("devolver ao assistente reativa a conversa e o cliente volta a ser respondido", async () => {

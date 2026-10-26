@@ -2,21 +2,14 @@ import "server-only";
 import { and, eq, inArray, ne } from "drizzle-orm";
 import * as calendar from "@/lib/calendar";
 import { db } from "@/lib/db";
-import {
-  clientes,
-  conversas,
-  negocios,
-  users,
-  visitas,
-  whatsappConexoes,
-} from "@/lib/db/schema";
+import { visitas } from "@/lib/db/schema";
 import { formatoDataHoraBrasilia } from "@/lib/fuso";
 import {
-  type ContextoDoAtendimento,
+  contextoDoNegocio,
   enviarTextoAoCliente,
-  gravarMensagemDoAssistente,
   OptOutError,
 } from "./assistente/contexto";
+import { isUniqueViolation } from "./errors";
 import {
   calendarioDoCorretor,
   corretoresComGoogle,
@@ -166,68 +159,14 @@ async function cancelarPeloGoogle(corretorId: string, eventoId: string) {
 // opt-out) e gravado na conversa. Sem conversa, sem WhatsApp pareado ou com
 // opt-out: só a visita muda.
 async function avisarCliente(visita: VisitaSincronizada, texto: string) {
-  const [row] = await db
-    .select({
-      conversaId: conversas.id,
-      telefone: clientes.telefone,
-      instancia: whatsappConexoes.instancia,
-      corretorNome: users.name,
-    })
-    .from(negocios)
-    .innerJoin(clientes, eq(clientes.id, negocios.clienteId))
-    .innerJoin(users, eq(users.id, negocios.corretorId))
-    .innerJoin(
-      conversas,
-      and(
-        eq(conversas.clienteId, negocios.clienteId),
-        eq(conversas.corretorId, negocios.corretorId),
-      ),
-    )
-    .innerJoin(
-      whatsappConexoes,
-      eq(whatsappConexoes.corretorId, negocios.corretorId),
-    )
-    .where(eq(negocios.id, visita.negocioId));
-  if (!row?.instancia) return;
-  const [negocio] = await db
-    .select({
-      id: negocios.id,
-      etapa: negocios.etapa,
-      interesse: negocios.interesse,
-      empreendimentoInteresseId: negocios.empreendimentoInteresseId,
-      loteInteresseId: negocios.loteInteresseId,
-    })
-    .from(negocios)
-    .where(eq(negocios.id, visita.negocioId));
-  if (!negocio) return;
-
-  const contexto: ContextoDoAtendimento = {
-    session: {
-      role: "corretor",
-      corretorId: visita.corretorId,
-      imobiliariaId: visita.imobiliariaId,
-    },
-    instancia: row.instancia,
-    corretor: { nome: row.corretorNome },
-    conversa: { id: row.conversaId, telefone: row.telefone },
-    negocio,
-  };
+  const contexto = await contextoDoNegocio(visita.negocioId);
+  if (!contexto) return;
   try {
-    const { idMensagem } = await enviarTextoAoCliente(contexto, texto);
-    await gravarMensagemDoAssistente(contexto, { idMensagem, texto });
+    await enviarTextoAoCliente(contexto, texto);
   } catch (error) {
     if (error instanceof OptOutError) return;
     console.error(`[google] aviso ao cliente da visita ${visita.id}`, error);
   }
-}
-
-function isUniqueViolation(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "23505"
-  );
 }
 
 // Para src/worker/jobs.ts.

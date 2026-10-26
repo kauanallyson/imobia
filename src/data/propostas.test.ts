@@ -1,7 +1,11 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
 import { gerados } from "@/test/fakes/documentos";
 import { arquivos } from "@/test/fakes/storage";
-import { avisosDoSistema, enviados } from "@/test/fakes/whatsapp";
+import {
+  aoEnviarEcoar,
+  avisosDoSistema,
+  enviados,
+} from "@/test/fakes/whatsapp";
 import {
   criarBruno,
   criarCenarioDePropostaDaAna,
@@ -14,6 +18,7 @@ import {
 } from "@/test/fixtures";
 import { OptOutError } from "./assistente/contexto";
 import { LoteIndisponivelError } from "./coleta-de-dados";
+import { receberMensagem } from "./conversas";
 import { registrarOptOut } from "./estado-do-assistente";
 import { alterarStatusDoLote, buscarLote } from "./lotes";
 import { buscarNegocio, mudarEtapa } from "./negocios";
@@ -263,6 +268,21 @@ describe("propostas: aprovação e reserva", () => {
       detalhe.conversa?.mensagens.filter((m) => m.autor === "assistente")
         .length,
     ).toBeGreaterThanOrEqual(2);
+  });
+
+  test("o eco do PDF e das instruções durante a aprovação não pausa o assistente", async () => {
+    setSystemTime(segunda21h);
+    const { session, negocio } = await criarCenarioDePropostaDaAna();
+    const proposta = ok(await gerarProposta(session, negocio.id));
+    aoEnviarEcoar(receberMensagem);
+
+    ok(await aprovarProposta(session, proposta.id));
+
+    const conversa = ok((await buscarNegocio(session, negocio.id))?.conversa);
+    expect(conversa.assistente).toBe("ativo");
+    expect(conversa.mensagens.filter((m) => m.autor === "corretor")).toEqual(
+      [],
+    );
   });
 
   test("aprovar duas vezes envia e reserva uma única vez", async () => {

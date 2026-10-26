@@ -236,6 +236,10 @@ const conteudoSchema = z
     documentMessage: midiaSchema
       .extend({ fileName: z.string().optional() })
       .optional(),
+    locationMessage: z
+      .object({ name: z.string().optional(), address: z.string().optional() })
+      .loose()
+      .optional(),
     mediaUrl: z.string().optional(),
   })
   .loose();
@@ -266,6 +270,11 @@ const upsertSchema = z
 const envelopeSchema = z
   .object({ event: z.string(), instance: z.string(), data: z.unknown() })
   .loose();
+
+// Como uma localização aparece no texto da conversa (recebida ou enviada).
+export function textoDaLocalizacao(descricao: string | null): string {
+  return descricao ? `[localização] ${descricao}` : "[localização]";
+}
 
 function telefoneDoJid(jid: string) {
   const [usuario] = jid.split("@");
@@ -324,7 +333,13 @@ export function parseWebhook(body: unknown): EventoWebhook {
       message?.imageMessage?.caption ??
       message?.videoMessage?.caption ??
       message?.documentMessage?.caption ??
-      null;
+      (message?.locationMessage
+        ? textoDaLocalizacao(
+            message.locationMessage.address ??
+              message.locationMessage.name ??
+              null,
+          )
+        : null);
     return {
       tipo: "mensagem",
       mensagem: {

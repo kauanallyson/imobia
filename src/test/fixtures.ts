@@ -244,7 +244,7 @@ export async function iniciarConversaDaAna() {
     ...conectado,
     telefone,
     conversaId,
-    idDaResposta: resposta.evolutionId,
+    idDaResposta: ok(resposta.evolutionId, "id da resposta"),
   };
 }
 

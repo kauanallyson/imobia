@@ -5,7 +5,6 @@ import { db } from "@/lib/db";
 import {
   type AutorDeEtapa,
   clientes,
-  conversas,
   type EstadoDaProposta,
   type EstadoDaReserva,
   empreendimentos,
@@ -17,17 +16,14 @@ import {
   planosDePagamento,
   propostas,
   reservas,
-  users,
-  whatsappConexoes,
 } from "@/lib/db/schema";
 import * as documentos from "@/lib/documentos";
 import { FUSO, partesEmBrasilia } from "@/lib/fuso";
 import * as storage from "@/lib/storage";
 import {
-  type ContextoDoAtendimento,
+  contextoDoNegocio,
   enviarMidiaAoCliente,
   enviarTextoAoCliente,
-  gravarMensagemDoAssistente,
 } from "./assistente/contexto";
 import {
   type ItemDaColeta,
@@ -522,72 +518,28 @@ export async function aprovarProposta(
   const { corretorId, imobiliariaId } = requireCorretor(session);
   if (!z.uuid().safeParse(propostaId).success) return null;
   const [alvo] = await db
-    .select({
-      ...propostaColumns,
-      chavePdf: propostas.chavePdf,
-      etapa: negocios.etapa,
-      interesse: negocios.interesse,
-      empreendimentoInteresseId: negocios.empreendimentoInteresseId,
-      loteInteresseId: negocios.loteInteresseId,
-      clienteId: negocios.clienteId,
-    })
+    .select({ ...propostaColumns, chavePdf: propostas.chavePdf })
     .from(propostas)
-    .innerJoin(negocios, eq(negocios.id, propostas.negocioId))
     .where(
       and(eq(propostas.id, propostaId), eq(propostas.corretorId, corretorId)),
     );
   if (!alvo) return null;
-  const {
-    chavePdf,
-    etapa,
-    interesse,
-    empreendimentoInteresseId,
-    loteInteresseId,
-    clienteId,
-    ...proposta
-  } = alvo;
+  const { chavePdf, ...proposta } = alvo;
   if (proposta.estado !== "em_revisao") return proposta;
 
-  const [canal] = await db
-    .select({
-      conversaId: conversas.id,
-      telefone: clientes.telefone,
-      instancia: whatsappConexoes.instancia,
-      corretorNome: users.name,
-    })
-    .from(clientes)
-    .innerJoin(
-      conversas,
-      and(
-        eq(conversas.clienteId, clientes.id),
-        eq(conversas.corretorId, corretorId),
-      ),
-    )
-    .innerJoin(whatsappConexoes, eq(whatsappConexoes.corretorId, corretorId))
-    .innerJoin(users, eq(users.id, corretorId))
-    .where(eq(clientes.id, clienteId));
-  if (!canal?.instancia) {
+  const contexto = await contextoDoNegocio(proposta.negocioId);
+  if (!contexto) {
     throw new SemWhatsappError(
       "Sem conversa no WhatsApp com este cliente para enviar a proposta",
     );
   }
-  const contexto: ContextoDoAtendimento = {
-    session: { role: "corretor", corretorId, imobiliariaId },
-    instancia: canal.instancia,
-    corretor: { nome: canal.corretorNome },
-    conversa: { id: canal.conversaId, telefone: canal.telefone },
-    negocio: {
-      id: proposta.negocioId,
-      etapa,
-      interesse,
-      empreendimentoInteresseId,
-      loteInteresseId,
-    },
-  };
 
   const agora = new Date();
   const expiraEm = new Date(agora.getTime() + RESERVA_EM_HORAS * HORA_MS);
   const instrucoes = instrucoesDeAssinatura(expiraEm);
+  // O envio fica dentro da transação (falha desfaz a reserva), mas cada
+  // mensagem já está gravada na conversa antes de sair (enviarEGravar), então
+  // o eco do webhook nunca é tomado por mensagem do corretor.
   let enviados: { pdf: string; texto: string } | null;
   try {
     enviados = await db.transaction(async (tx) => {
@@ -653,20 +605,6 @@ export async function aprovarProposta(
   }
 
   if (enviados) {
-    await gravarMensagemDoAssistente(contexto, {
-      idMensagem: enviados.pdf,
-      texto: null,
-      midia: {
-        tipo: "documento",
-        mimetype: "application/pdf",
-        nomeDoArquivo: "proposta.pdf",
-        url: null,
-      },
-    });
-    await gravarMensagemDoAssistente(contexto, {
-      idMensagem: enviados.texto,
-      texto: instrucoes,
-    });
     await mudarEtapa(session, proposta.negocioId, "aguardando_assinatura", {
       autor: "corretor",
     });

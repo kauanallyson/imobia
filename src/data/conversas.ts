@@ -12,6 +12,10 @@ import * as llm from "@/lib/llm";
 import type { MensagemRecebida } from "@/lib/whatsapp";
 import * as whatsapp from "@/lib/whatsapp";
 import { atenderMensagem } from "./assistente";
+import {
+  enviarTextoAoCliente,
+  reivindicarEcoDoAssistente,
+} from "./assistente/contexto";
 import { inserirNegocioEmNovo } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
@@ -107,26 +111,13 @@ async function transcreverAudioRecebido(
       .where(eq(conversas.id, conversaId));
     // Com o corretor no comando, quem responde ao áudio é ele.
     if (conversa?.assistente !== "ativo") return false;
-    const { idMensagem } = await whatsapp.enviarTexto(
-      mensagem.instancia,
-      mensagem.telefone ?? "",
+    await enviarTextoAoCliente(
+      {
+        instancia: mensagem.instancia,
+        conversa: { id: conversaId, telefone: mensagem.telefone ?? "" },
+      },
       PEDIDO_PARA_ESCREVER,
     );
-    const agora = new Date();
-    await db
-      .insert(mensagens)
-      .values({
-        conversaId,
-        evolutionId: idMensagem,
-        autor: "assistente",
-        texto: PEDIDO_PARA_ESCREVER,
-        fromMe: true,
-        enviadaEm: agora,
-        criadaEm: agora,
-      })
-      .onConflictDoNothing({
-        target: [mensagens.conversaId, mensagens.evolutionId],
-      });
   } catch (error) {
     console.error("transcrição: falha ao pedir que o cliente escreva", error);
   }
@@ -197,6 +188,31 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
       novoCliente = true;
     }
 
+    // Eco de um envio do assistente que chegou antes de o envio devolver o
+    // id: é do assistente, não do corretor.
+    if (mensagem.fromMe && !novoCliente) {
+      const [existente] = await tx
+        .select({ id: mensagens.id })
+        .from(mensagens)
+        .where(
+          and(
+            eq(mensagens.conversaId, conversa.id),
+            eq(mensagens.evolutionId, mensagem.idMensagem),
+          ),
+        );
+      if (
+        existente ||
+        (await reivindicarEcoDoAssistente(tx, conversa.id, mensagem))
+      ) {
+        return {
+          conversaId: conversa.id,
+          mensagemId: null,
+          novoCliente,
+          gravada: false,
+        };
+      }
+    }
+
     const [gravada] = await tx
       .insert(mensagens)
       .values({
@@ -216,9 +232,9 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
 
     // Pausa (spec → Assistente → Pausa, ticket 10): uma mensagem `fromMe`
     // gravada agora é do corretor pelo celular, e pausa o assistente ativo.
-    // O eco das mensagens do próprio assistente também vem `fromMe`, mas ele
-    // já foi gravado pelo id da Evolution ao enviar: cai no conflito acima
-    // (`gravada` falso) e não chega aqui. Desligado continua desligado.
+    // O eco das mensagens do próprio assistente também vem `fromMe`, mas é
+    // reconhecido acima (pelo id da Evolution ou pela mensagem pendente) e
+    // não chega aqui. Desligado continua desligado.
     if (gravada && mensagem.fromMe) {
       await tx
         .update(conversas)

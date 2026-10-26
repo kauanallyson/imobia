@@ -15,11 +15,7 @@ import { env } from "@/lib/env";
 import * as llm from "@/lib/llm";
 import * as whatsapp from "@/lib/whatsapp";
 import { montarHistorico } from "./assistente";
-import {
-  type ContextoDoAtendimento,
-  enviarTextoAoCliente,
-  gravarMensagemDoAssistente,
-} from "./assistente/contexto";
+import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import {
   followUpDevido,
   naJanelaDeEnvio,
@@ -210,23 +206,8 @@ async function enviarAoCliente(
 ) {
   const { instancia } = candidato;
   if (!instancia) return false;
-  const contexto: ContextoDoAtendimento = {
-    session: {
-      role: "corretor",
-      corretorId: candidato.corretorId,
-      imobiliariaId: candidato.imobiliariaId,
-    },
-    instancia,
-    corretor: { nome: candidato.corretorNome },
-    conversa: { id: candidato.conversaId, telefone: candidato.telefone },
-    negocio: {
-      id: candidato.negocioId,
-      etapa: candidato.etapa,
-      interesse: candidato.interesse,
-      empreendimentoInteresseId: candidato.empreendimentoInteresseId,
-      loteInteresseId: candidato.loteInteresseId,
-    },
-  };
+  const contexto = await contextoDoNegocio(candidato.negocioId);
+  if (!contexto) return false;
   return comPassoReivindicado(candidato, passo, "cliente", agora, async () => {
     const resposta = await llm.responder({
       instrucoes: instrucoesDoFollowUp(
@@ -238,8 +219,7 @@ async function enviarAoCliente(
     });
     const texto = resposta.tipo === "texto" ? resposta.texto.trim() : "";
     if (!texto) throw new Error("follow-up: o modelo não escreveu a mensagem");
-    const { idMensagem } = await enviarTextoAoCliente(contexto, texto);
-    await gravarMensagemDoAssistente(contexto, { idMensagem, texto });
+    await enviarTextoAoCliente(contexto, texto);
   });
 }
 

@@ -10,11 +10,7 @@ import {
 import { buscarLote } from "../lotes";
 import { materiaisPara, urlDoMaterial } from "../materiais-de-marketing";
 import { mudarEtapa, registrarInteresse } from "../negocios";
-import {
-  type ContextoDoAtendimento,
-  enviarMidiaAoCliente,
-  gravarMensagemDoAssistente,
-} from "./contexto";
+import { type ContextoDoAtendimento, enviarMidiaAoCliente } from "./contexto";
 import { ferramentasDePausaEOptOut } from "./ferramentas/10-pausa-e-opt-out";
 import { ferramentasDePendencias } from "./ferramentas/11-pendencias";
 import { ferramentasDoOrcamento } from "./ferramentas/12-orcamento";
@@ -103,11 +99,6 @@ const tipoDeMidia = {
   imagem: "image",
   video: "video",
 } as const;
-const tipoDaMidiaGravada = {
-  pdf: "documento",
-  imagem: "imagem",
-  video: "video",
-} as const;
 
 export const ferramentaListarEmpreendimentos = definir({
   nome: "listar_empreendimentos",
@@ -178,22 +169,12 @@ export const ferramentaEnviarMaterialDeMarketing = definir({
     for (const material of materiais) {
       const url = await urlDoMaterial(contexto.session, material.id);
       if (!url) continue;
-      const { idMensagem } = await enviarMidiaAoCliente(contexto, {
+      await enviarMidiaAoCliente(contexto, {
         tipo: tipoDeMidia[material.tipoDeArquivo],
         url,
         mimetype: material.contentType,
         legenda: material.nome,
         nomeDoArquivo: material.nome,
-      });
-      await gravarMensagemDoAssistente(contexto, {
-        idMensagem,
-        texto: material.nome,
-        midia: {
-          tipo: tipoDaMidiaGravada[material.tipoDeArquivo],
-          mimetype: material.contentType,
-          nomeDoArquivo: material.nome,
-          url: null,
-        },
       });
       enviados.push(material.nome);
     }

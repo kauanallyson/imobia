@@ -6,7 +6,10 @@ import type {
   QrCode,
 } from "@/lib/whatsapp";
 // `parseWebhook` é puro: o falso reaproveita o real.
-import { parseWebhook as parseWebhookReal } from "@/lib/whatsapp";
+import {
+  parseWebhook as parseWebhookReal,
+  textoDaLocalizacao,
+} from "@/lib/whatsapp";
 
 // Falso em memória de src/lib/whatsapp.ts: mesma superfície, mais helpers de
 // inspeção. Trocado pelo preload (src/test/fakes/preload.ts).
@@ -33,6 +36,7 @@ const proximoId = () => `FAKE-${++contador}`;
 
 export function limpar() {
   enviados.length = 0;
+  eco = null;
   avisosDoSistema.length = 0;
   instancias.clear();
   midias.clear();
@@ -107,13 +111,48 @@ export async function estadoDaConexao(
   return instancias.get(instancia) ?? "close";
 }
 
+// Simula o eco `fromMe` que a Evolution manda pelo webhook para cada envio,
+// entregue ANTES de o envio devolver o id (o pior caso da corrida). O eco é
+// montado no formato da Evolution e traduzido pelo `parseWebhook` real.
+let eco: ((mensagem: MensagemRecebida) => Promise<unknown>) | null = null;
+export function aoEnviarEcoar(
+  receber: ((mensagem: MensagemRecebida) => Promise<unknown>) | null,
+) {
+  eco = receber;
+}
+
+async function ecoar(
+  instancia: string,
+  para: string,
+  idMensagem: string,
+  message: Record<string, unknown>,
+) {
+  if (!eco) return;
+  const evento = parseWebhookReal({
+    event: "messages.upsert",
+    instance: instancia,
+    data: {
+      key: {
+        remoteJid: `${para}@s.whatsapp.net`,
+        fromMe: true,
+        id: idMensagem,
+      },
+      message,
+      messageTimestamp: Math.floor(Date.now() / 1000),
+    },
+  });
+  if (evento.tipo === "mensagem") await eco(evento.mensagem);
+}
+
 export async function enviarTexto(
   instancia: string,
   para: string,
   texto: string,
 ) {
   enviados.push({ instancia, para, tipo: "texto", texto });
-  return { idMensagem: proximoId() };
+  const idMensagem = proximoId();
+  await ecoar(instancia, para, idMensagem, { conversation: texto });
+  return { idMensagem };
 }
 
 // Avisos do número de sistema, separados dos envios dos corretores.
@@ -127,19 +166,54 @@ export async function enviarTextoDoSistema(telefone: string, texto: string) {
 export async function enviarMidia(
   instancia: string,
   para: string,
-  midia: { url: string },
+  midia: {
+    tipo: "image" | "document" | "video" | "audio";
+    url: string;
+    mimetype?: string;
+    legenda?: string;
+    nomeDoArquivo?: string;
+  },
 ) {
   enviados.push({ instancia, para, tipo: "midia", url: midia.url });
-  return { idMensagem: proximoId() };
+  const idMensagem = proximoId();
+  const conteudo = { mimetype: midia.mimetype, caption: midia.legenda };
+  await ecoar(instancia, para, idMensagem, {
+    [`${midia.tipo}Message`]:
+      midia.tipo === "document"
+        ? { ...conteudo, fileName: midia.nomeDoArquivo }
+        : conteudo,
+  });
+  return { idMensagem };
 }
 
 export async function enviarLocalizacao(
   instancia: string,
   para: string,
-  local: { latitude: number; longitude: number },
+  local: {
+    latitude: number;
+    longitude: number;
+    nome?: string;
+    endereco?: string;
+  },
 ) {
-  enviados.push({ instancia, para, tipo: "localizacao", ...local });
-  return { idMensagem: proximoId() };
+  enviados.push({
+    instancia,
+    para,
+    tipo: "localizacao",
+    latitude: local.latitude,
+    longitude: local.longitude,
+  });
+  const idMensagem = proximoId();
+  await ecoar(instancia, para, idMensagem, {
+    locationMessage: {
+      degreesLatitude: local.latitude,
+      degreesLongitude: local.longitude,
+      name: local.nome,
+      address: local.endereco,
+    },
+  });
+  return { idMensagem };
 }
 
 export const parseWebhook = parseWebhookReal;
+export { textoDaLocalizacao };

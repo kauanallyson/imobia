@@ -10,11 +10,7 @@ import {
   whatsappConexoes,
 } from "@/lib/db/schema";
 import * as llm from "@/lib/llm";
-import {
-  type ContextoDoAtendimento,
-  enviarTextoAoCliente,
-  gravarMensagemDoAssistente,
-} from "./assistente/contexto";
+import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import {
   descreverFerramentas,
   executarFerramenta,
@@ -92,17 +88,8 @@ export async function atenderMensagem(
     .limit(1);
   if (!negocio) return { atendeu: false, motivo: "sem_negocio" };
 
-  const contexto: ContextoDoAtendimento = {
-    session: {
-      role: "corretor",
-      corretorId: conversa.corretorId,
-      imobiliariaId: conversa.imobiliariaId,
-    },
-    instancia: conversa.instancia,
-    corretor: { nome: conversa.corretorNome },
-    conversa: { id: conversa.id, telefone: conversa.telefone },
-    negocio,
-  };
+  const contexto = await contextoDoNegocio(negocio.id);
+  if (!contexto) return { atendeu: false, motivo: "conversa_inexistente" };
 
   const historico = await montarHistorico(conversa.id);
   const empreendimentos = await listarEmpreendimentos(contexto.session);
@@ -137,10 +124,7 @@ export async function atenderMensagem(
   const texto = resposta.texto.trim();
   if (texto) {
     // Ticket 10: com opt-out registrado nesta rodada, este é o último envio.
-    const { idMensagem } = await enviarTextoAoCliente(contexto, texto, {
-      despedida: true,
-    });
-    await gravarMensagemDoAssistente(contexto, { idMensagem, texto });
+    await enviarTextoAoCliente(contexto, texto, { despedida: true });
   }
 
   // História 45: o negócio vai para Em atendimento quando o assistente

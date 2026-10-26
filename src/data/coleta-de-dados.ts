@@ -353,7 +353,7 @@ export async function registrarDocumentoRecebido(
 
   const arquivo = await whatsapp.baixarMidia(
     conexao.instancia,
-    midia.evolutionId,
+    midia.evolutionId ?? "",
   );
   const chave = `imobiliarias/${negocio.imobiliariaId}/clientes/${negocio.clienteId}/documentos/${crypto.randomUUID()}`;
   await storage.salvarArquivo(chave, arquivo.bytes, arquivo.mimeType);
