@@ -170,6 +170,89 @@ describe("pausa pelo corretor", () => {
     expect(await retomarAssistentesPausados()).toBe(0);
   });
 
+  test("pausado por chamar_corretor retoma 24h depois da pausa ou da última mensagem do corretor, a mais recente", async () => {
+    setSystemTime(T0);
+    const { session, instancia, telefone, conversaId } =
+      await iniciarConversaDaAna();
+    // O corretor falou há dois dias; depois o assistente voltou.
+    await receberMensagem(
+      mensagemRecebida({
+        instancia,
+        telefone,
+        fromMe: true,
+        texto: "Oi, aqui é a Ana",
+        enviadaEm: T0,
+      }),
+    );
+    await devolverAoAssistente(session, conversaId);
+
+    setSystemTime(horas(48));
+    roteirizar(
+      {
+        tipo: "chamadas",
+        chamadas: [
+          { nome: "chamar_corretor", argumentos: { motivo: "Quer a Ana" } },
+        ],
+      },
+      { tipo: "texto", texto: "Vou chamar a Ana." },
+    );
+    await receberMensagem(
+      mensagemRecebida({ instancia, telefone, texto: "Quero falar com a Ana" }),
+    );
+    expect(ok(await buscarConversa(session, conversaId)).assistente).toBe(
+      "pausado",
+    );
+
+    // 1h depois da pausa: a mensagem antiga do corretor não conta.
+    setSystemTime(horas(49));
+    expect(await retomarAssistentesPausados()).toBe(0);
+
+    // O corretor responde 10h depois da pausa: conta a partir dela.
+    setSystemTime(horas(58));
+    await receberMensagem(
+      mensagemRecebida({
+        instancia,
+        telefone,
+        fromMe: true,
+        texto: "Oi, tudo bem?",
+        enviadaEm: horas(58),
+      }),
+    );
+    setSystemTime(horas(73));
+    expect(await retomarAssistentesPausados()).toBe(0);
+    setSystemTime(horas(83));
+    expect(await retomarAssistentesPausados()).toBe(1);
+    expect(ok(await buscarConversa(session, conversaId)).assistente).toBe(
+      "ativo",
+    );
+  });
+
+  test("pausado por chamar_corretor sem nenhuma mensagem do corretor retoma 24h depois", async () => {
+    setSystemTime(T0);
+    const { session, instancia, telefone, conversaId } =
+      await iniciarConversaDaAna();
+    roteirizar(
+      {
+        tipo: "chamadas",
+        chamadas: [
+          { nome: "chamar_corretor", argumentos: { motivo: "Quer a Ana" } },
+        ],
+      },
+      { tipo: "texto", texto: "Vou chamar a Ana." },
+    );
+    await receberMensagem(
+      mensagemRecebida({ instancia, telefone, texto: "Quero falar com a Ana" }),
+    );
+
+    setSystemTime(horas(23));
+    expect(await retomarAssistentesPausados()).toBe(0);
+    setSystemTime(horas(25));
+    expect(await retomarAssistentesPausados()).toBe(1);
+    expect(ok(await buscarConversa(session, conversaId)).assistente).toBe(
+      "ativo",
+    );
+  });
+
   test("ligar/desligar por conversa; desligado não retoma sozinho nem com fromMe", async () => {
     const { session, instancia, telefone, conversaId } =
       await iniciarConversaDaAna();

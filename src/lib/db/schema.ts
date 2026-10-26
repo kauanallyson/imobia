@@ -313,6 +313,10 @@ export const conversas = pgTable(
     ultimaMensagemCorretorEm: timestamp("ultima_mensagem_corretor_em", {
       withTimezone: true,
     }),
+    // Quando o assistente foi pausado (mensagem do corretor ou
+    // `chamar_corretor`): a retomada em 24h conta do mais recente entre isto
+    // e a última mensagem do corretor (história 77).
+    pausadoEm: timestamp("pausado_em", { withTimezone: true }),
     optOut: boolean("opt_out").notNull().default(false),
     criadaEm: timestamp("criada_em", { withTimezone: true })
       .notNull()

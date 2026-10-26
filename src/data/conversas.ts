@@ -241,7 +241,7 @@ async function gravarMensagemRecebida(mensagem: MensagemRecebida) {
         .set({
           ultimaMensagemCorretorEm: mensagem.enviadaEm,
           ...(conversa.assistente === "ativo"
-            ? { assistente: "pausado" as const }
+            ? { assistente: "pausado" as const, pausadoEm: mensagem.enviadaEm }
             : {}),
         })
         .where(eq(conversas.id, conversa.id));

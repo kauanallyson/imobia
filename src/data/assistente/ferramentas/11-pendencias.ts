@@ -63,7 +63,7 @@ const ferramentaChamarCorretor: Ferramenta<
 async function pausarConversa(contexto: ContextoDoAtendimento) {
   await db
     .update(conversas)
-    .set({ assistente: "pausado" })
+    .set({ assistente: "pausado", pausadoEm: new Date() })
     .where(eq(conversas.id, contexto.conversa.id));
 }
 

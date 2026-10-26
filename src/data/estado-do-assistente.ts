@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, lt } from "drizzle-orm";
+import { and, eq, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { conversas, type EstadoDoAssistente } from "@/lib/db/schema";
@@ -80,8 +80,9 @@ export function desligarAssistente(session: Session, conversaId: string) {
   return levarAssistenteA(session, conversaId, "desligado");
 }
 
-// Job do worker (história 77): conversas pausadas há mais de 24h desde a
-// última mensagem do corretor voltam a `ativo`. Devolve quantas retomou.
+// Job do worker (história 77): conversas pausadas voltam a `ativo` 24h depois
+// do mais recente entre a pausa e a última mensagem do corretor (a pausa por
+// `chamar_corretor` não tem mensagem do corretor). Devolve quantas retomou.
 export async function retomarAssistentesPausados(): Promise<number> {
   const limite = new Date(Date.now() - RETOMADA_APOS_MS);
   const retomadas = await db
@@ -91,7 +92,10 @@ export async function retomarAssistentesPausados(): Promise<number> {
       and(
         eq(conversas.assistente, "pausado"),
         eq(conversas.optOut, false),
-        lt(conversas.ultimaMensagemCorretorEm, limite),
+        lt(
+          sql`greatest(${conversas.pausadoEm}, ${conversas.ultimaMensagemCorretorEm})`,
+          limite,
+        ),
       ),
     )
     .returning({ id: conversas.id });

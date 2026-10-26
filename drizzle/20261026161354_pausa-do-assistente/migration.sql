@@ -1,0 +1,1 @@
+ALTER TABLE "conversas" ADD COLUMN "pausado_em" timestamp with time zone;
