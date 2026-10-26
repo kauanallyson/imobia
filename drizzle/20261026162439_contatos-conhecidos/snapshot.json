@@ -1,0 +1,223 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "b83f6381-831a-4078-9e55-4643786da964",
+  "prevIds": ["7833088d-1e82-40cd-9e02-30930ec22b24"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "contatos_conhecidos"],
+      "writes": [
+        "s|tbl|public.contatos_conhecidos",
+        "n|tbl|public.contatos_conhecidos",
+        "e|tbl|public.contatos_conhecidos",
+        "n|rel|public.contatos_conhecidos",
+        "n|type|public.contatos_conhecidos",
+        "n|rel|public.contatos_conhecidos_pkey",
+        "n|rel|public.contatos_conhecidos_corretor_telefone"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "contatos_conhecidos"],
+      "writes": [
+        "s|fk|public.contatos_conhecidos.contatos_conhecidos_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.contatos_conhecidos.contatos_conhecidos_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.contatos_conhecidos.contatos_conhecidos_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.contatos_conhecidos.contatos_conhecidos_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.contatos_conhecidos",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.contatos_conhecidos.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "contatos_conhecidos"],
+      "writes": [
+        "s|fk|public.contatos_conhecidos.contatos_conhecidos_corretor_id_users_id_fkey",
+        "n|fk|public.contatos_conhecidos.contatos_conhecidos_corretor_id_users_id_fkey",
+        "e|fk|public.contatos_conhecidos.contatos_conhecidos_corretor_id_users_id_fkey",
+        "n|con|public.contatos_conhecidos.contatos_conhecidos_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.contatos_conhecidos",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.contatos_conhecidos.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "contatos_conhecidos",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "telefone",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "motivo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "criado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "contatos_conhecidos_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "contatos_conhecidos_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "contatos_conhecidos_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "contatos_conhecidos",
+        "name": "contatos_conhecidos_corretor_telefone",
+        "nameExplicit": true,
+        "columns": ["corretor_id", "telefone"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

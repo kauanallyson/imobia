@@ -1,0 +1,29 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "91de2001-7f7f-495b-9d72-fbc61acfb39a",
+  "prevIds": ["391fae1e-908d-4b74-b50c-1f25e51ac572"],
+  "footprints": [
+    {
+      "statementType": "alter_column",
+      "statementTarget": ["column", "public", "mensagens", "evolution_id"],
+      "writes": ["s|colprop|public.mensagens.evolution_id.notNull"],
+      "reads": [
+        "n|tbl|public.mensagens",
+        "n|sch|public",
+        "n|col|public.mensagens.evolution_id"
+      ],
+      "sqlHash": "8e531289ed9e8a88"
+    }
+  ],
+  "deltas": [
+    {
+      "op": "alter",
+      "key": "columns\u0000[\"public\",\"mensagens\",\"evolution_id\"]",
+      "set": {
+        "notNull": false
+      }
+    }
+  ]
+}

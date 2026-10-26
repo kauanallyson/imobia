@@ -1,8 +1,8 @@
 "use client";
 
+import LoginIcon from "@mui/icons-material/Login";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
-import { LogIn } from "lucide-react";
 import { useActionState } from "react";
 import { Field, SubmitButton } from "@/app/components/form";
 import { type SignInState, signIn } from "./actions";
@@ -29,7 +29,7 @@ export function LoginForm() {
         autoComplete="current-password"
       />
       {state.erro && <Alert severity="error">{state.erro}</Alert>}
-      <SubmitButton pending={pending} icon={LogIn}>
+      <SubmitButton pending={pending} icon={LoginIcon}>
         Entrar
       </SubmitButton>
     </Stack>

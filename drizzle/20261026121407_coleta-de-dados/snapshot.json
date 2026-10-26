@@ -1,0 +1,867 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "45527c75-8517-470c-8970-31cc8866ca52",
+  "prevIds": ["f6f09e5a-55a6-45e2-b408-51f28bd2b3f0"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|tbl|public.documentos_do_cliente",
+        "n|tbl|public.documentos_do_cliente",
+        "e|tbl|public.documentos_do_cliente",
+        "n|rel|public.documentos_do_cliente",
+        "n|type|public.documentos_do_cliente",
+        "n|rel|public.documentos_do_cliente_pkey",
+        "n|rel|public.documentos_do_cliente_chave_key",
+        "n|rel|public.documentos_do_cliente_mensagem_id_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "lembretes_de_coleta"],
+      "writes": [
+        "s|tbl|public.lembretes_de_coleta",
+        "n|tbl|public.lembretes_de_coleta",
+        "e|tbl|public.lembretes_de_coleta",
+        "n|rel|public.lembretes_de_coleta",
+        "n|type|public.lembretes_de_coleta",
+        "n|rel|public.lembretes_de_coleta_pkey",
+        "n|rel|public.lembretes_de_coleta_negocio_data"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "contatos_extras"],
+      "writes": [
+        "s|col|public.clientes.contatos_extras",
+        "n|col|public.clientes.contatos_extras",
+        "e|col|public.clientes.contatos_extras"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "referencias"],
+      "writes": [
+        "s|col|public.clientes.referencias",
+        "n|col|public.clientes.referencias",
+        "e|col|public.clientes.referencias"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "forma_de_pagamento"],
+      "writes": [
+        "s|col|public.clientes.forma_de_pagamento",
+        "n|col|public.clientes.forma_de_pagamento",
+        "e|col|public.clientes.forma_de_pagamento"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "dia_de_pagamento"],
+      "writes": [
+        "s|col|public.clientes.dia_de_pagamento",
+        "n|col|public.clientes.dia_de_pagamento",
+        "e|col|public.clientes.dia_de_pagamento"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "primeira_parcela"],
+      "writes": [
+        "s|col|public.clientes.primeira_parcela",
+        "n|col|public.clientes.primeira_parcela",
+        "e|col|public.clientes.primeira_parcela"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "clientes", "anonimizado_em"],
+      "writes": [
+        "s|col|public.clientes.anonimizado_em",
+        "n|col|public.clientes.anonimizado_em",
+        "e|col|public.clientes.anonimizado_em"
+      ],
+      "reads": ["n|tbl|public.clientes", "n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "documentos_do_cliente",
+        "documentos_do_cliente_negocio_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.documentos_do_cliente_negocio_id_idx",
+        "n|idx|public.documentos_do_cliente_negocio_id_idx",
+        "e|idx|public.documentos_do_cliente_negocio_id_idx",
+        "n|rel|public.documentos_do_cliente_negocio_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "documentos_do_cliente",
+        "documentos_do_cliente_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.documentos_do_cliente_corretor_id_idx",
+        "n|idx|public.documentos_do_cliente_corretor_id_idx",
+        "e|idx|public.documentos_do_cliente_corretor_id_idx",
+        "n|rel|public.documentos_do_cliente_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|fk|public.documentos_do_cliente.documentos_do_cliente_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.documentos_do_cliente.documentos_do_cliente_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.documentos_do_cliente.documentos_do_cliente_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.documentos_do_cliente.documentos_do_cliente_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|fk|public.documentos_do_cliente.documentos_do_cliente_corretor_id_users_id_fkey",
+        "n|fk|public.documentos_do_cliente.documentos_do_cliente_corretor_id_users_id_fkey",
+        "e|fk|public.documentos_do_cliente.documentos_do_cliente_corretor_id_users_id_fkey",
+        "n|con|public.documentos_do_cliente.documentos_do_cliente_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|fk|public.documentos_do_cliente.documentos_do_cliente_cliente_id_clientes_id_fkey",
+        "n|fk|public.documentos_do_cliente.documentos_do_cliente_cliente_id_clientes_id_fkey",
+        "e|fk|public.documentos_do_cliente.documentos_do_cliente_cliente_id_clientes_id_fkey",
+        "n|con|public.documentos_do_cliente.documentos_do_cliente_cliente_id_clientes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.cliente_id",
+        "n|col|public.clientes.id",
+        "e|uniqueness|public.clientes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|fk|public.documentos_do_cliente.documentos_do_cliente_negocio_id_negocios_id_fkey",
+        "n|fk|public.documentos_do_cliente.documentos_do_cliente_negocio_id_negocios_id_fkey",
+        "e|fk|public.documentos_do_cliente.documentos_do_cliente_negocio_id_negocios_id_fkey",
+        "n|con|public.documentos_do_cliente.documentos_do_cliente_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "documentos_do_cliente"],
+      "writes": [
+        "s|fk|public.documentos_do_cliente.documentos_do_cliente_mensagem_id_mensagens_id_fkey",
+        "n|fk|public.documentos_do_cliente.documentos_do_cliente_mensagem_id_mensagens_id_fkey",
+        "e|fk|public.documentos_do_cliente.documentos_do_cliente_mensagem_id_mensagens_id_fkey",
+        "n|con|public.documentos_do_cliente.documentos_do_cliente_mensagem_id_mensagens_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.documentos_do_cliente",
+        "n|sch|public",
+        "n|tbl|public.mensagens",
+        "n|sch|public",
+        "n|col|public.documentos_do_cliente.mensagem_id",
+        "n|col|public.mensagens.id",
+        "e|uniqueness|public.mensagens.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "lembretes_de_coleta"],
+      "writes": [
+        "s|fk|public.lembretes_de_coleta.lembretes_de_coleta_negocio_id_negocios_id_fkey",
+        "n|fk|public.lembretes_de_coleta.lembretes_de_coleta_negocio_id_negocios_id_fkey",
+        "e|fk|public.lembretes_de_coleta.lembretes_de_coleta_negocio_id_negocios_id_fkey",
+        "n|con|public.lembretes_de_coleta.lembretes_de_coleta_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.lembretes_de_coleta",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.lembretes_de_coleta.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    },
+    {
+      "statementType": "add_check",
+      "statementTarget": ["table", "public", "clientes"],
+      "writes": [
+        "s|ck|public.clientes.clientes_dia_de_pagamento",
+        "n|ck|public.clientes.clientes_dia_de_pagamento",
+        "e|ck|public.clientes.clientes_dia_de_pagamento",
+        "n|con|public.clientes.clientes_dia_de_pagamento"
+      ],
+      "reads": [
+        "n|tbl|public.clientes",
+        "n|sch|public",
+        "n|col|public.clientes.dia_de_pagamento"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "documentos_do_cliente",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "lembretes_de_coleta",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "contatos_extras",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'[]'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "referencias",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'[]'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "forma_de_pagamento",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "dia_de_pagamento",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "primeira_parcela",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "anonimizado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "cliente_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "tipo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "chave",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "mime_type",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "legivel",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "motivo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "aceito",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "mensagem_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "recebido_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "data",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_negocio_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_cliente_id_clientes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["cliente_id"],
+        "schemaTo": "public",
+        "tableTo": "clientes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_mensagem_id_mensagens_id_fkey",
+        "nameExplicit": false,
+        "columns": ["mensagem_id"],
+        "schemaTo": "public",
+        "tableTo": "mensagens",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "lembretes_de_coleta_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "lembretes_de_coleta_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_coleta",
+        "name": "lembretes_de_coleta_negocio_data",
+        "nameExplicit": true,
+        "columns": ["negocio_id", "data"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_chave_key",
+        "nameExplicit": false,
+        "columns": ["chave"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "documentos_do_cliente",
+        "name": "documentos_do_cliente_mensagem_id_key",
+        "nameExplicit": false,
+        "columns": ["mensagem_id"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "clientes",
+        "name": "clientes_dia_de_pagamento",
+        "value": "\"dia_de_pagamento\" between 1 and 28",
+        "entityType": "checks"
+      }
+    }
+  ]
+}

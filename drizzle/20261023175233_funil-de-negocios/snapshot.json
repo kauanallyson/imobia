@@ -1,0 +1,98 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "c3baa2ca-3182-4903-ae31-855dbfecb58d",
+  "prevIds": ["9a6ee699-d04c-4b5f-ac26-66d338b50108"],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "negocio_etapas", "autor"],
+      "writes": [
+        "s|col|public.negocio_etapas.autor",
+        "n|col|public.negocio_etapas.autor",
+        "e|col|public.negocio_etapas.autor"
+      ],
+      "reads": ["n|tbl|public.negocio_etapas", "n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "negocios", "lote_interesse_id"],
+      "writes": [
+        "s|col|public.negocios.lote_interesse_id",
+        "n|col|public.negocios.lote_interesse_id",
+        "e|col|public.negocios.lote_interesse_id"
+      ],
+      "reads": ["n|tbl|public.negocios", "n|sch|public"]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "negocios"],
+      "writes": [
+        "s|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "n|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "e|fk|public.negocios.negocios_lote_interesse_id_lotes_id_fkey",
+        "n|con|public.negocios.negocios_lote_interesse_id_lotes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|tbl|public.lotes",
+        "n|sch|public",
+        "n|col|public.negocios.lote_interesse_id",
+        "n|col|public.lotes.id",
+        "e|uniqueness|public.lotes.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocio_etapas",
+        "name": "autor",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'sistema'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "lote_interesse_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "negocios",
+        "name": "negocios_lote_interesse_id_lotes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["lote_interesse_id"],
+        "schemaTo": "public",
+        "tableTo": "lotes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    }
+  ]
+}

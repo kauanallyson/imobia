@@ -59,6 +59,7 @@ describe("corretores", () => {
         nome: "Ana Souza",
         email: "ana@fiel.com.br",
         ativo: false,
+        telefone: null,
       },
     ]);
   });

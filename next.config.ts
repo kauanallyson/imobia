@@ -3,10 +3,18 @@ import type { NextConfig } from "next";
 import "./src/lib/env";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Imagem de produção (Containerfile) copia só .next/standalone.
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  // "bun" (S3Client em src/lib/storage.ts) é módulo nativo do runtime.
+  serverExternalPackages: ["bun"],
+  experimental: {
+    // Upload de material de marketing via Server Action (até ~25 MB de
+    // arquivo; o multipart acrescenta alguns KB).
+    serverActions: { bodySizeLimit: "26mb" },
+  },
   turbopack: {
     rules: {
       "*.css": {

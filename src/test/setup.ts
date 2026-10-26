@@ -6,6 +6,17 @@ process.env.DATABASE_URL = testDatabaseUrl;
 process.env.BETTER_AUTH_SECRET =
   "segredo-de-teste-com-pelo-menos-32-caracteres";
 process.env.BETTER_AUTH_URL = "http://localhost:3000";
+process.env.APP_URL = "http://localhost:3000";
+process.env.EVOLUTION_API_URL = "http://evolution.test:8080";
+process.env.EVOLUTION_API_KEY = "chave-de-teste";
+process.env.EVOLUTION_WEBHOOK_SECRET = "segredo-de-teste-com-32-caracteres";
+process.env.EVOLUTION_SYSTEM_INSTANCE = "sistema-de-teste";
+process.env.OPENAI_API_KEY = "sk-teste";
+process.env.OPENAI_TRANSCRIBE_MODEL = "gpt-transcribe";
+process.env.R2_ACCOUNT_ID = "conta-de-teste";
+process.env.R2_ACCESS_KEY_ID = "chave-de-teste";
+process.env.R2_SECRET_ACCESS_KEY = "segredo-de-teste";
+process.env.R2_BUCKET = "loteai-test";
 if (!new URL(testDatabaseUrl).pathname.endsWith("_test")) {
   throw new Error(
     "O banco de teste precisa terminar em _test (é limpo a cada teste)",

@@ -1,3 +1,10 @@
+# Stack do loteAI para `podman compose` (dev e VPS). Tudo lê do `.env`
+# (copie de `.env.example`). Passo a passo em docs/deploy.md.
+#
+# Dev:  podman compose up -d postgres          (só o banco; app com `bun run dev`)
+# VPS:  podman compose up -d --build           (app, worker, migrate, Evolution)
+#       podman compose --profile proxy up -d   (idem + Caddy com HTTPS automático)
+
 services:
   postgres:
     image: docker.io/pgvector/pgvector:pg17
@@ -7,14 +14,148 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-crm}
     ports:
-      - "5432:5432"
+      # Só no loopback: em dev o `bun run dev` conecta por localhost:5432.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+      # Cria o banco `evolution` (separado do `crm`) na primeira inicialização.
+      - ./deploy/postgres/init-evolution.sh:/docker-entrypoint-initdb.d/10-evolution.sh:ro,Z
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  # Aplica as migrations do Drizzle e sai; `app` e `worker` só sobem depois.
+  migrate:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: tools
+    image: localhost/crm-tools
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_COMPOSE:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-crm}}
+    command: ["bun", "run", "db:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # A imagem `app` traz o LibreOffice (`soffice`) que gera o PDF das propostas
+  # a partir do modelo DOCX (ticket 17; SOFFICE_PATH no .env, opcional).
+  app:
+    build:
+      context: .
+      dockerfile: Containerfile
+      target: app
+    image: localhost/crm-app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_COMPOSE:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-crm}}
+      # Dentro da rede do compose o app fala com a Evolution pelo nome do serviço.
+      EVOLUTION_API_URL: http://evolution:8080
+    ports:
+      - "${APP_PORT:-127.0.0.1:3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      evolution:
+        condition: service_started
+        required: false
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/login >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  worker:
+    image: localhost/crm-tools
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL_COMPOSE:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-crm}}
+      EVOLUTION_API_URL: http://evolution:8080
+    command: ["bun", "--conditions=react-server", "src/worker/index.ts"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Evolution API v2 (ADR-0004) com Redis próprio e um banco `evolution`
+  # no mesmo Postgres (schema `evolution_api`, criado pelo Prisma dela).
+  evolution:
+    image: docker.io/evoapicloud/evolution-api:v2.3.7
+    restart: unless-stopped
+    environment:
+      SERVER_URL: ${EVOLUTION_PUBLIC_URL:-http://localhost:8080}
+      AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
+      LANGUAGE: pt-BR
+      LOG_LEVEL: ${EVOLUTION_LOG_LEVEL:-ERROR,WARN,INFO}
+      DEL_INSTANCE: "false"
+      QRCODE_LIMIT: 30
+      CONFIG_SESSION_PHONE_CLIENT: loteAI
+      CONFIG_SESSION_PHONE_NAME: Chrome
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/evolution?schema=evolution_api
+      DATABASE_CONNECTION_CLIENT_NAME: evolution
+      DATABASE_SAVE_DATA_INSTANCE: "true"
+      DATABASE_SAVE_DATA_NEW_MESSAGE: "true"
+      DATABASE_SAVE_MESSAGE_UPDATE: "false"
+      DATABASE_SAVE_DATA_CONTACTS: "true"
+      DATABASE_SAVE_DATA_CHATS: "true"
+      DATABASE_SAVE_DATA_LABELS: "false"
+      DATABASE_SAVE_DATA_HISTORIC: "false"
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "false"
+      CACHE_LOCAL_ENABLED: "false"
+      # O webhook é configurado por instância pelo próprio app
+      # (src/lib/whatsapp.ts: APP_URL/api/webhooks/evolution + x-webhook-secret).
+      WEBHOOK_GLOBAL_ENABLED: "false"
+    ports:
+      - "${EVOLUTION_PORT:-127.0.0.1:8080}:8080"
+    volumes:
+      - evolution_instances:/evolution/instances
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--port", "6379", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+
+  # Opcional: reverse proxy com HTTPS automático (Let's Encrypt).
+  # `podman compose --profile proxy up -d`; exige APP_DOMAIN apontando para o VPS.
+  caddy:
+    image: docker.io/library/caddy:2-alpine
+    profiles: ["proxy"]
+    restart: unless-stopped
+    environment:
+      # Obrigatório com o profile: o Caddy não sobe com o domínio vazio.
+      APP_DOMAIN: ${APP_DOMAIN:-}
+      CADDY_EMAIL: ${CADDY_EMAIL:-}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,Z
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
 volumes:
   postgres_data:
+  evolution_instances:
+  redis_data:
+  caddy_data:
+  caddy_config:

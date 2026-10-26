@@ -1,0 +1,701 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "391fae1e-908d-4b74-b50c-1f25e51ac572",
+  "prevIds": ["6e9fd149-cd9d-4de8-bd85-44d06f4b3dd1"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|tbl|public.arquivos_do_fechamento",
+        "n|tbl|public.arquivos_do_fechamento",
+        "e|tbl|public.arquivos_do_fechamento",
+        "n|rel|public.arquivos_do_fechamento",
+        "n|type|public.arquivos_do_fechamento",
+        "n|rel|public.arquivos_do_fechamento_pkey",
+        "n|rel|public.arquivos_do_fechamento_chave_key",
+        "n|rel|public.arquivos_do_fechamento_mensagem_id_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "lembretes_de_etapas_finais"],
+      "writes": [
+        "s|tbl|public.lembretes_de_etapas_finais",
+        "n|tbl|public.lembretes_de_etapas_finais",
+        "e|tbl|public.lembretes_de_etapas_finais",
+        "n|rel|public.lembretes_de_etapas_finais",
+        "n|type|public.lembretes_de_etapas_finais",
+        "n|rel|public.lembretes_de_etapas_finais_pkey",
+        "n|rel|public.lembretes_de_etapas_finais_negocio_data"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "add_column",
+      "statementTarget": [
+        "column",
+        "public",
+        "incorporadoras",
+        "instrucoes_de_pagamento"
+      ],
+      "writes": [
+        "s|col|public.incorporadoras.instrucoes_de_pagamento",
+        "n|col|public.incorporadoras.instrucoes_de_pagamento",
+        "e|col|public.incorporadoras.instrucoes_de_pagamento"
+      ],
+      "reads": ["n|tbl|public.incorporadoras", "n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "arquivos_do_fechamento",
+        "arquivos_do_fechamento_negocio_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.arquivos_do_fechamento_negocio_id_idx",
+        "n|idx|public.arquivos_do_fechamento_negocio_id_idx",
+        "e|idx|public.arquivos_do_fechamento_negocio_id_idx",
+        "n|rel|public.arquivos_do_fechamento_negocio_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "arquivos_do_fechamento",
+        "arquivos_do_fechamento_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.arquivos_do_fechamento_corretor_id_idx",
+        "n|idx|public.arquivos_do_fechamento_corretor_id_idx",
+        "e|idx|public.arquivos_do_fechamento_corretor_id_idx",
+        "n|rel|public.arquivos_do_fechamento_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.arquivos_do_fechamento.arquivos_do_fechamento_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_corretor_id_users_id_fkey",
+        "n|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_corretor_id_users_id_fkey",
+        "e|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_corretor_id_users_id_fkey",
+        "n|con|public.arquivos_do_fechamento.arquivos_do_fechamento_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_negocio_id_negocios_id_fkey",
+        "n|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_negocio_id_negocios_id_fkey",
+        "e|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_negocio_id_negocios_id_fkey",
+        "n|con|public.arquivos_do_fechamento.arquivos_do_fechamento_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_proposta_id_propostas_id_fkey",
+        "n|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_proposta_id_propostas_id_fkey",
+        "e|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_proposta_id_propostas_id_fkey",
+        "n|con|public.arquivos_do_fechamento.arquivos_do_fechamento_proposta_id_propostas_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.proposta_id",
+        "n|col|public.propostas.id",
+        "e|uniqueness|public.propostas.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "arquivos_do_fechamento"],
+      "writes": [
+        "s|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_mensagem_id_mensagens_id_fkey",
+        "n|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_mensagem_id_mensagens_id_fkey",
+        "e|fk|public.arquivos_do_fechamento.arquivos_do_fechamento_mensagem_id_mensagens_id_fkey",
+        "n|con|public.arquivos_do_fechamento.arquivos_do_fechamento_mensagem_id_mensagens_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.arquivos_do_fechamento",
+        "n|sch|public",
+        "n|tbl|public.mensagens",
+        "n|sch|public",
+        "n|col|public.arquivos_do_fechamento.mensagem_id",
+        "n|col|public.mensagens.id",
+        "e|uniqueness|public.mensagens.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "lembretes_de_etapas_finais"],
+      "writes": [
+        "s|fk|public.lembretes_de_etapas_finais.lembretes_de_etapas_finais_negocio_id_negocios_id_fkey",
+        "n|fk|public.lembretes_de_etapas_finais.lembretes_de_etapas_finais_negocio_id_negocios_id_fkey",
+        "e|fk|public.lembretes_de_etapas_finais.lembretes_de_etapas_finais_negocio_id_negocios_id_fkey",
+        "n|con|public.lembretes_de_etapas_finais.lembretes_de_etapas_finais_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.lembretes_de_etapas_finais",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.lembretes_de_etapas_finais.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "arquivos_do_fechamento",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "lembretes_de_etapas_finais",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "proposta_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "tipo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "chave",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "mime_type",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "aceito",
+        "type": "boolean",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "mensagem_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "recebido_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "incorporadoras",
+        "name": "instrucoes_de_pagamento",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "etapa",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "data",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_negocio_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_proposta_id_propostas_id_fkey",
+        "nameExplicit": false,
+        "columns": ["proposta_id"],
+        "schemaTo": "public",
+        "tableTo": "propostas",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_mensagem_id_mensagens_id_fkey",
+        "nameExplicit": false,
+        "columns": ["mensagem_id"],
+        "schemaTo": "public",
+        "tableTo": "mensagens",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "lembretes_de_etapas_finais_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "lembretes_de_etapas_finais_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "lembretes_de_etapas_finais",
+        "name": "lembretes_de_etapas_finais_negocio_data",
+        "nameExplicit": true,
+        "columns": ["negocio_id", "data"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_chave_key",
+        "nameExplicit": false,
+        "columns": ["chave"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "arquivos_do_fechamento",
+        "name": "arquivos_do_fechamento_mensagem_id_key",
+        "nameExplicit": false,
+        "columns": ["mensagem_id"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 "use client";
 
+import type { SvgIconComponent } from "@mui/icons-material";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import TextField, { type TextFieldProps } from "@mui/material/TextField";
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function Field(props: { label: string; name: string } & TextFieldProps) {
@@ -16,7 +16,7 @@ export function SubmitButton({
   children,
 }: {
   pending?: boolean;
-  icon: LucideIcon;
+  icon: SvgIconComponent;
   children: ReactNode;
 }) {
   return (
@@ -30,7 +30,7 @@ export function SubmitButton({
         pending ? (
           <CircularProgress size={18} color="inherit" />
         ) : (
-          <Icon aria-hidden size={20} />
+          <Icon aria-hidden fontSize="small" />
         )
       }
     >

@@ -1,29 +1,66 @@
+import ApartmentIcon from "@mui/icons-material/Apartment";
+import EventIcon from "@mui/icons-material/Event";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import AppBar from "@mui/material/AppBar";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Link from "@/app/components/link";
 import { SignOutButton } from "@/app/components/sign-out-button";
+import {
+  listarNegociosSilenciosos,
+  type NegocioSilencioso,
+} from "@/data/follow-ups";
 import { buscarImobiliaria } from "@/data/imobiliarias";
+import { listarNegociosPorEtapa } from "@/data/negocios";
 import { verificarCorretor } from "@/data/session";
+import { etapas } from "@/lib/db/schema";
+import {
+  formatarTelefone,
+  formatoDataHora,
+  rotuloDaEtapa,
+} from "./negocios/etapas";
 
 export const metadata: Metadata = { title: "Painel" };
 
-export default function PainelPage() {
+export default function PainelPage({ searchParams }: PageProps<"/painel">) {
   return (
     <Suspense fallback={null}>
-      <Painel />
+      <Painel searchParams={searchParams} />
     </Suspense>
   );
 }
 
-// Mobile-first: uma coluna, alvos de toque grandes. Os negócios entram aqui
-// no ticket do funil.
-async function Painel() {
+// Quadro do funil (história 30), mobile-first: uma coluna com uma seção por
+// etapa fixa, na ordem do funil.
+// Com `?filtro=silenciosos` (ticket 15), lista só os negócios abertos cujo
+// cliente não responde há 90 dias ou mais.
+async function Painel({
+  searchParams,
+}: {
+  searchParams: PageProps<"/painel">["searchParams"];
+}) {
   const session = await verificarCorretor();
-  const imobiliaria = await buscarImobiliaria(session, session.imobiliariaId);
+  const { filtro } = await searchParams;
+  const [imobiliaria, quadro, silenciosos] = await Promise.all([
+    buscarImobiliaria(session, session.imobiliariaId),
+    listarNegociosPorEtapa(session),
+    listarNegociosSilenciosos(session),
+  ]);
+  const soSilenciosos = filtro === "silenciosos";
+  const total = Object.values(quadro).reduce((n, l) => n + l.length, 0);
 
   return (
     <>
@@ -41,29 +78,171 @@ async function Painel() {
               {imobiliaria?.nome}
             </Typography>
           </Stack>
+          <Button
+            component={Link}
+            href="/painel/catalogo"
+            color="inherit"
+            startIcon={<ApartmentIcon aria-hidden fontSize="small" />}
+          >
+            Catálogo
+          </Button>
+          <Button
+            component={Link}
+            href="/painel/agenda"
+            color="inherit"
+            startIcon={<EventIcon aria-hidden fontSize="small" />}
+          >
+            Agenda
+          </Button>
+          <Button
+            component={Link}
+            href="/painel/pendencias"
+            color="inherit"
+            startIcon={<NotificationsIcon aria-hidden fontSize="small" />}
+          >
+            Pendências
+          </Button>
+          <Button
+            component={Link}
+            href="/painel/whatsapp"
+            color="inherit"
+            startIcon={<WhatsAppIcon aria-hidden fontSize="small" />}
+          >
+            WhatsApp
+          </Button>
           <SignOutButton />
         </Toolbar>
       </AppBar>
-      <Container
-        component="main"
-        maxWidth="sm"
-        sx={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          py: 6,
-        }}
-      >
-        <Typography variant="h6" component="h1">
-          Seu painel
-        </Typography>
-        <Typography color="text.secondary">
-          Nenhum negócio por enquanto.
-        </Typography>
+      <Container component="main" maxWidth="sm" sx={{ py: 3 }}>
+        <Stack spacing={3}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ alignItems: "center", justifyContent: "space-between" }}
+          >
+            <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+              Negócios
+            </Typography>
+            <Button
+              component={Link}
+              href="/painel/negocios/novo"
+              variant="contained"
+              disableElevation
+              startIcon={<PersonAddIcon aria-hidden fontSize="small" />}
+            >
+              Novo
+            </Button>
+          </Stack>
+
+          <Stack direction="row" spacing={1}>
+            <Chip
+              component={Link}
+              href={soSilenciosos ? "/painel" : "/painel?filtro=silenciosos"}
+              clickable
+              icon={<HourglassEmptyIcon aria-hidden fontSize="small" />}
+              label={`Silenciosos (${silenciosos.length})`}
+              color={soSilenciosos ? "primary" : "default"}
+              variant={soSilenciosos ? "filled" : "outlined"}
+              aria-pressed={soSilenciosos}
+              sx={{ minHeight: 44 }}
+            />
+          </Stack>
+
+          {soSilenciosos ? (
+            <Silenciosos lista={silenciosos} />
+          ) : (
+            <>
+              {total === 0 && (
+                <Typography color="text.secondary">
+                  Nenhum negócio por enquanto. Quem mandar mensagem no seu
+                  WhatsApp pela primeira vez aparece aqui em Novo.
+                </Typography>
+              )}
+
+              {etapas.map((etapa) => {
+                const lista = quadro[etapa];
+                return (
+                  <Stack component="section" key={etapa} spacing={1}>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ alignItems: "center" }}
+                    >
+                      <Typography variant="h6" component="h2">
+                        {rotuloDaEtapa[etapa]}
+                      </Typography>
+                      <Chip label={lista.length} size="small" />
+                    </Stack>
+                    {lista.length === 0 ? (
+                      <Typography variant="body2" color="text.secondary">
+                        Nenhum negócio nesta etapa.
+                      </Typography>
+                    ) : (
+                      <Paper variant="outlined">
+                        <List disablePadding>
+                          {lista.map((negocio) => (
+                            <ListItemButton
+                              key={negocio.id}
+                              component={Link}
+                              href={`/painel/negocios/${negocio.id}`}
+                              divider
+                              sx={{ minHeight: 56 }}
+                            >
+                              <ListItemText
+                                primary={negocio.clienteNome}
+                                secondary={`${formatarTelefone(negocio.clienteTelefone)} · ${formatoDataHora.format(negocio.atualizadoEm)}`}
+                                slotProps={{
+                                  primary: { noWrap: true },
+                                  secondary: { noWrap: true },
+                                }}
+                              />
+                            </ListItemButton>
+                          ))}
+                        </List>
+                      </Paper>
+                    )}
+                  </Stack>
+                );
+              })}
+            </>
+          )}
+        </Stack>
       </Container>
     </>
+  );
+}
+
+function Silenciosos({ lista }: { lista: NegocioSilencioso[] }) {
+  if (lista.length === 0) {
+    return (
+      <Typography color="text.secondary">
+        Nenhum negócio silencioso. Um negócio fica silencioso quando o cliente
+        não responde há 90 dias; o follow-up para e ele continua aberto.
+      </Typography>
+    );
+  }
+  return (
+    <Paper variant="outlined">
+      <List disablePadding>
+        {lista.map((negocio) => (
+          <ListItemButton
+            key={negocio.id}
+            component={Link}
+            href={`/painel/negocios/${negocio.id}`}
+            divider
+            sx={{ minHeight: 56 }}
+          >
+            <ListItemText
+              primary={negocio.clienteNome}
+              secondary={`${rotuloDaEtapa[negocio.etapa]} · sem resposta desde ${negocio.ultimaMensagemDoClienteEm ? formatoDataHora.format(negocio.ultimaMensagemDoClienteEm) : "—"}`}
+              slotProps={{
+                primary: { noWrap: true },
+                secondary: { noWrap: true },
+              }}
+            />
+          </ListItemButton>
+        ))}
+      </List>
+    </Paper>
   );
 }

@@ -10,6 +10,17 @@ export type Session =
   | { role: "administrador" }
   | { role: "corretor"; corretorId: string; imobiliariaId: string };
 
+export type SessaoDoCorretor = Extract<Session, { role: "corretor" }>;
+
+// Sessão fora de um request (worker, assistente, webhook): a do corretor dono
+// do negócio ou da conversa.
+export function sessaoDoCorretor(
+  corretorId: string,
+  imobiliariaId: string,
+): SessaoDoCorretor {
+  return { role: "corretor", corretorId, imobiliariaId };
+}
+
 export class ForbiddenError extends Error {
   override name = "ForbiddenError";
 }
@@ -31,11 +42,7 @@ export async function sessionFromHeaders(
   const { user } = result;
   if (user.role === "administrador") return { role: "administrador" };
   if (user.role === "corretor" && user.imobiliariaId) {
-    return {
-      role: "corretor",
-      corretorId: user.id,
-      imobiliariaId: user.imobiliariaId,
-    };
+    return sessaoDoCorretor(user.id, user.imobiliariaId);
   }
   return null;
 }
@@ -63,5 +70,15 @@ export async function verificarCorretor() {
   const session = await getSession();
   if (!session) redirect("/login");
   if (session.role !== "corretor") redirect(homePath(session.role));
+  return session;
+}
+
+// Catálogo, clientes e negócios são de corretores: o administrador não entra.
+export function requireCorretor(
+  session: Session,
+): Extract<Session, { role: "corretor" }> {
+  if (session.role !== "corretor") {
+    throw new ForbiddenError("Somente um corretor pode fazer isso");
+  }
   return session;
 }

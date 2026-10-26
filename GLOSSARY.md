@@ -71,8 +71,16 @@ O documento que formaliza a compra de um lote (ou lote + casa) por um plano de p
 _Evitar_: Contrato, orçamento, pedido
 
 **Reserva**:
-O bloqueio de um lote enquanto sua proposta enviada aguarda assinatura; expira e libera o lote se a proposta não for assinada a tempo.
+O bloqueio de um lote enquanto sua proposta enviada aguarda assinatura; expira e libera o lote se a proposta não for assinada a tempo, e é concluída quando o pagamento da entrada é confirmado e o lote vendido.
 _Evitar_: Bloqueio, pré-venda
+
+**Instruções de pagamento**:
+O texto reutilizável, configurado pelo corretor para cada incorporadora, que diz ao cliente como pagar a entrada; o assistente o envia com o valor da entrada quando a assinatura é confirmada.
+_Evitar_: Dados bancários, boleto
+
+**Comprovante**:
+A foto ou PDF que o cliente envia para mostrar que pagou a entrada; o corretor confere e confirma o pagamento, porque o sistema não processa pagamentos.
+_Evitar_: Recibo, nota
 
 **Visita**:
 Um encontro agendado entre corretor e cliente, por padrão no empreendimento, registrado na agenda do corretor.

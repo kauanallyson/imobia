@@ -1,0 +1,347 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "f6f09e5a-55a6-45e2-b408-51f28bd2b3f0",
+  "prevIds": ["424bee79-d7ee-497d-99c4-9932eba05749"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "google_calendar_conexoes"],
+      "writes": [
+        "s|tbl|public.google_calendar_conexoes",
+        "n|tbl|public.google_calendar_conexoes",
+        "e|tbl|public.google_calendar_conexoes",
+        "n|rel|public.google_calendar_conexoes",
+        "n|type|public.google_calendar_conexoes",
+        "n|rel|public.google_calendar_conexoes_pkey",
+        "n|rel|public.google_calendar_conexoes_estado_oauth_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "google_calendar_conexoes",
+        "google_calendar_conexoes_imobiliaria_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.google_calendar_conexoes_imobiliaria_id_idx",
+        "n|idx|public.google_calendar_conexoes_imobiliaria_id_idx",
+        "e|idx|public.google_calendar_conexoes_imobiliaria_id_idx",
+        "n|rel|public.google_calendar_conexoes_imobiliaria_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.google_calendar_conexoes",
+        "n|sch|public",
+        "n|col|public.google_calendar_conexoes.imobiliaria_id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "google_calendar_conexoes"],
+      "writes": [
+        "s|fk|public.google_calendar_conexoes.google_calendar_conexoes_corretor_id_users_id_fkey",
+        "n|fk|public.google_calendar_conexoes.google_calendar_conexoes_corretor_id_users_id_fkey",
+        "e|fk|public.google_calendar_conexoes.google_calendar_conexoes_corretor_id_users_id_fkey",
+        "n|con|public.google_calendar_conexoes.google_calendar_conexoes_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.google_calendar_conexoes",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.google_calendar_conexoes.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "google_calendar_conexoes"],
+      "writes": [
+        "s|fk|public.google_calendar_conexoes.google_calendar_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.google_calendar_conexoes.google_calendar_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.google_calendar_conexoes.google_calendar_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.google_calendar_conexoes.google_calendar_conexoes_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.google_calendar_conexoes",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.google_calendar_conexoes.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "google_calendar_conexoes",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "estado_oauth",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "estado_oauth_expira_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "refresh_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "access_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "token_expira_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "calendar_id",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'primary'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "sync_token",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "conectada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "atualizada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "google_calendar_conexoes_imobiliaria_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "imobiliaria_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "google_calendar_conexoes_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "google_calendar_conexoes_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "google_calendar_conexoes_pkey",
+        "columns": ["corretor_id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "google_calendar_conexoes",
+        "name": "google_calendar_conexoes_estado_oauth_key",
+        "nameExplicit": false,
+        "columns": ["estado_oauth"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

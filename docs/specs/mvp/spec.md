@@ -79,7 +79,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 46. Como cliente, quero informar quanto posso dar de entrada e o máximo de parcela, para receber apenas opções que cabem no meu bolso.
 47. Como cliente, quero conhecer os planos de pagamento com valores de entrada e parcelas, para comparar.
 48. Como corretor, quero que o assistente só informe planos cadastrados e valores calculados pelo sistema, nunca números inventados.
-49. Como corretor, quero que, quando nada couber no orçamento, o assistente ofereça a opção mais próxima ou um lote mais barato e registre o negócio como fora do orçamento, em vez de descartar o cliente.
+49. Como corretor, quero que, quando nada couber no orçamento, o assistente ofereça a opção disponível de menor valor total e registre o negócio como fora do orçamento, em vez de descartar o cliente.
 50. Como cliente, quero confirmar ou reformular minha escolha de plano, para chegar numa condição que funcione.
 51. Como corretor, quero que o assistente nunca negocie preço ou desconto e me chame quando o cliente pedir, para manter o controle comercial.
 
@@ -176,13 +176,13 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 - **Integrações**: cada serviço externo fica num único módulo de `src/lib`, que exporta funções simples. Ninguém mais conhece o SDK ou a API. Para o WhatsApp, isso mantém a saída do ADR-0004: trocar a Evolution pela Cloud API muda só `src/lib/whatsapp.ts`.
   - **WhatsApp**: Evolution API auto-hospedada (ADR-0004): conectar instância (QR code), estado da conexão, enviar texto/mídia/localização, e traduzir o webhook em mensagem recebida (com `fromMe` e indicação de grupo).
   - **LLM**: OpenAI. `gpt-6-luna` pela Responses API com tool calling; `text-embedding-3-small` para embeddings; transcrição de áudio da OpenAI.
-  - **Calendar**: Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita. Opcional por corretor (ver Further Notes).
+  - **Calendar**: Google Calendar (OAuth por corretor): horários ocupados, criar, atualizar e remover evento, e detectar alteração ou remoção de eventos de visita. Opcional por corretor.
   - **Storage**: Cloudflare R2 (S3-compatível) para documentos, material de marketing, modelos e propostas, pelo `S3Client` nativo do Bun, sem SDK da AWS; por isso o Next roda no runtime do Bun (`bun --bun`). Arquivos de clientes ficam privados e são acessados por URLs assinadas de curta duração.
 - **Tempo**: o código usa `new Date()`; os testes controlam o relógio com `setSystemTime` do Bun.
 - **Envs**: `src/lib/env.ts` é o único lugar que lê `process.env`. `next.config.ts` e `drizzle.config.ts` o importam, então build, dev e drizzle-kit falham cedo com env inválida. O harness de testes é a exceção: ele aponta `DATABASE_URL` para o banco de teste.
 - **Worker** de jobs agendados, separado do servidor web: follow-ups, lembretes de visita e de etapas finais, expiração de reservas, retomada do assistente após 24h e sincronização com o Google Calendar.
 - **Autenticação**: Better Auth com Drizzle no mesmo Postgres. Papéis `administrador` (sem imobiliária) e `corretor` (pertence a uma imobiliária). A página de administração exige `administrador`. Não há cadastro público: sem route handler `/api/auth`, login e logout são Server Actions que chamam `auth.api`, usuários só são criados pela DAL e o primeiro administrador sai de `bun run admin:create`. Corretor desativado perde as sessões e não entra.
-- **Interface**: o app se chama **loteAI**. Componentes MUI com tema claro, ícones `lucide-react` nos botões, fonte Tuffy (fallback Roboto, sans-serif), layout mobile-first.
+- **Interface**: o app se chama **loteAI**. Componentes MUI com tema claro, ícones `@mui/icons-material` nos botões, fonte Tuffy (fallback Roboto, sans-serif), layout mobile-first.
 - **Idempotência**: botões de ação, webhooks e jobs são idempotentes. Criações levam um `id` gerado pelo servidor e repetir devolve o registro existente; mudanças de estado levam a um estado-alvo; webhooks e jobs usam chave natural única no banco.
 - **Infraestrutura**: um VPS com Podman (compose) rodando Next.js, worker, Postgres 17 com pgvector, e Evolution API com Redis. O `compose.yaml` atual é a base.
 - **Dívida técnica aceita**: sem camadas de abstração sobre Drizzle e integrações. Se o produto validar e uma integração precisar de troca real ou de várias implementações, extraímos a interface nesse momento.
@@ -218,6 +218,13 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 - **Follow-up**: durante o atendimento, 1d, 3d, 7d e depois a cada 2 semanas após a última mensagem do cliente, até 90 dias de silêncio; depois disso o negócio fica "silencioso" (aberto, sem envios). Nas etapas Coletando dados, Aguardando assinatura e Aguardando pagamento, lembretes a cada 2 dias até a expiração da reserva quando houver. Conversas pausadas pelo corretor não recebem follow-up; o corretor recebe lembrete. Opt-out encerra todo contato e leva o negócio a Perdido com motivo "sem interesse".
 - **Documentos**: o assistente verifica presença e legibilidade (via modelo multimodal), não autenticidade.
 - **Áudio**: transcrito ao chegar; a transcrição é salva com a mensagem; o assistente responde só em texto.
+- **Orçamento sem combinação compatível**: oferecer a combinação disponível de menor valor total e marcar o negócio como fora do orçamento.
+- **Visitas**: duração padrão de 60 minutos. Oferecer horários disponíveis apenas até o fim da semana corrente (semana de segunda a domingo, horário de Brasília); se não houver horário, pedir ao cliente para falar com o corretor.
+- **Avisos urgentes**: "cliente pediu pessoa" e "revisar proposta" podem ser enviados fora da janela normal de 8h–20h.
+- **Documentos**: a IA sinaliza documentos possivelmente ilegíveis e pede reenvio; o corretor decide se aceita o documento. A IA não valida autenticidade.
+- **Exclusão de dados**: a pedido do cliente, apagar dados pessoais identificáveis e arquivos; manter registros de negócio e proposta anonimizados para histórico operacional.
+- **Modelo de proposta**: upload de DOCX com placeholders nomeados; o sistema substitui os campos e gera PDF.
+- **Instruções de pagamento**: o corretor configura instruções reutilizáveis por incorporadora; o assistente envia essas instruções para pagamento da entrada.
 - **Avisos ao corretor**: um número de sistema (instância Evolution própria) envia ao corretor uma mensagem com link para cada pendência, respeitando 8h–20h exceto para "cliente pediu pessoa" e "revisar proposta".
 
 ### Proposta, assinatura e pagamento
@@ -258,7 +265,7 @@ Cada corretor tem um **assistente**: uma IA ligada ao WhatsApp do próprio corre
 
 ## Further Notes
 
-- **Em aberto:** se o Google Calendar é obrigatório ou opcional (corretor sem Google usaria só a disponibilidade do CRM). A implementação deve tratar a agenda como opcional até a decisão.
+- **Google Calendar**: opcional. Corretor sem Google conectado usa a disponibilidade cadastrada no CRM.
 - **Risco aceito:** a Evolution API viola os Termos do WhatsApp e pode levar ao banimento do número do corretor (ADR-0004). Mensagens automáticas em excesso aumentam esse risco, o que reforça a cadência moderada de follow-up.
 - Mensagens enviadas pelo WhatsApp for Windows ou outros dispositivos sem suporte podem não ser vistas como `fromMe`; o assistente pode não pausar nesses casos.
 - O número de sistema que avisa corretores é uma instância Evolution separada, num chip próprio, para que um banimento dele não afete os corretores.

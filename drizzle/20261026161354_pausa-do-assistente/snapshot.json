@@ -1,0 +1,37 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "7833088d-1e82-40cd-9e02-30930ec22b24",
+  "prevIds": ["91de2001-7f7f-495b-9d72-fbc61acfb39a"],
+  "footprints": [
+    {
+      "statementType": "add_column",
+      "statementTarget": ["column", "public", "conversas", "pausado_em"],
+      "writes": [
+        "s|col|public.conversas.pausado_em",
+        "n|col|public.conversas.pausado_em",
+        "e|col|public.conversas.pausado_em"
+      ],
+      "reads": ["n|tbl|public.conversas", "n|sch|public"]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "conversas",
+        "name": "pausado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    }
+  ]
+}

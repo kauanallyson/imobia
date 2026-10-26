@@ -1,0 +1,11 @@
+{
+	email {$CADDY_EMAIL}
+}
+
+# HTTPS automático via Let's Encrypt para o domínio do app.
+# A Evolution não é exposta publicamente: o app fala com ela pela rede do
+# compose e os webhooks saem dela para o app (APP_URL = https://{$APP_DOMAIN}).
+{$APP_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

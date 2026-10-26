@@ -1,0 +1,1181 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "6e9fd149-cd9d-4de8-bd85-44d06f4b3dd1",
+  "prevIds": ["45527c75-8517-470c-8970-31cc8866ca52"],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "modelos_de_proposta"],
+      "writes": [
+        "s|tbl|public.modelos_de_proposta",
+        "n|tbl|public.modelos_de_proposta",
+        "e|tbl|public.modelos_de_proposta",
+        "n|rel|public.modelos_de_proposta",
+        "n|type|public.modelos_de_proposta",
+        "n|rel|public.modelos_de_proposta_pkey",
+        "n|rel|public.modelos_de_proposta_chave_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|tbl|public.propostas",
+        "n|tbl|public.propostas",
+        "e|tbl|public.propostas",
+        "n|rel|public.propostas",
+        "n|type|public.propostas",
+        "n|rel|public.propostas_pkey",
+        "n|rel|public.propostas_chave_pdf_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "reservas"],
+      "writes": [
+        "s|tbl|public.reservas",
+        "n|tbl|public.reservas",
+        "e|tbl|public.reservas",
+        "n|rel|public.reservas",
+        "n|type|public.reservas",
+        "n|rel|public.reservas_pkey",
+        "n|rel|public.reservas_proposta_id_key"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "propostas",
+        "propostas_corretor_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.propostas_corretor_id_idx",
+        "n|idx|public.propostas_corretor_id_idx",
+        "e|idx|public.propostas_corretor_id_idx",
+        "n|rel|public.propostas_corretor_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|col|public.propostas.corretor_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "propostas",
+        "propostas_lote_id_idx"
+      ],
+      "writes": [
+        "s|idx|public.propostas_lote_id_idx",
+        "n|idx|public.propostas_lote_id_idx",
+        "e|idx|public.propostas_lote_id_idx",
+        "n|rel|public.propostas_lote_id_idx"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|col|public.propostas.lote_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "propostas",
+        "propostas_negocio_viva"
+      ],
+      "writes": [
+        "s|idx|public.propostas_negocio_viva",
+        "n|idx|public.propostas_negocio_viva",
+        "e|idx|public.propostas_negocio_viva",
+        "n|rel|public.propostas_negocio_viva"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|col|public.propostas.negocio_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": ["index", "public", "reservas", "reservas_lote_ativa"],
+      "writes": [
+        "s|idx|public.reservas_lote_ativa",
+        "n|idx|public.reservas_lote_ativa",
+        "e|idx|public.reservas_lote_ativa",
+        "n|rel|public.reservas_lote_ativa"
+      ],
+      "reads": [
+        "n|tbl|public.reservas",
+        "n|sch|public",
+        "n|col|public.reservas.lote_id"
+      ]
+    },
+    {
+      "statementType": "create_index",
+      "statementTarget": [
+        "index",
+        "public",
+        "reservas",
+        "reservas_expira_em_idx"
+      ],
+      "writes": [
+        "s|idx|public.reservas_expira_em_idx",
+        "n|idx|public.reservas_expira_em_idx",
+        "e|idx|public.reservas_expira_em_idx",
+        "n|rel|public.reservas_expira_em_idx"
+      ],
+      "reads": [
+        "n|tbl|public.reservas",
+        "n|sch|public",
+        "n|col|public.reservas.expira_em"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "modelos_de_proposta"],
+      "writes": [
+        "s|fk|public.modelos_de_proposta.modelos_de_proposta_incorporadora_id_incorporadoras_id_fkey",
+        "n|fk|public.modelos_de_proposta.modelos_de_proposta_incorporadora_id_incorporadoras_id_fkey",
+        "e|fk|public.modelos_de_proposta.modelos_de_proposta_incorporadora_id_incorporadoras_id_fkey",
+        "n|con|public.modelos_de_proposta.modelos_de_proposta_incorporadora_id_incorporadoras_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.modelos_de_proposta",
+        "n|sch|public",
+        "n|tbl|public.incorporadoras",
+        "n|sch|public",
+        "n|col|public.modelos_de_proposta.incorporadora_id",
+        "n|col|public.incorporadoras.id",
+        "e|uniqueness|public.incorporadoras.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "modelos_de_proposta"],
+      "writes": [
+        "s|fk|public.modelos_de_proposta.modelos_de_proposta_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.modelos_de_proposta.modelos_de_proposta_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.modelos_de_proposta.modelos_de_proposta_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.modelos_de_proposta.modelos_de_proposta_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.modelos_de_proposta",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.modelos_de_proposta.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.propostas.propostas_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.propostas.propostas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.propostas.propostas_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.propostas.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_corretor_id_users_id_fkey",
+        "n|fk|public.propostas.propostas_corretor_id_users_id_fkey",
+        "e|fk|public.propostas.propostas_corretor_id_users_id_fkey",
+        "n|con|public.propostas.propostas_corretor_id_users_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.users",
+        "n|sch|public",
+        "n|col|public.propostas.corretor_id",
+        "n|col|public.users.id",
+        "e|uniqueness|public.users.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_negocio_id_negocios_id_fkey",
+        "n|fk|public.propostas.propostas_negocio_id_negocios_id_fkey",
+        "e|fk|public.propostas.propostas_negocio_id_negocios_id_fkey",
+        "n|con|public.propostas.propostas_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.propostas.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_lote_id_lotes_id_fkey",
+        "n|fk|public.propostas.propostas_lote_id_lotes_id_fkey",
+        "e|fk|public.propostas.propostas_lote_id_lotes_id_fkey",
+        "n|con|public.propostas.propostas_lote_id_lotes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.lotes",
+        "n|sch|public",
+        "n|col|public.propostas.lote_id",
+        "n|col|public.lotes.id",
+        "e|uniqueness|public.lotes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_modelo_de_casa_id_modelos_de_casa_id_fkey",
+        "n|fk|public.propostas.propostas_modelo_de_casa_id_modelos_de_casa_id_fkey",
+        "e|fk|public.propostas.propostas_modelo_de_casa_id_modelos_de_casa_id_fkey",
+        "n|con|public.propostas.propostas_modelo_de_casa_id_modelos_de_casa_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.modelos_de_casa",
+        "n|sch|public",
+        "n|col|public.propostas.modelo_de_casa_id",
+        "n|col|public.modelos_de_casa.id",
+        "e|uniqueness|public.modelos_de_casa.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "propostas"],
+      "writes": [
+        "s|fk|public.propostas.propostas_plano_id_planos_de_pagamento_id_fkey",
+        "n|fk|public.propostas.propostas_plano_id_planos_de_pagamento_id_fkey",
+        "e|fk|public.propostas.propostas_plano_id_planos_de_pagamento_id_fkey",
+        "n|con|public.propostas.propostas_plano_id_planos_de_pagamento_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|tbl|public.planos_de_pagamento",
+        "n|sch|public",
+        "n|col|public.propostas.plano_id",
+        "n|col|public.planos_de_pagamento.id",
+        "e|uniqueness|public.planos_de_pagamento.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "reservas"],
+      "writes": [
+        "s|fk|public.reservas.reservas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|fk|public.reservas.reservas_imobiliaria_id_imobiliarias_id_fkey",
+        "e|fk|public.reservas.reservas_imobiliaria_id_imobiliarias_id_fkey",
+        "n|con|public.reservas.reservas_imobiliaria_id_imobiliarias_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.reservas",
+        "n|sch|public",
+        "n|tbl|public.imobiliarias",
+        "n|sch|public",
+        "n|col|public.reservas.imobiliaria_id",
+        "n|col|public.imobiliarias.id",
+        "e|uniqueness|public.imobiliarias.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "reservas"],
+      "writes": [
+        "s|fk|public.reservas.reservas_lote_id_lotes_id_fkey",
+        "n|fk|public.reservas.reservas_lote_id_lotes_id_fkey",
+        "e|fk|public.reservas.reservas_lote_id_lotes_id_fkey",
+        "n|con|public.reservas.reservas_lote_id_lotes_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.reservas",
+        "n|sch|public",
+        "n|tbl|public.lotes",
+        "n|sch|public",
+        "n|col|public.reservas.lote_id",
+        "n|col|public.lotes.id",
+        "e|uniqueness|public.lotes.id"
+      ]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "reservas"],
+      "writes": [
+        "s|fk|public.reservas.reservas_proposta_id_propostas_id_fkey",
+        "n|fk|public.reservas.reservas_proposta_id_propostas_id_fkey",
+        "e|fk|public.reservas.reservas_proposta_id_propostas_id_fkey",
+        "n|con|public.reservas.reservas_proposta_id_propostas_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.reservas",
+        "n|sch|public",
+        "n|tbl|public.propostas",
+        "n|sch|public",
+        "n|col|public.reservas.proposta_id",
+        "n|col|public.propostas.id",
+        "e|uniqueness|public.propostas.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "modelos_de_proposta",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "propostas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "reservas",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "incorporadora_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "chave",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "nome_do_arquivo",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "campos",
+        "type": "jsonb",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'[]'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "corretor_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "lote_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "modelo_de_casa_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "plano_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "dia_de_pagamento",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "primeira_parcela",
+        "type": "date",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "chave_pdf",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "chave_pdf_assinado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "estado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'em_revisao'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "enviada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": false,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "imobiliaria_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "lote_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "proposta_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "estado",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "'ativa'",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "expira_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "criada_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "now()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_corretor_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "corretor_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_lote_id_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "lote_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_negocio_viva",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "negocio_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"estado\" <> 'expirada'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_lote_ativa",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "lote_id",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": true,
+        "where": "\"estado\" = 'ativa'",
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_expira_em_idx",
+        "nameExplicit": true,
+        "columns": [
+          {
+            "value": "expira_em",
+            "isExpression": false,
+            "asc": true,
+            "nullsFirst": false,
+            "opclass": null
+          }
+        ],
+        "isUnique": false,
+        "where": null,
+        "with": "",
+        "method": "btree",
+        "concurrently": false,
+        "entityType": "indexes"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "modelos_de_proposta_incorporadora_id_incorporadoras_id_fkey",
+        "nameExplicit": false,
+        "columns": ["incorporadora_id"],
+        "schemaTo": "public",
+        "tableTo": "incorporadoras",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "modelos_de_proposta_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_corretor_id_users_id_fkey",
+        "nameExplicit": false,
+        "columns": ["corretor_id"],
+        "schemaTo": "public",
+        "tableTo": "users",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_lote_id_lotes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["lote_id"],
+        "schemaTo": "public",
+        "tableTo": "lotes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_modelo_de_casa_id_modelos_de_casa_id_fkey",
+        "nameExplicit": false,
+        "columns": ["modelo_de_casa_id"],
+        "schemaTo": "public",
+        "tableTo": "modelos_de_casa",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_plano_id_planos_de_pagamento_id_fkey",
+        "nameExplicit": false,
+        "columns": ["plano_id"],
+        "schemaTo": "public",
+        "tableTo": "planos_de_pagamento",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_imobiliaria_id_imobiliarias_id_fkey",
+        "nameExplicit": false,
+        "columns": ["imobiliaria_id"],
+        "schemaTo": "public",
+        "tableTo": "imobiliarias",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_lote_id_lotes_id_fkey",
+        "nameExplicit": false,
+        "columns": ["lote_id"],
+        "schemaTo": "public",
+        "tableTo": "lotes",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "NO ACTION",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_proposta_id_propostas_id_fkey",
+        "nameExplicit": false,
+        "columns": ["proposta_id"],
+        "schemaTo": "public",
+        "tableTo": "propostas",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "modelos_de_proposta_pkey",
+        "columns": ["incorporadora_id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "modelos_de_proposta",
+        "name": "modelos_de_proposta_chave_key",
+        "nameExplicit": false,
+        "columns": ["chave"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "propostas",
+        "name": "propostas_chave_pdf_key",
+        "nameExplicit": false,
+        "columns": ["chave_pdf"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "reservas",
+        "name": "reservas_proposta_id_key",
+        "nameExplicit": false,
+        "columns": ["proposta_id"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}
