@@ -104,10 +104,10 @@ Inspecionar a Evolution pelo manager, se precisar: `ssh -L 8080:127.0.0.1:8080 u
 **No VPS (OCI).**
 
 - Imagem Ubuntu 24.04; o usuário padrão é `ubuntu`. Shape Ampere A1 (arm64) funciona: as imagens são construídas no próprio VPS, e as de terceiros (`bun`, `pgvector`, `redis`, `caddy`, `evolution-api`) são multi-arch. Confira a Evolution no primeiro `up` (`podman compose logs evolution`).
-- Libere 80/443 em dois lugares: na Security List (ou NSG) da VCN, com regras de ingresso TCP 80 e 443 de `0.0.0.0/0`, e no iptables da imagem, que bloqueia tudo menos a 22:
+- Libere 80/443 em dois lugares: na Security List (ou NSG) da VCN, com regras de ingresso TCP 80 e 443 de `0.0.0.0/0`, e no iptables da imagem, que bloqueia tudo menos a 22. As regras precisam entrar antes do `REJECT` (na imagem Ubuntu é a linha 5; confira com `sudo iptables -L INPUT -n --line-numbers`):
   ```bash
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-  sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+  sudo iptables -I INPUT 5 -m state --state NEW -p tcp --dport 80 -j ACCEPT
+  sudo iptables -I INPUT 5 -m state --state NEW -p tcp --dport 443 -j ACCEPT
   sudo netfilter-persistent save
   ```
 - Gere um par de chaves só para o deploy (na sua máquina) e autorize a pública no VPS:
