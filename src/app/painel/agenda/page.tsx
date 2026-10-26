@@ -1,6 +1,9 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EventBusyIcon from "@mui/icons-material/EventBusy";
+import GoogleIcon from "@mui/icons-material/Google";
+import LinkOffIcon from "@mui/icons-material/LinkOff";
+import Alert from "@mui/material/Alert";
 import AppBar from "@mui/material/AppBar";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
@@ -17,11 +20,14 @@ import { Suspense } from "react";
 import Link from "@/app/components/link";
 import { SignOutButton } from "@/app/components/sign-out-button";
 import { listarDatasBloqueadas, listarJanelas } from "@/data/disponibilidade";
+import { type StatusDoGoogle, statusDoGoogle } from "@/data/google-calendar";
 import { verificarCorretor } from "@/data/session";
 import { listarVisitas } from "@/data/visitas";
 import {
   cancelarVisitaAction,
+  conectarGoogleAction,
   desbloquearDataAction,
+  desconectarGoogleAction,
   removerJanelaAction,
 } from "./actions";
 import { formatarData, formatoDeVisita, nomesDosDias } from "./formatos";
@@ -29,22 +35,26 @@ import { AlterarLocalForm, BloqueioForm, JanelaForm } from "./forms";
 
 export const metadata: Metadata = { title: "Agenda" };
 
-export default function AgendaPage() {
+type Props = PageProps<"/painel/agenda">;
+
+export default function AgendaPage({ searchParams }: Props) {
   return (
     <Suspense fallback={null}>
-      <Agenda />
+      <Agenda searchParams={searchParams} />
     </Suspense>
   );
 }
 
 // Agenda do corretor (histórias 52, 57): disponibilidade semanal, datas
-// bloqueadas e as próximas visitas.
-async function Agenda() {
+// bloqueadas, as próximas visitas e a conexão com o Google Calendar.
+async function Agenda({ searchParams }: Pick<Props, "searchParams">) {
   const session = await verificarCorretor();
-  const [janelas, bloqueios, visitas] = await Promise.all([
+  const [janelas, bloqueios, visitas, google, busca] = await Promise.all([
     listarJanelas(session),
     listarDatasBloqueadas(session),
     listarVisitas(session),
+    statusDoGoogle(session),
+    searchParams,
   ]);
 
   return (
@@ -130,6 +140,8 @@ async function Agenda() {
             )}
           </Stack>
 
+          <GoogleCalendar status={google} retorno={busca.google} />
+
           <Stack component="section" spacing={2}>
             <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
               Disponibilidade semanal
@@ -214,5 +226,74 @@ async function Agenda() {
         </Stack>
       </Container>
     </>
+  );
+}
+
+// Ticket 14: o Google Calendar é opcional. Conectado, os horários oferecidos
+// descontam os compromissos de lá e cada visita vira um evento.
+function GoogleCalendar({
+  status,
+  retorno,
+}: {
+  status: StatusDoGoogle;
+  retorno: string | string[] | undefined;
+}) {
+  return (
+    <Stack component="section" spacing={2}>
+      <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
+        Google Calendar
+      </Typography>
+      {retorno === "erro" && (
+        <Alert severity="error">
+          Não foi possível conectar o Google Calendar. Tente de novo.
+        </Alert>
+      )}
+      {status.conectado ? (
+        <>
+          <Alert severity="success">
+            Conectado
+            {status.conectadaEm
+              ? ` desde ${formatoDeVisita.format(status.conectadaEm)}`
+              : ""}
+            . Os horários oferecidos descontam seus compromissos do Google, e
+            cada visita vira um evento na sua agenda. Se você mover ou apagar o
+            evento lá, o cliente é avisado.
+          </Alert>
+          <form action={desconectarGoogleAction}>
+            <Button
+              type="submit"
+              color="inherit"
+              startIcon={<LinkOffIcon aria-hidden fontSize="small" />}
+              sx={{ minHeight: 44 }}
+            >
+              Desconectar Google Calendar
+            </Button>
+          </form>
+        </>
+      ) : (
+        <>
+          <Typography variant="body2" color="text.secondary">
+            Opcional. Sem o Google, o assistente usa só a disponibilidade
+            abaixo.
+          </Typography>
+          {status.configurado ? (
+            <form action={conectarGoogleAction}>
+              <Button
+                type="submit"
+                variant="outlined"
+                startIcon={<GoogleIcon aria-hidden fontSize="small" />}
+                sx={{ minHeight: 44 }}
+              >
+                Conectar Google Calendar
+              </Button>
+            </form>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              A integração com o Google não está configurada neste servidor.
+            </Typography>
+          )}
+        </>
+      )}
+    </Stack>
   );
 }

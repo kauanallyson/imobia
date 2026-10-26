@@ -30,9 +30,9 @@ import { partesEmBrasilia, somarDias } from "@/lib/fuso";
 import * as llm from "@/lib/llm";
 import * as storage from "@/lib/storage";
 import * as whatsapp from "@/lib/whatsapp";
+import { naJanelaDeEnvio } from "./cadencia";
 import { normalizarTelefone } from "./clientes";
 import { buscarLote } from "./lotes";
-import { dentroDaJanelaDeAvisos } from "./pendencias";
 import { requireCorretor, type Session } from "./session";
 
 // Coleta de dados do cliente (ticket 16): em Coletando dados o assistente
@@ -590,7 +590,7 @@ export function textoDoLembreteDeColeta(faltando: ItemDaColeta[]) {
 // opt-out não recebe.
 export async function enviarLembretesDeColeta(): Promise<{ enviados: number }> {
   const agora = new Date();
-  if (!dentroDaJanelaDeAvisos(agora)) return { enviados: 0 };
+  if (!naJanelaDeEnvio(agora)) return { enviados: 0 };
   const hoje = partesEmBrasilia(agora).data;
 
   const candidatos = await db

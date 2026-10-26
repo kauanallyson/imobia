@@ -748,6 +748,73 @@ export const lembretesDeVisita = pgTable(
   (t) => [unique("lembretes_de_visita_visita_tipo").on(t.visitaId, t.tipo)],
 );
 
+// ---- ticket 15: follow-up automático
+// Quem recebeu o passo da cadência: o cliente (mensagem do assistente) ou,
+// com a conversa pausada pelo corretor, o próprio corretor (lembrete pelo
+// número de sistema).
+export const destinosDoFollowUp = ["cliente", "corretor"] as const;
+
+// Um passo da cadência por linha. Chave natural (negócio, última mensagem do
+// cliente, sequência): rodar o job de novo não reenvia, e uma nova mensagem
+// do cliente começa outra contagem.
+export const followUps = pgTable(
+  "follow_ups",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    ultimaMensagemDoClienteEm: timestamp("ultima_mensagem_do_cliente_em", {
+      withTimezone: true,
+    }).notNull(),
+    sequencia: integer().notNull(),
+    destino: text({ enum: destinosDoFollowUp }).notNull(),
+    devidoEm: timestamp("devido_em", { withTimezone: true }).notNull(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    unique("follow_ups_negocio_mensagem_sequencia").on(
+      t.negocioId,
+      t.ultimaMensagemDoClienteEm,
+      t.sequencia,
+    ),
+  ],
+);
+// ---- fim ticket 15
+
+// ---- ticket 14: Google Calendar do corretor -----------------------------------
+// Uma conexão por corretor. O `estadoOauth` liga o callback do OAuth ao
+// corretor que pediu a conexão (expira em 10 minutos); os tokens só existem
+// depois do callback. `syncToken` é a posição da sincronização incremental.
+export const googleCalendarConexoes = pgTable(
+  "google_calendar_conexoes",
+  {
+    corretorId: uuid("corretor_id")
+      .primaryKey()
+      .references(() => users.id),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    estadoOauth: text("estado_oauth").unique(),
+    estadoOauthExpiraEm: timestamp("estado_oauth_expira_em", {
+      withTimezone: true,
+    }),
+    refreshToken: text("refresh_token"),
+    accessToken: text("access_token"),
+    tokenExpiraEm: timestamp("token_expira_em", { withTimezone: true }),
+    calendarId: text("calendar_id").notNull().default("primary"),
+    syncToken: text("sync_token"),
+    conectadaEm: timestamp("conectada_em", { withTimezone: true }),
+    atualizadaEm: timestamp("atualizada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("google_calendar_conexoes_imobiliaria_id_idx").on(t.imobiliariaId),
+  ],
+);
+// ---- fim ticket 14
+
 // ---- ticket 16: coleta de dados do cliente ----------------------------------
 // Documentos que o cliente manda pelo WhatsApp (GLOSSARY → Documento). O
 // arquivo fica privado no R2; a IA só sinaliza legibilidade e o corretor

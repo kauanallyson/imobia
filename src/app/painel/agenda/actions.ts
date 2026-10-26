@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
   bloquearData,
@@ -10,6 +11,10 @@ import {
   horarioSchema,
   removerJanela,
 } from "@/data/disponibilidade";
+import {
+  desconectarGoogle,
+  iniciarConexaoGoogle,
+} from "@/data/google-calendar";
 import { verificarCorretor } from "@/data/session";
 import { alterarLocalDaVisita, cancelarVisita } from "@/data/visitas";
 
@@ -100,4 +105,18 @@ export async function cancelarVisitaAction(formData: FormData) {
   await cancelarVisita(session, id.data);
   revalidatePath(AGENDA);
   revalidatePath("/painel");
+}
+
+// Ticket 14: conexão com o Google Calendar (OAuth; o callback fica em
+// /api/google/callback).
+export async function conectarGoogleAction() {
+  const session = await verificarCorretor();
+  const url = await iniciarConexaoGoogle(session);
+  redirect(url);
+}
+
+export async function desconectarGoogleAction() {
+  const session = await verificarCorretor();
+  await desconectarGoogle(session);
+  revalidatePath(AGENDA);
 }
