@@ -1,0 +1,208 @@
+{
+  "type": "diff",
+  "version": "9",
+  "dialect": "postgres",
+  "id": "424bee79-d7ee-497d-99c4-9932eba05749",
+  "prevIds": [
+    "3fd1c7da-eae7-480b-bc55-38b3ba13cb1c",
+    "3312884f-b8f4-470c-a337-f36f2ccb93ad",
+    "a22cc67a-3700-45e5-b3a9-0c25154f800f"
+  ],
+  "footprints": [
+    {
+      "statementType": "create_table",
+      "statementTarget": ["table", "public", "follow_ups"],
+      "writes": [
+        "s|tbl|public.follow_ups",
+        "n|tbl|public.follow_ups",
+        "e|tbl|public.follow_ups",
+        "n|rel|public.follow_ups",
+        "n|type|public.follow_ups",
+        "n|rel|public.follow_ups_pkey",
+        "n|rel|public.follow_ups_negocio_mensagem_sequencia"
+      ],
+      "reads": ["n|sch|public"]
+    },
+    {
+      "statementType": "create_fk",
+      "statementTarget": ["table", "public", "follow_ups"],
+      "writes": [
+        "s|fk|public.follow_ups.follow_ups_negocio_id_negocios_id_fkey",
+        "n|fk|public.follow_ups.follow_ups_negocio_id_negocios_id_fkey",
+        "e|fk|public.follow_ups.follow_ups_negocio_id_negocios_id_fkey",
+        "n|con|public.follow_ups.follow_ups_negocio_id_negocios_id_fkey"
+      ],
+      "reads": [
+        "n|tbl|public.follow_ups",
+        "n|sch|public",
+        "n|tbl|public.negocios",
+        "n|sch|public",
+        "n|col|public.follow_ups.negocio_id",
+        "n|col|public.negocios.id",
+        "e|uniqueness|public.negocios.id"
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "name": "follow_ups",
+        "isRlsEnabled": false,
+        "entityType": "tables"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": "gen_random_uuid()",
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "negocio_id",
+        "type": "uuid",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "ultima_mensagem_do_cliente_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "sequencia",
+        "type": "integer",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "destino",
+        "type": "text",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "devido_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "enviado_em",
+        "type": "timestamp with time zone",
+        "typeSchema": null,
+        "notNull": true,
+        "dimensions": 0,
+        "default": null,
+        "generated": null,
+        "identity": null,
+        "entityType": "columns"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "follow_ups_negocio_id_negocios_id_fkey",
+        "nameExplicit": false,
+        "columns": ["negocio_id"],
+        "schemaTo": "public",
+        "tableTo": "negocios",
+        "columnsTo": ["id"],
+        "onUpdate": "NO ACTION",
+        "onDelete": "CASCADE",
+        "entityType": "fks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "follow_ups_pkey",
+        "columns": ["id"],
+        "nameExplicit": false,
+        "entityType": "pks"
+      }
+    },
+    {
+      "op": "create",
+      "row": {
+        "schema": "public",
+        "table": "follow_ups",
+        "name": "follow_ups_negocio_mensagem_sequencia",
+        "nameExplicit": true,
+        "columns": ["negocio_id", "ultima_mensagem_do_cliente_em", "sequencia"],
+        "nullsNotDistinct": false,
+        "entityType": "uniques"
+      }
+    }
+  ]
+}

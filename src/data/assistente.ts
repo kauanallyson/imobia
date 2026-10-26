@@ -157,7 +157,7 @@ export async function atenderMensagem(
 // A conversa como o modelo a vê: cliente → usuário; assistente e corretor →
 // assistente (a fala do corretor é identificada no texto). Mídia sem texto
 // vira uma marcação; a transcrição de áudio (ticket 19) entra no lugar.
-async function montarHistorico(
+export async function montarHistorico(
   conversaId: string,
 ): Promise<llm.MensagemDoModelo[]> {
   const lista = await db
