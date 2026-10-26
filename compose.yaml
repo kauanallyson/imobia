@@ -42,6 +42,8 @@ services:
         condition: service_healthy
     restart: "no"
 
+  # A imagem `app` traz o LibreOffice (`soffice`) que gera o PDF das propostas
+  # a partir do modelo DOCX (ticket 17; SOFFICE_PATH no .env, opcional).
   app:
     build:
       context: .

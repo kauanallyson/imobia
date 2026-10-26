@@ -36,6 +36,9 @@ const envSchema = z
     // a disponibilidade do CRM. Callback OAuth: APP_URL/api/google/callback.
     GOOGLE_CLIENT_ID: z.string().min(1).optional(),
     GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+    // LibreOffice para converter a proposta DOCX em PDF (ticket 17,
+    // src/lib/documentos.ts). Na imagem `app` já está no PATH.
+    SOFFICE_PATH: z.string().min(1).default("soffice"),
   })
   .refine((e) => e.R2_ENDPOINT || e.R2_ACCOUNT_ID, {
     message: "Informe R2_ENDPOINT ou R2_ACCOUNT_ID",

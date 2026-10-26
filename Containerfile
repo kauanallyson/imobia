@@ -43,6 +43,11 @@ FROM docker.io/oven/bun:1.4.4-alpine AS app
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
 RUN addgroup -S nextjs && adduser -S -G nextjs nextjs
+# Ticket 17: LibreOffice (só o Writer) converte a proposta DOCX em PDF
+# (src/lib/documentos.ts chama `soffice --headless --convert-to pdf`). As
+# fontes Liberation têm as mesmas métricas de Arial/Times/Courier, para o
+# PDF sair com a paginação do modelo do Word.
+RUN apk add --no-cache libreoffice-writer font-liberation font-dejavu
 # standalone traz só os arquivos rastreados pelo build; public e static
 # não entram por padrão (docs: output.md).
 COPY --from=build --chown=nextjs:nextjs /app/.next/standalone ./

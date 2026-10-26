@@ -1,3 +1,4 @@
+import { strToU8, zipSync } from "fflate";
 import { criarCliente } from "@/data/clientes";
 import { criarCorretor } from "@/data/corretores";
 import { criarImobiliaria } from "@/data/imobiliarias";
@@ -377,4 +378,180 @@ export async function criarCenarioDeColetaDaAna() {
     negocio,
     lotes: { disponivel, reservado, deOutroEmpreendimento },
   };
+}
+
+// Ticket 17: DOCX mínimo com um parágrafo por item; um item em array vira
+// vários runs no mesmo parágrafo (como o Word quebra placeholders).
+export function criarDocx(
+  paragrafos: Array<string | string[]>,
+  opcoes: { cabecalho?: string } = {},
+): Uint8Array {
+  const escapar = (t: string) =>
+    t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const paragrafo = (p: string | string[]) =>
+    `<w:p><w:pPr><w:jc w:val="left"/></w:pPr>${(Array.isArray(p) ? p : [p])
+      .map((r) => `<w:r><w:rPr><w:b/></w:rPr><w:t>${escapar(r)}</w:t></w:r>`)
+      .join("")}</w:p>`;
+  const ns =
+    'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  const arquivos: Record<string, Uint8Array> = {
+    "[Content_Types].xml": strToU8(
+      '<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>',
+    ),
+    "_rels/.rels": strToU8(
+      '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+    ),
+    "word/document.xml": strToU8(
+      `<?xml version="1.0"?><w:document ${ns}><w:body>${paragrafos.map(paragrafo).join("")}</w:body></w:document>`,
+    ),
+  };
+  if (opcoes.cabecalho) {
+    arquivos["word/header1.xml"] = strToU8(
+      `<?xml version="1.0"?><w:hdr ${ns}>${paragrafo(opcoes.cabecalho)}</w:hdr>`,
+    );
+  }
+  return zipSync(arquivos);
+}
+
+// Ticket 17: completa a coleta de um negócio da Ana em Coletando dados — o
+// cliente `telefone` manda as três fotos de documento, e-mail, CPF, duas
+// referências, Pix no dia 10, o lote e o plano escolhidos.
+export async function completarColetaDaAna(
+  session: Session,
+  input: {
+    instancia: string;
+    telefone: string;
+    negocioId: string;
+    loteId: string;
+    planoId: string;
+    cpf?: string;
+  },
+) {
+  const coleta = await import("@/data/coleta-de-dados");
+  const { escolherPlano } = await import("@/data/negocios");
+  const { receberMensagem } = await import("@/data/conversas");
+  const llm = await import("@/test/fakes/llm");
+  const whatsapp = await import("@/test/fakes/whatsapp");
+  for (const tipo of ["cpf", "rg", "comprovante_endereco"] as const) {
+    const idMensagem = `FOTO-${input.telefone}-${tipo}`;
+    whatsapp.simularMidia(idMensagem, {
+      bytes: new Uint8Array([1, 2, 3]),
+      mimeType: "image/jpeg",
+    });
+    llm.roteirizar({ tipo: "texto", texto: "Recebi." });
+    await receberMensagem(
+      whatsapp.mensagemRecebida({
+        instancia: input.instancia,
+        telefone: input.telefone,
+        idMensagem,
+        texto: null,
+        midia: {
+          tipo: "imagem",
+          mimetype: "image/jpeg",
+          nomeDoArquivo: null,
+          url: null,
+        },
+      }),
+    );
+    ok(await coleta.registrarDocumentoRecebido(session, input.negocioId, tipo));
+  }
+  await coleta.registrarDadosDoCliente(session, input.negocioId, {
+    email: "cliente@email.com",
+    cpf: input.cpf ?? "12345678909",
+  });
+  await coleta.registrarReferencia(session, input.negocioId, {
+    nome: "Maria Lima",
+    telefone: "88999991111",
+  });
+  await coleta.registrarReferencia(session, input.negocioId, {
+    nome: "João Souza",
+    telefone: "88999992222",
+  });
+  await coleta.registrarPagamento(session, input.negocioId, {
+    forma: "pix",
+    dia: 10,
+  });
+  ok(await coleta.escolherLote(session, input.negocioId, input.loteId));
+  ok(
+    await escolherPlano(session, input.negocioId, {
+      planoId: input.planoId,
+      loteId: input.loteId,
+    }),
+  );
+  llm.limpar();
+  whatsapp.enviados.length = 0;
+}
+
+// Ticket 17: o cenário de coleta da Ana com o plano "60x" (20% de entrada),
+// o modelo de proposta da Terra Nova enviado e a coleta do Carlos completa no
+// lote A-1 (R$ 85.000).
+export async function criarCenarioDePropostaDaAna(
+  modelo: Uint8Array = criarDocx([
+    "Proposta para {cliente_nome}, CPF {cliente_cpf}",
+    "{empreendimento}: quadra {lote_quadra}, lote {lote_numero}",
+    "{plano}: entrada de {entrada} + {parcelas}x de {parcela}",
+  ]),
+) {
+  const { criarPlanoDePagamento } = await import("@/data/planos-de-pagamento");
+  const { enviarModeloDeProposta } = await import("@/data/propostas");
+  const cenario = await criarCenarioDeColetaDaAna();
+  const { session, empreendimento, negocio, lotes } = cenario;
+  const plano = ok(
+    await criarPlanoDePagamento(session, {
+      empreendimentoId: empreendimento.id,
+      nome: "60x",
+      percentualDeEntrada: 20,
+      numeroDeParcelas: 60,
+      condicoes: "",
+    }),
+  );
+  ok(
+    await enviarModeloDeProposta(session, {
+      incorporadoraId: empreendimento.incorporadoraId,
+      nomeDoArquivo: "modelo.docx",
+      conteudo: modelo,
+    }),
+  );
+  await completarColetaDaAna(session, {
+    instancia: cenario.instancia,
+    telefone: "5588999990000",
+    negocioId: negocio.id,
+    loteId: lotes.disponivel.id,
+    planoId: plano.id,
+  });
+  return { ...cenario, plano };
+}
+
+// Ticket 17: outro cliente (`telefone`) chega pelo WhatsApp da Ana e fecha o
+// mesmo lote: negócio em Coletando dados com a coleta completa.
+export async function outroClienteFechaOLote(
+  cenario: Awaited<ReturnType<typeof criarCenarioDePropostaDaAna>>,
+  telefone = "5588977770000",
+) {
+  const { receberMensagem } = await import("@/data/conversas");
+  const { listarNegocios, mudarEtapa } = await import("@/data/negocios");
+  const llm = await import("@/test/fakes/llm");
+  const whatsapp = await import("@/test/fakes/whatsapp");
+  const { session, instancia } = cenario;
+  llm.roteirizar({ tipo: "texto", texto: "Olá!" });
+  await receberMensagem(
+    whatsapp.mensagemRecebida({ instancia, telefone, texto: "Oi" }),
+  );
+  const criado = ok(
+    (await listarNegocios(session)).find((n) => n.clienteTelefone === telefone),
+  );
+  const negocio = ok(
+    await mudarEtapa(session, criado.id, "coletando_dados", {
+      autor: "assistente",
+    }),
+  );
+  await completarColetaDaAna(session, {
+    instancia,
+    telefone,
+    negocioId: negocio.id,
+    loteId: cenario.lotes.disponivel.id,
+    planoId: cenario.plano.id,
+    cpf: "98765432100",
+  });
+  return negocio;
 }

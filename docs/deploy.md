@@ -8,7 +8,7 @@ O loteAI roda num VPS com Podman (`podman compose`), conforme a spec (§ Infraes
 |---|---|---|
 | `postgres` | `pgvector/pgvector:pg17` | Banco do CRM (`crm`) e banco da Evolution (`evolution`), no mesmo servidor, com volume `postgres_data`. |
 | `migrate` | `localhost/crm-tools` (alvo `tools` do `Containerfile`) | Roda `bun run db:migrate` e sai. `app` e `worker` só sobem depois dele terminar com sucesso (`service_completed_successfully`). |
-| `app` | `localhost/crm-app` (alvo `app`) | Next.js em `output: "standalone"`, servido pelo Bun (`bun server.js`), porta 3000. |
+| `app` | `localhost/crm-app` (alvo `app`) | Next.js em `output: "standalone"`, servido pelo Bun (`bun server.js`), porta 3000. Traz o LibreOffice (Writer) que gera o PDF das propostas. |
 | `worker` | `localhost/crm-tools` | `src/worker/index.ts`: processo de jobs agendados (hoje só um heartbeat por minuto; os tickets seguintes registram jobs). |
 | `evolution` | `evoapicloud/evolution-api:v2.3.7` | Evolution API v2 (ADR-0004), com volume `evolution_instances`. |
 | `redis` | `redis:7-alpine` | Cache da Evolution (`CACHE_REDIS_ENABLED=true`). |
@@ -96,6 +96,17 @@ Entre em `https://crm.exemplo.com.br/admin`, crie a imobiliária e o corretor.
 5. Mande uma mensagem de um número que nunca falou com o corretor: um negócio novo aparece no funil.
 
 Inspecionar a Evolution pelo manager, se precisar: `ssh -L 8080:127.0.0.1:8080 usuario@vps` e abra `http://localhost:8080/manager` com a `EVOLUTION_API_KEY`.
+
+## Propostas em PDF (LibreOffice)
+
+O corretor envia, por incorporadora, um modelo DOCX com placeholders como `{cliente_nome}` e `{lote_numero}` (lista completa na página da incorporadora no catálogo). Ao gerar a proposta, `src/lib/documentos.ts` substitui os campos no DOCX e chama `soffice --headless --convert-to pdf` com um perfil temporário por conversão. Por isso:
+
+- A imagem `app` instala `libreoffice-writer`, `font-liberation` e `font-dejavu` (Alpine). A imagem fica maior (centenas de MB); é o preço de converter DOCX fiel ao Word sem serviço externo.
+- `SOFFICE_PATH` (opcional) aponta para outro binário; o padrão é `soffice` no `PATH`. Em dev fora do container, instale o LibreOffice (`sudo apt install libreoffice-writer fonts-liberation`) para gerar propostas.
+- Fontes que o modelo usa e que não estão na imagem são trocadas por equivalentes; se a incorporadora usa uma fonte própria, copie o `.ttf` para `/usr/share/fonts` num `Containerfile` derivado.
+- Conferir no VPS: `podman compose exec app soffice --version`.
+
+Verificado no ticket 17: a conversão real (`gerarPdf` com um DOCX de placeholders quebrados em vários runs) gerou o PDF correto num container `oven/bun:1.4.4-alpine` com esses pacotes.
 
 ## Problemas comuns
 

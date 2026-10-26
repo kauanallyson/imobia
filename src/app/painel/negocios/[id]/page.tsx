@@ -19,6 +19,7 @@ import Link from "@/app/components/link";
 import { formatarReais } from "@/app/painel/catalogo/formatos";
 import { buscarColeta } from "@/data/coleta-de-dados";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
+import { buscarPropostaDoNegocio } from "@/data/propostas";
 import { verificarCorretor } from "@/data/session";
 import {
   assistenteDaConversaAction,
@@ -28,6 +29,7 @@ import {
 import { formatarTelefone, formatoDataHora, rotuloDaEtapa } from "../etapas";
 import { MarcarPerdidoForm, MudarEtapaForm } from "../forms";
 import { ColetaDeDados } from "./coleta";
+import { PropostaDoNegocioSecao } from "./proposta";
 
 export const metadata: Metadata = { title: "Negócio" };
 
@@ -61,6 +63,15 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const { cliente, conversa, historico, lote, planoEscolhido } = negocio;
   const coleta = await buscarColeta(session, negocio.id);
   const anonimizado = coleta?.cliente.anonimizado ?? false;
+  const proposta = await buscarPropostaDoNegocio(session, negocio.id);
+  const mostrarProposta =
+    proposta !== null ||
+    [
+      "coletando_dados",
+      "proposta_em_revisao",
+      "aguardando_assinatura",
+      "aguardando_pagamento",
+    ].includes(negocio.etapa);
 
   return (
     <>
@@ -157,6 +168,16 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
             negocioId={negocio.id}
             coleta={coleta}
             emColeta={negocio.etapa === "coletando_dados"}
+          />
+        </Secao>
+      )}
+
+      {mostrarProposta && (
+        <Secao titulo="Proposta" id="proposta">
+          <PropostaDoNegocioSecao
+            negocioId={negocio.id}
+            proposta={proposta}
+            novoId={crypto.randomUUID()}
           />
         </Secao>
       )}
@@ -367,13 +388,15 @@ const autorRotulo = {
 
 function Secao({
   titulo,
+  id,
   children,
 }: {
   titulo: string;
+  id?: string;
   children: React.ReactNode;
 }) {
   return (
-    <Stack component="section" spacing={2}>
+    <Stack component="section" spacing={2} id={id} sx={{ scrollMarginTop: 16 }}>
       <Typography variant="h6" component="h2">
         {titulo}
       </Typography>

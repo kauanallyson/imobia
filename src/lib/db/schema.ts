@@ -877,3 +877,111 @@ export const lembretesDeColeta = pgTable(
   },
   (t) => [unique("lembretes_de_coleta_negocio_data").on(t.negocioId, t.data)],
 );
+
+// ---- ticket 17: proposta e reserva ---------------------------------------------
+// Modelo de proposta da incorporadora (spec → Modelo de proposta): um DOCX com
+// placeholders nomeados, privado no R2. Um por incorporadora; enviar outro
+// substitui.
+export const modelosDeProposta = pgTable("modelos_de_proposta", {
+  incorporadoraId: uuid("incorporadora_id")
+    .primaryKey()
+    .references(() => incorporadoras.id),
+  imobiliariaId: uuid("imobiliaria_id")
+    .notNull()
+    .references(() => imobiliarias.id),
+  // imobiliarias/<id>/incorporadoras/<id>/modelo-de-proposta/<uuid>.docx
+  chave: text().notNull().unique(),
+  nomeDoArquivo: text("nome_do_arquivo").notNull(),
+  // Placeholders encontrados no arquivo, para o corretor conferir.
+  campos: jsonb().$type<string[]>().notNull().default([]),
+  enviadoEm: timestamp("enviado_em", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const estadosDaProposta = [
+  "em_revisao",
+  "enviada",
+  "assinada",
+  "expirada",
+] as const;
+export type EstadoDaProposta = (typeof estadosDaProposta)[number];
+
+export const propostas = pgTable(
+  "propostas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    loteId: uuid("lote_id")
+      .notNull()
+      .references(() => lotes.id),
+    modeloDeCasaId: uuid("modelo_de_casa_id").references(
+      () => modelosDeCasa.id,
+    ),
+    planoId: uuid("plano_id")
+      .notNull()
+      .references(() => planosDePagamento.id),
+    diaDePagamento: integer("dia_de_pagamento").notNull(),
+    primeiraParcela: date("primeira_parcela", { mode: "string" }).notNull(),
+    // imobiliarias/<id>/negocios/<id>/propostas/<id>.pdf
+    chavePdf: text("chave_pdf").notNull().unique(),
+    // PDF assinado que o cliente devolve (ticket 18).
+    chavePdfAssinado: text("chave_pdf_assinado"),
+    estado: text({ enum: estadosDaProposta }).notNull().default("em_revisao"),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    enviadaEm: timestamp("enviada_em", { withTimezone: true }),
+  },
+  (t) => [
+    index("propostas_corretor_id_idx").on(t.corretorId),
+    index("propostas_lote_id_idx").on(t.loteId),
+    // Uma proposta viva por negócio: gerar de novo devolve a mesma. Depois de
+    // expirada, o negócio pode ter outra.
+    uniqueIndex("propostas_negocio_viva")
+      .on(t.negocioId)
+      .where(sql`${t.estado} <> 'expirada'`),
+  ],
+);
+
+export const estadosDaReserva = ["ativa", "expirada"] as const;
+export type EstadoDaReserva = (typeof estadosDaReserva)[number];
+
+// Reserva do lote enquanto a proposta enviada aguarda assinatura. O banco
+// garante no máximo uma reserva ativa por lote (unique parcial).
+export const reservas = pgTable(
+  "reservas",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    loteId: uuid("lote_id")
+      .notNull()
+      .references(() => lotes.id),
+    propostaId: uuid("proposta_id")
+      .notNull()
+      .unique()
+      .references(() => propostas.id, { onDelete: "cascade" }),
+    estado: text({ enum: estadosDaReserva }).notNull().default("ativa"),
+    expiraEm: timestamp("expira_em", { withTimezone: true }).notNull(),
+    criadaEm: timestamp("criada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("reservas_lote_ativa")
+      .on(t.loteId)
+      .where(sql`${t.estado} = 'ativa'`),
+    index("reservas_expira_em_idx").on(t.expiraEm),
+  ],
+);
+// ---- fim ticket 17

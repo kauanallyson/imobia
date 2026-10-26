@@ -33,3 +33,9 @@ export function urlAssinada(chave: string, ttlSeconds: number): string {
   const exp = Math.floor(Date.now() / 1000) + ttlSeconds;
   return `fake://${chave}?exp=${exp}`;
 }
+
+export async function lerArquivo(chave: string): Promise<Uint8Array> {
+  const arquivo = arquivos.get(chave);
+  if (!arquivo) throw new Error(`storage falso: ${chave} não existe`);
+  return arquivo.bytes;
+}

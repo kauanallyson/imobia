@@ -95,13 +95,19 @@ async function Pendencia({ params }: { params: Promise<{ id: string }> }) {
 
       <Button
         component={Link}
-        href={`/painel/negocios/${pendencia.negocioId}`}
+        href={
+          pendencia.tipo === "revisar_proposta"
+            ? `/painel/negocios/${pendencia.negocioId}#proposta`
+            : `/painel/negocios/${pendencia.negocioId}`
+        }
         variant="outlined"
         size="large"
         fullWidth
         startIcon={<HandshakeIcon aria-hidden fontSize="small" />}
       >
-        Abrir o negócio
+        {pendencia.tipo === "revisar_proposta"
+          ? "Revisar a proposta"
+          : "Abrir o negócio"}
       </Button>
     </>
   );

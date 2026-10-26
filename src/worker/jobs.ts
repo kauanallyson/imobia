@@ -1,5 +1,6 @@
 import { jobDeLembretesDeColeta } from "@/data/coleta-de-dados";
 import { jobDeFollowUps } from "@/data/follow-ups";
+import { jobDeExpiracaoDeReservas } from "@/data/propostas";
 import { jobDoGoogleCalendar } from "@/data/sincronizar-google-calendar";
 import { jobDeLembretesDeVisita } from "@/data/visitas";
 
@@ -14,4 +15,5 @@ export const jobs: Job[] = [
   jobDeFollowUps, // ticket 15
   jobDoGoogleCalendar, // ticket 14
   jobDeLembretesDeColeta, // ticket 16
+  jobDeExpiracaoDeReservas, // ticket 17
 ];

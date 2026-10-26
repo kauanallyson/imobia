@@ -234,6 +234,7 @@ describe("assistente: primeiro atendimento", () => {
       "registrar_documento",
       "escolher_lote",
       "status_da_coleta",
+      "solicitar_proposta",
     ]);
   });
 

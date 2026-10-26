@@ -41,3 +41,8 @@ export async function apagarArquivo(chave: string): Promise<void> {
 export function urlAssinada(chave: string, ttlSeconds: number): string {
   return r2().presign(chave, { method: "GET", expiresIn: ttlSeconds });
 }
+
+// Conteúdo de um arquivo privado (ex.: o modelo DOCX da proposta).
+export async function lerArquivo(chave: string): Promise<Uint8Array> {
+  return r2().file(chave).bytes();
+}
