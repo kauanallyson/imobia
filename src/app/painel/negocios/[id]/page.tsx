@@ -17,6 +17,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "@/app/components/link";
 import { formatarReais } from "@/app/painel/catalogo/formatos";
+import { buscarColeta } from "@/data/coleta-de-dados";
 import { buscarNegocio, type NegocioDetalhado } from "@/data/negocios";
 import { verificarCorretor } from "@/data/session";
 import {
@@ -26,6 +27,7 @@ import {
 } from "../actions";
 import { formatarTelefone, formatoDataHora, rotuloDaEtapa } from "../etapas";
 import { MarcarPerdidoForm, MudarEtapaForm } from "../forms";
+import { ColetaDeDados } from "./coleta";
 
 export const metadata: Metadata = { title: "Negócio" };
 
@@ -57,6 +59,8 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
   const negocio = await buscarNegocio(session, id);
   if (!negocio) notFound();
   const { cliente, conversa, historico, lote, planoEscolhido } = negocio;
+  const coleta = await buscarColeta(session, negocio.id);
+  const anonimizado = coleta?.cliente.anonimizado ?? false;
 
   return (
     <>
@@ -121,9 +125,11 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
         <Paper variant="outlined" sx={{ p: 2 }}>
           <Stack spacing={0.5}>
             <Typography>{cliente.nome}</Typography>
-            <Typography color="text.secondary">
-              {formatarTelefone(cliente.telefone)}
-            </Typography>
+            {!anonimizado && (
+              <Typography color="text.secondary">
+                {formatarTelefone(cliente.telefone)}
+              </Typography>
+            )}
             {cliente.email && (
               <Typography color="text.secondary">{cliente.email}</Typography>
             )}
@@ -144,6 +150,16 @@ async function Negocio({ params }: { params: Promise<{ id: string }> }) {
           </Button>
         </form>
       </Secao>
+
+      {coleta && (
+        <Secao titulo="Coleta de dados">
+          <ColetaDeDados
+            negocioId={negocio.id}
+            coleta={coleta}
+            emColeta={negocio.etapa === "coletando_dados"}
+          />
+        </Secao>
+      )}
 
       <Secao titulo="Lote de interesse">
         {lote ? (

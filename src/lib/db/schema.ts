@@ -148,6 +148,11 @@ export const whatsappConexoes = pgTable(
   (t) => [index("whatsapp_conexoes_imobiliaria_id_idx").on(t.imobiliariaId)],
 );
 
+// Ticket 16: forma de pagamento pretendida e referências do cliente.
+export const formasDePagamento = ["cartao", "pix"] as const;
+export type FormaDePagamento = (typeof formasDePagamento)[number];
+export type Referencia = { nome: string; telefone: string };
+
 export const clientes = pgTable(
   "clientes",
   {
@@ -163,6 +168,25 @@ export const clientes = pgTable(
     telefone: text().notNull(),
     email: text(),
     cpf: text(),
+    // ---- ticket 16: dados coletados pelo assistente em Coletando dados.
+    // Outros telefones/contatos que o cliente informou.
+    contatosExtras: jsonb("contatos_extras")
+      .$type<string[]>()
+      .notNull()
+      .default([]),
+    // Até duas referências (nome + telefone só com dígitos).
+    referencias: jsonb().$type<Referencia[]>().notNull().default([]),
+    formaDePagamento: text("forma_de_pagamento", {
+      enum: formasDePagamento,
+    }),
+    // Melhor dia do mês para pagar (1–28) e a data da primeira parcela, que
+    // fica no máximo 90 dias à frente.
+    diaDePagamento: integer("dia_de_pagamento"),
+    primeiraParcela: date("primeira_parcela", { mode: "string" }),
+    // Exclusão a pedido do cliente (LGPD): dados apagados, linha mantida
+    // anonimizada para os negócios e propostas.
+    anonimizadoEm: timestamp("anonimizado_em", { withTimezone: true }),
+    // ---- fim ticket 16
     criadoEm: timestamp("criado_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -170,6 +194,10 @@ export const clientes = pgTable(
   (t) => [
     unique("clientes_corretor_telefone").on(t.corretorId, t.telefone),
     index("clientes_corretor_id_idx").on(t.corretorId),
+    check(
+      "clientes_dia_de_pagamento",
+      sql`${t.diaDePagamento} between 1 and 28`,
+    ),
   ],
 );
 
@@ -718,4 +746,67 @@ export const lembretesDeVisita = pgTable(
       .defaultNow(),
   },
   (t) => [unique("lembretes_de_visita_visita_tipo").on(t.visitaId, t.tipo)],
+);
+
+// ---- ticket 16: coleta de dados do cliente ----------------------------------
+// Documentos que o cliente manda pelo WhatsApp (GLOSSARY → Documento). O
+// arquivo fica privado no R2; a IA só sinaliza legibilidade e o corretor
+// decide se aceita. A mensagem de origem é a chave natural (idempotência).
+export const tiposDeDocumento = ["cpf", "rg", "comprovante_endereco"] as const;
+export type TipoDeDocumento = (typeof tiposDeDocumento)[number];
+
+export const documentosDoCliente = pgTable(
+  "documentos_do_cliente",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    corretorId: uuid("corretor_id")
+      .notNull()
+      .references(() => users.id),
+    clienteId: uuid("cliente_id")
+      .notNull()
+      .references(() => clientes.id, { onDelete: "cascade" }),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    tipo: text({ enum: tiposDeDocumento }).notNull(),
+    // imobiliarias/<id>/clientes/<id>/documentos/<uuid>
+    chave: text().notNull().unique(),
+    mimeType: text("mime_type").notNull(),
+    // Avaliação da IA: null quando não foi possível avaliar.
+    legivel: boolean(),
+    motivo: text(),
+    // Decisão do corretor: null enquanto não decidiu.
+    aceito: boolean(),
+    mensagemId: uuid("mensagem_id")
+      .notNull()
+      .unique()
+      .references(() => mensagens.id, { onDelete: "cascade" }),
+    recebidoEm: timestamp("recebido_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("documentos_do_cliente_negocio_id_idx").on(t.negocioId),
+    index("documentos_do_cliente_corretor_id_idx").on(t.corretorId),
+  ],
+);
+
+// Lembrete de itens faltantes (a cada 2 dias): chave natural negócio + data
+// civil em Brasília; rodar o worker de novo não reenvia.
+export const lembretesDeColeta = pgTable(
+  "lembretes_de_coleta",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    negocioId: uuid("negocio_id")
+      .notNull()
+      .references(() => negocios.id, { onDelete: "cascade" }),
+    data: date({ mode: "string" }).notNull(),
+    enviadoEm: timestamp("enviado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [unique("lembretes_de_coleta_negocio_data").on(t.negocioId, t.data)],
 );

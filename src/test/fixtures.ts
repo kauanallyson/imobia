@@ -306,3 +306,63 @@ export async function criarLotesEPlanosDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lotes, plano60, plano120 };
 }
+
+// Ticket 16: o cenário de visita da Ana com o negócio já em Coletando dados
+// (o cliente decidiu fechar), os lotes A-1 (disponível) e A-2 (reservado) no
+// Jardim das Flores e o lote B-1 (disponível) em outro empreendimento.
+export async function criarCenarioDeColetaDaAna() {
+  const { criarLote, alterarStatusDoLote } = await import("@/data/lotes");
+  const { criarEmpreendimento } = await import("@/data/empreendimentos");
+  const { mudarEtapa } = await import("@/data/negocios");
+  const cenario = await criarCenarioDeVisitaDaAna();
+  const { session, empreendimento } = cenario;
+  const medidas = { area: 360, frente: 12, fundo: 30, preco: 85000 };
+  const disponivel = ok(
+    await criarLote(session, {
+      empreendimentoId: empreendimento.id,
+      quadra: "A",
+      numero: "1",
+      ...medidas,
+    }),
+  );
+  const reservado = ok(
+    await alterarStatusDoLote(
+      session,
+      ok(
+        await criarLote(session, {
+          empreendimentoId: empreendimento.id,
+          quadra: "A",
+          numero: "2",
+          ...medidas,
+        }),
+      ).id,
+      "reservado",
+    ),
+  );
+  const outro = ok(
+    await criarEmpreendimento(session, {
+      incorporadoraId: empreendimento.incorporadoraId,
+      nome: "Morada do Sol",
+      cidade: "Sobral",
+      endereco: "Av. do Sol, 100",
+    }),
+  );
+  const deOutroEmpreendimento = ok(
+    await criarLote(session, {
+      empreendimentoId: outro.id,
+      quadra: "B",
+      numero: "1",
+      ...medidas,
+    }),
+  );
+  const negocio = ok(
+    await mudarEtapa(session, cenario.negocio.id, "coletando_dados", {
+      autor: "assistente",
+    }),
+  );
+  return {
+    ...cenario,
+    negocio,
+    lotes: { disponivel, reservado, deOutroEmpreendimento },
+  };
+}

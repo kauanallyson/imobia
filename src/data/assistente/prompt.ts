@@ -5,6 +5,7 @@ import { secaoDeOptOut } from "./ferramentas/10-pausa-e-opt-out";
 import { secaoDePendencias } from "./ferramentas/11-pendencias";
 import { secaoDoPromptDeOrcamento } from "./ferramentas/12-orcamento";
 import { secaoDeVisitas } from "./ferramentas/13-visitas";
+import { secaoDeColeta } from "./ferramentas/16-coleta-de-dados";
 
 // Instruções do assistente (spec → Assistente: identidade, limites). Tickets
 // seguintes acrescentam seções (orçamento, visitas, documentos, pendências).
@@ -65,5 +66,6 @@ export function montarInstrucoes(
     secaoDeVisitas(contexto), // ticket 13
     secaoDeOptOut, // ticket 10
     secaoDoPromptDeOrcamento, // ticket 12
+    secaoDeColeta(contexto), // ticket 16
   ].join("\n");
 }

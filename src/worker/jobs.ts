@@ -1,3 +1,4 @@
+import { jobDeLembretesDeColeta } from "@/data/coleta-de-dados";
 import { jobDeLembretesDeVisita } from "@/data/visitas";
 
 // Registro dos jobs agendados. Cada job é uma função de src/data sem
@@ -8,4 +9,5 @@ export type Job = { nome: string; executar: () => Promise<unknown> };
 
 export const jobs: Job[] = [
   jobDeLembretesDeVisita, // ticket 13
+  jobDeLembretesDeColeta, // ticket 16
 ];

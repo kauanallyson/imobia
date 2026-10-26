@@ -19,6 +19,7 @@ import { ferramentasDePausaEOptOut } from "./ferramentas/10-pausa-e-opt-out";
 import { ferramentasDePendencias } from "./ferramentas/11-pendencias";
 import { ferramentasDoOrcamento } from "./ferramentas/12-orcamento";
 import { ferramentasDeVisita } from "./ferramentas/13-visitas";
+import { ferramentasDaColeta } from "./ferramentas/16-coleta-de-dados";
 
 // Registro de ferramentas do assistente (spec → Assistente → Ferramentas).
 // Cada ferramenta é uma chamada a uma função de src/data com a sessão do
@@ -275,6 +276,7 @@ export const ferramentas: Ferramenta[] = [
   ...ferramentasDePausaEOptOut, // ticket 10
   ...ferramentasDePendencias, // ticket 11
   ...ferramentasDoOrcamento, // ticket 12
+  ...ferramentasDaColeta, // ticket 16
 ];
 
 // JSON Schema que vai para a Responses API.

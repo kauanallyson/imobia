@@ -226,6 +226,14 @@ describe("assistente: primeiro atendimento", () => {
       "listar_opcoes_no_orcamento",
       "escolher_plano",
       "pedido_de_desconto",
+      // ticket 16
+      "iniciar_coleta",
+      "registrar_dados_do_cliente",
+      "registrar_referencia",
+      "registrar_pagamento",
+      "registrar_documento",
+      "escolher_lote",
+      "status_da_coleta",
     ]);
   });
 

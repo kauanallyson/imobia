@@ -1,4 +1,5 @@
 import {
+  type AvaliacaoDeLegibilidade,
   type ChamadaDeFerramenta,
   DIMENSOES_DO_EMBEDDING,
   type FerramentaDoModelo,
@@ -9,6 +10,7 @@ import {
   type PedidoAoModelo,
   type RespostaDoModelo,
   type ResultadoDeFerramenta,
+  type TipoDeDocumentoAvaliado,
 } from "@/lib/llm";
 
 // Falso em memória de src/lib/llm.ts: mesma superfície, mais helpers de
@@ -21,7 +23,9 @@ export {
   MODELO_DO_ASSISTENTE,
 };
 export type {
+  AvaliacaoDeLegibilidade,
   FerramentaDoModelo,
+  TipoDeDocumentoAvaliado,
   MensagemDoModelo,
   PedidoAoModelo,
   RespostaDoModelo,
@@ -62,6 +66,8 @@ export function limpar() {
   pedidos.length = 0;
   transcricoes.length = 0;
   transcricoesPedidas.length = 0;
+  legibilidades.length = 0;
+  legibilidadesPedidas.length = 0;
   contador = 0;
 }
 
@@ -133,4 +139,30 @@ export function embeddingFalso(texto: string): number[] {
 export async function gerarEmbeddings(textos: string[]): Promise<number[][]> {
   embeddingsPedidos.push([...textos]);
   return textos.map(embeddingFalso);
+}
+
+// Ticket 16: avaliações de legibilidade roteirizadas (ou falha), consumidas
+// em ordem; sem roteiro, o documento é considerado legível.
+const legibilidades: Array<AvaliacaoDeLegibilidade | Error> = [];
+export const legibilidadesPedidas: Array<{
+  bytes: Uint8Array;
+  mimeType: string;
+  tipo: TipoDeDocumentoAvaliado;
+}> = [];
+
+export function roteirizarLegibilidade(
+  ...avaliacoes: Array<AvaliacaoDeLegibilidade | Error>
+) {
+  legibilidades.push(...avaliacoes);
+}
+
+export async function avaliarLegibilidade(documento: {
+  bytes: Uint8Array;
+  mimeType: string;
+  tipo: TipoDeDocumentoAvaliado;
+}): Promise<AvaliacaoDeLegibilidade> {
+  legibilidadesPedidas.push({ ...documento });
+  const proxima = legibilidades.shift() ?? { legivel: true, motivo: null };
+  if (proxima instanceof Error) throw proxima;
+  return proxima;
 }

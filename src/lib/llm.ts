@@ -181,3 +181,76 @@ export async function transcrever(audio: {
   if (!texto) throw new Error("transcrição vazia");
   return texto;
 }
+
+// --- Legibilidade de documento (ticket 16) ----------------------------------
+
+export type TipoDeDocumentoAvaliado = "cpf" | "rg" | "comprovante_endereco";
+
+export type AvaliacaoDeLegibilidade = {
+  legivel: boolean;
+  // Por que parece ilegível (ou o que foi visto), em português.
+  motivo: string | null;
+};
+
+const nomeDoDocumento: Record<TipoDeDocumentoAvaliado, string> = {
+  cpf: "CPF (ou documento com o número do CPF)",
+  rg: "RG (documento de identidade)",
+  comprovante_endereco: "comprovante de endereço",
+};
+
+// Modelo multimodal: só presença e legibilidade, nunca autenticidade (spec →
+// Documentos). Imagens vão como input_image; PDF como input_file. Lança em
+// qualquer falha (quem chama grava "não avaliado").
+export async function avaliarLegibilidade(documento: {
+  bytes: Uint8Array;
+  mimeType: string;
+  tipo: TipoDeDocumentoAvaliado;
+}): Promise<AvaliacaoDeLegibilidade> {
+  const tipo = documento.mimeType.split(";")[0]?.trim().toLowerCase() ?? "";
+  const dataUrl = `data:${tipo};base64,${Buffer.from(documento.bytes).toString("base64")}`;
+  const arquivo: OpenAI.Responses.ResponseInputContent =
+    tipo === "application/pdf"
+      ? {
+          type: "input_file",
+          filename: "documento.pdf",
+          file_data: dataUrl,
+        }
+      : { type: "input_image", image_url: dataUrl, detail: "high" };
+
+  const response = await openai().responses.create({
+    model: MODELO_DO_ASSISTENTE,
+    input: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text: `O arquivo deveria ser um ${nomeDoDocumento[documento.tipo]}. Diga se ele é esse documento e se está legível (nome, números e datas dá para ler, sem cortes, borrões ou reflexos). Não avalie autenticidade. Responda em português.`,
+          },
+          arquivo,
+        ],
+      },
+    ],
+    text: {
+      format: {
+        type: "json_schema",
+        name: "legibilidade",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            legivel: { type: "boolean" },
+            motivo: { type: ["string", "null"] },
+          },
+          required: ["legivel", "motivo"],
+          additionalProperties: false,
+        },
+      },
+    },
+  });
+  const resultado = JSON.parse(response.output_text) as AvaliacaoDeLegibilidade;
+  if (typeof resultado.legivel !== "boolean") {
+    throw new Error("legibilidade: resposta inválida do modelo");
+  }
+  return { legivel: resultado.legivel, motivo: resultado.motivo ?? null };
+}
