@@ -225,7 +225,8 @@ export async function ocupadosNoGoogle(
 const eventoIdDa = (visitaId: string) => visitaId.replaceAll("-", "");
 
 // Leva o evento do Google ao estado da visita: ativa → evento criado ou
-// atualizado (horário, local, cliente); cancelada → evento apagado. Grava
+// atualizado (horário, local, cliente; anonimizado depois da exclusão LGPD);
+// cancelada → evento apagado. Grava
 // e devolve o `eventoCalendarId`. Sem Google conectado não faz nada; falha
 // do Google só vai para o log (o agendamento já valeu).
 export async function refletirVisitaNoGoogle(
@@ -241,6 +242,7 @@ export async function refletirVisitaNoGoogle(
       eventoCalendarId: visitas.eventoCalendarId,
       clienteNome: clientes.nome,
       telefone: clientes.telefone,
+      anonimizadoEm: clientes.anonimizadoEm,
       empreendimento: empreendimentos.nome,
     })
     .from(visitas)
@@ -269,7 +271,8 @@ export async function refletirVisitaNoGoogle(
       titulo: `Visita: ${visita.clienteNome}${visita.empreendimento ? ` — ${visita.empreendimento}` : ""}`,
       descricao: [
         `Cliente: ${visita.clienteNome}`,
-        `Telefone: +${visita.telefone}`,
+        // Cliente anonimizado (LGPD): o evento fica, sem o telefone.
+        visita.anonimizadoEm ? "" : `Telefone: +${visita.telefone}`,
         visita.empreendimento ? `Empreendimento: ${visita.empreendimento}` : "",
         "Agendada pelo loteAI.",
       ]

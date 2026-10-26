@@ -17,7 +17,7 @@ import {
   sessaoDe,
 } from "@/test/fixtures";
 import { OptOutError } from "./assistente/contexto";
-import { LoteIndisponivelError } from "./coleta-de-dados";
+import { apagarDadosDoCliente, LoteIndisponivelError } from "./coleta-de-dados";
 import { receberMensagem } from "./conversas";
 import { registrarOptOut } from "./estado-do-assistente";
 import { alterarStatusDoLote, buscarLote } from "./lotes";
@@ -233,6 +233,21 @@ describe("propostas: geração", () => {
     const bruno = sessaoDe(await criarBruno(imobiliaria), imobiliaria);
     expect(await gerarProposta(bruno, negocio.id)).toBeNull();
     expect(await buscarPropostaDoNegocio(bruno, negocio.id)).toBeNull();
+  });
+});
+
+describe("propostas: exclusão de dados (LGPD)", () => {
+  test("apagar os dados do cliente apaga os PDFs das propostas geradas", async () => {
+    setSystemTime(segunda21h);
+    const { session, negocio, cliente } = await criarCenarioDePropostaDaAna();
+    ok(await gerarProposta(session, negocio.id));
+    const pdfs = () =>
+      [...arquivos.keys()].filter((k) => k.includes("/propostas/"));
+    expect(pdfs()).toHaveLength(1);
+
+    ok(await apagarDadosDoCliente(session, cliente.id));
+
+    expect(pdfs()).toHaveLength(0);
   });
 });
 

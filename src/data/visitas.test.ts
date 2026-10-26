@@ -1,5 +1,5 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import { simularCompromisso } from "@/test/fakes/calendar";
+import { eventos, falhas, simularCompromisso } from "@/test/fakes/calendar";
 import {
   aoEnviarEcoar,
   avisosDoSistema,
@@ -389,6 +389,48 @@ describe("remarcar, cancelar e alterar o local", () => {
     expect(
       await agendarVisita(session, { negocioId: negocio.id, dataHora }),
     ).toMatchObject({ estado: "agendada" });
+  });
+});
+
+describe("visitas: exclusão de dados (LGPD)", () => {
+  test("o evento da visita no Google deixa de ter nome e telefone do cliente", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio, cliente } = await criarCenarioDeVisitaDaAna();
+    await conectarGoogle(session);
+    const visita = ok(
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-03T10:00:00-03:00"),
+      }),
+    );
+    const evento = () => ok(eventos.get(ok(visita.eventoCalendarId)));
+    expect(evento().titulo).toContain("Carlos Lima");
+
+    ok(await apagarDadosDoCliente(session, cliente.id));
+
+    expect(evento().removido).toBe(false);
+    for (const texto of [evento().titulo, evento().descricao]) {
+      expect(texto).not.toContain("Carlos Lima");
+      expect(texto).not.toContain("5588999990000");
+    }
+  });
+
+  test("com o Google fora do ar, a exclusão dos dados acontece mesmo assim", async () => {
+    setSystemTime(segunda8h);
+    const { session, negocio, cliente } = await criarCenarioDeVisitaDaAna();
+    await conectarGoogle(session);
+    ok(
+      await agendarVisita(session, {
+        negocioId: negocio.id,
+        dataHora: new Date("2026-11-03T10:00:00-03:00"),
+      }),
+    );
+    falhas.ativa = true;
+
+    ok(await apagarDadosDoCliente(session, cliente.id));
+    expect(ok(await buscarNegocio(session, negocio.id)).cliente.nome).toBe(
+      "Cliente removido",
+    );
   });
 });
 

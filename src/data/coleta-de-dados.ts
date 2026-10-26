@@ -6,8 +6,10 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
   isNull,
   max,
+  ne,
   sql,
 } from "drizzle-orm";
 import { z } from "zod";
@@ -22,9 +24,11 @@ import {
   mensagens,
   negocioEtapas,
   negocios,
+  propostas,
   type Referencia,
   type TipoDeDocumento,
   tiposDeDocumento,
+  visitas,
   whatsappConexoes,
 } from "@/lib/db/schema";
 import { partesEmBrasilia, somarDias } from "@/lib/fuso";
@@ -34,6 +38,7 @@ import * as whatsapp from "@/lib/whatsapp";
 import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { normalizarTelefone } from "./clientes";
+import { refletirVisitaNoGoogle } from "./google-calendar";
 import { buscarLote } from "./lotes";
 import { requireCorretor, type Session } from "./session";
 
@@ -510,8 +515,9 @@ export async function buscarColeta(session: Session, negocioId: string) {
 
 export const NOME_DO_CLIENTE_REMOVIDO = "Cliente removido";
 
-// A pedido do cliente: apaga os arquivos do R2, os documentos, as mensagens da
-// conversa e os dados identificáveis; a linha do cliente fica anonimizada
+// A pedido do cliente: apaga os arquivos do R2 (documentos, PDFs das
+// propostas e do fechamento), os documentos, as mensagens da conversa e os
+// dados identificáveis (também nos eventos do Google Calendar); a linha do cliente fica anonimizada
 // para que negócios (e propostas) sigam no histórico. O assistente é
 // desligado na conversa. Repetir não falha. Fora do escopo → null.
 export async function apagarDadosDoCliente(
@@ -538,8 +544,14 @@ export async function apagarDadosDoCliente(
     .from(arquivosDoFechamento)
     .innerJoin(negocios, eq(negocios.id, arquivosDoFechamento.negocioId))
     .where(eq(negocios.clienteId, cliente.id));
+  // O PDF de cada proposta gerada traz nome e CPF do cliente.
+  const pdfsDePropostas = await db
+    .select({ chave: propostas.chavePdf })
+    .from(propostas)
+    .innerJoin(negocios, eq(negocios.id, propostas.negocioId))
+    .where(eq(negocios.clienteId, cliente.id));
   // Arquivos primeiro: se o banco falhar depois, repetir apaga o resto.
-  for (const { chave } of [...docs, ...doFechamento]) {
+  for (const { chave } of [...docs, ...doFechamento, ...pdfsDePropostas]) {
     await storage.apagarArquivo(chave);
   }
 
@@ -583,6 +595,22 @@ export async function apagarDadosDoCliente(
       })
       .where(eq(clientes.id, cliente.id));
   });
+
+  // Eventos das visitas no Google Calendar: o evento fica (apagá-lo
+  // cancelaria a visita na sincronização), sem nome e telefone. Falha do
+  // Google só vai para o log.
+  const comEvento = await db
+    .select({ id: visitas.id })
+    .from(visitas)
+    .innerJoin(negocios, eq(negocios.id, visitas.negocioId))
+    .where(
+      and(
+        eq(negocios.clienteId, cliente.id),
+        isNotNull(visitas.eventoCalendarId),
+        ne(visitas.estado, "cancelada"),
+      ),
+    );
+  for (const { id } of comEvento) await refletirVisitaNoGoogle(id);
   return { id: cliente.id, anonimizadoEm };
 }
 
