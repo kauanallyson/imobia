@@ -22,7 +22,11 @@ import {
   SemPropostaAssinadaError,
 } from "./assinatura-e-pagamento";
 import { OptOutError } from "./assistente/contexto";
-import { apagarDadosDoCliente } from "./coleta-de-dados";
+import {
+  apagarDadosDoCliente,
+  buscarColeta,
+  registrarDocumentoRecebido,
+} from "./coleta-de-dados";
 import { desligarAssistente, registrarOptOut } from "./estado-do-assistente";
 import { definirInstrucoesDePagamento } from "./incorporadoras";
 import { buscarLote } from "./lotes";
@@ -103,6 +107,19 @@ describe("assinatura: proposta assinada recebida", () => {
       [...arquivos.keys()].filter((k) => k.includes("/fechamento/")),
     ).toHaveLength(1);
     expect(await pendenciasDoTipo(c, "confirmar_assinatura")).toHaveLength(1);
+  });
+
+  test("o PDF assinado não vira documento da coleta", async () => {
+    setSystemTime(segunda9h);
+    const c = await criarCenarioDeAssinaturaDaAna();
+    await clienteDevolveAssinada(c);
+    const antes = ok(await buscarColeta(c.session, c.negocio.id)).documentos;
+
+    await registrarDocumentoRecebido(c.session, c.negocio.id, "cpf");
+
+    expect(ok(await buscarColeta(c.session, c.negocio.id)).documentos).toEqual(
+      antes,
+    );
   });
 
   test("foto não conta como proposta assinada", async () => {

@@ -1,7 +1,6 @@
 import "server-only";
 import {
   and,
-  asc,
   desc,
   eq,
   gte,
@@ -10,7 +9,6 @@ import {
   isNull,
   max,
   ne,
-  sql,
 } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -29,17 +27,20 @@ import {
   type TipoDeDocumento,
   tiposDeDocumento,
   visitas,
-  whatsappConexoes,
 } from "@/lib/db/schema";
 import { partesEmBrasilia, somarDias } from "@/lib/fuso";
 import * as llm from "@/lib/llm";
 import * as storage from "@/lib/storage";
-import * as whatsapp from "@/lib/whatsapp";
 import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { normalizarTelefone } from "./clientes";
 import { refletirVisitaNoGoogle } from "./google-calendar";
 import { buscarLote } from "./lotes";
+import {
+  guardarMidiaRecebida,
+  midiasRecebidas,
+  proximaNaoRegistrada,
+} from "./midias-recebidas";
 import { negocioDoCorretor } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
@@ -301,29 +302,12 @@ export async function registrarDocumentoRecebido(
         eq(negocioEtapas.para, "coletando_dados"),
       ),
     );
-  const recebidas = await db
-    .select({
-      id: mensagens.id,
-      evolutionId: mensagens.evolutionId,
-      documentoId: documentosDoCliente.id,
-    })
-    .from(mensagens)
-    .innerJoin(conversas, eq(conversas.id, mensagens.conversaId))
-    .leftJoin(
-      documentosDoCliente,
-      eq(documentosDoCliente.mensagemId, mensagens.id),
-    )
-    .where(
-      and(
-        eq(conversas.clienteId, negocio.clienteId),
-        eq(conversas.corretorId, negocio.corretorId),
-        eq(mensagens.autor, "cliente"),
-        inArray(sql`${mensagens.midia}->>'tipo'`, ["imagem", "documento"]),
-        entrada?.em ? gte(mensagens.enviadaEm, entrada.em) : undefined,
-      ),
-    )
-    .orderBy(asc(mensagens.enviadaEm), asc(mensagens.criadaEm));
-  const midia = recebidas.find((m) => !m.documentoId);
+  // Mídia já registrada no fechamento (proposta assinada, comprovante) não
+  // conta.
+  const recebidas = (
+    await midiasRecebidas(negocio, { desde: entrada?.em ?? null })
+  ).filter((m) => !m.arquivo);
+  const midia = proximaNaoRegistrada(recebidas);
   if (!midia) {
     const ultima = recebidas.at(-1);
     return ultima?.documentoId
@@ -331,18 +315,9 @@ export async function registrarDocumentoRecebido(
       : null;
   }
 
-  const [conexao] = await db
-    .select({ instancia: whatsappConexoes.instancia })
-    .from(whatsappConexoes)
-    .where(eq(whatsappConexoes.corretorId, negocio.corretorId));
-  if (!conexao?.instancia) return null;
-
-  const arquivo = await whatsapp.baixarMidia(
-    conexao.instancia,
-    midia.evolutionId ?? "",
-  );
   const chave = `imobiliarias/${negocio.imobiliariaId}/clientes/${negocio.clienteId}/documentos/${crypto.randomUUID()}`;
-  await storage.salvarArquivo(chave, arquivo.bytes, arquivo.mimeType);
+  const arquivo = await guardarMidiaRecebida(negocio, midia, chave);
+  if (!arquivo) return null;
 
   const [criado] = await db
     .insert(documentosDoCliente)
@@ -354,7 +329,7 @@ export async function registrarDocumentoRecebido(
       tipo,
       chave,
       mimeType: arquivo.mimeType,
-      mensagemId: midia.id,
+      mensagemId: midia.mensagemId,
       recebidoEm: new Date(),
     })
     .onConflictDoNothing({ target: documentosDoCliente.mensagemId })
@@ -362,7 +337,7 @@ export async function registrarDocumentoRecebido(
   if (!criado) {
     // Outro processo registrou a mesma mensagem antes: fica o dele.
     await storage.apagarArquivo(chave);
-    return lerDocumento(eq(documentosDoCliente.mensagemId, midia.id));
+    return lerDocumento(eq(documentosDoCliente.mensagemId, midia.mensagemId));
   }
 
   try {

@@ -1,43 +1,32 @@
 import "server-only";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  gte,
-  inArray,
-  isNull,
-  max,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, max, ne } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   arquivosDoFechamento,
   clientes,
   conversas,
-  documentosDoCliente,
   type Etapa,
   empreendimentos,
   incorporadoras,
   lembretesDeEtapasFinais,
   lotes,
-  mensagens,
   negocioEtapas,
   negocios,
   pendencias,
   propostas,
   reservas,
   type TipoDeArquivoDoFechamento,
-  whatsappConexoes,
 } from "@/lib/db/schema";
 import { FUSO, partesEmBrasilia, somarDias } from "@/lib/fuso";
 import * as storage from "@/lib/storage";
-import * as whatsapp from "@/lib/whatsapp";
 import { contextoDoNegocio, enviarTextoAoCliente } from "./assistente/contexto";
 import { naJanelaDeEnvio } from "./cadencia";
 import { LoteIndisponivelError } from "./coleta-de-dados";
+import {
+  guardarMidiaRecebida,
+  midiasRecebidas,
+  proximaNaoRegistrada,
+} from "./midias-recebidas";
 import {
   mudarEtapa,
   type NegocioDoCorretor,
@@ -156,12 +145,10 @@ async function lerArquivo(where: ReturnType<typeof eq>) {
   return found ?? null;
 }
 
-const ehPdf = sql`(${mensagens.midia}->>'mimetype' = 'application/pdf' or lower(${mensagens.midia}->>'nomeDoArquivo') like '%.pdf')`;
-
 // Como em `registrarDocumentoRecebido` (ticket 16): as mídias do cliente
 // desde a entrada na etapa, da mais antiga para a mais nova; registra a
-// primeira ainda sem arquivo. A mensagem de origem é a chave natural:
-// repetir devolve o já registrado. Sem mídia → null.
+// primeira ainda sem registro (src/data/midias-recebidas.ts). A mensagem de
+// origem é a chave natural: repetir devolve o já registrado. Sem mídia → null.
 async function registrarArquivoRecebido(
   negocio: NegocioDoCorretor,
   input: {
@@ -176,64 +163,24 @@ async function registrarArquivoRecebido(
   novo: boolean;
 } | null> {
   const entrada = await entradaNaEtapa(negocio.id, input.etapa);
-  const recebidas = await db
-    .select({
-      id: mensagens.id,
-      evolutionId: mensagens.evolutionId,
-      arquivoId: arquivosDoFechamento.id,
-      chave: arquivosDoFechamento.chave,
-    })
-    .from(mensagens)
-    .innerJoin(conversas, eq(conversas.id, mensagens.conversaId))
-    .leftJoin(
-      arquivosDoFechamento,
-      eq(arquivosDoFechamento.mensagemId, mensagens.id),
-    )
-    .leftJoin(
-      documentosDoCliente,
-      eq(documentosDoCliente.mensagemId, mensagens.id),
-    )
-    .where(
-      and(
-        eq(conversas.clienteId, negocio.clienteId),
-        eq(conversas.corretorId, negocio.corretorId),
-        eq(mensagens.autor, "cliente"),
-        input.soPdf
-          ? and(sql`${mensagens.midia}->>'tipo' = 'documento'`, ehPdf)
-          : inArray(sql`${mensagens.midia}->>'tipo'`, ["imagem", "documento"]),
-        entrada ? gte(mensagens.enviadaEm, entrada) : undefined,
-        // Mídia já registrada como documento da coleta ou como o outro
-        // tipo não conta.
-        isNull(documentosDoCliente.id),
-        or(
-          isNull(arquivosDoFechamento.id),
-          eq(arquivosDoFechamento.tipo, input.tipo),
-        ),
-      ),
-    )
-    .orderBy(asc(mensagens.enviadaEm), asc(mensagens.criadaEm));
-  const midia = recebidas.find((m) => !m.arquivoId);
+  // Mídia já registrada como documento da coleta ou como o outro tipo não
+  // conta.
+  const recebidas = (
+    await midiasRecebidas(negocio, { desde: entrada, soPdf: input.soPdf })
+  ).filter(
+    (m) => !m.documentoId && (!m.arquivo || m.arquivo.tipo === input.tipo),
+  );
+  const midia = proximaNaoRegistrada(recebidas);
   if (!midia) {
-    const ultima = recebidas.at(-1);
-    if (!ultima?.arquivoId || !ultima.chave) return null;
-    const arquivo = await lerArquivo(
-      eq(arquivosDoFechamento.id, ultima.arquivoId),
-    );
+    const ultima = recebidas.at(-1)?.arquivo;
+    if (!ultima) return null;
+    const arquivo = await lerArquivo(eq(arquivosDoFechamento.id, ultima.id));
     return arquivo ? { arquivo, chave: ultima.chave, novo: false } : null;
   }
 
-  const [conexao] = await db
-    .select({ instancia: whatsappConexoes.instancia })
-    .from(whatsappConexoes)
-    .where(eq(whatsappConexoes.corretorId, negocio.corretorId));
-  if (!conexao?.instancia) return null;
-
-  const baixado = await whatsapp.baixarMidia(
-    conexao.instancia,
-    midia.evolutionId ?? "",
-  );
   const chave = `imobiliarias/${negocio.imobiliariaId}/negocios/${negocio.id}/fechamento/${crypto.randomUUID()}`;
-  await storage.salvarArquivo(chave, baixado.bytes, baixado.mimeType);
+  const baixado = await guardarMidiaRecebida(negocio, midia, chave);
+  if (!baixado) return null;
   const [criado] = await db
     .insert(arquivosDoFechamento)
     .values({
@@ -244,7 +191,7 @@ async function registrarArquivoRecebido(
       tipo: input.tipo,
       chave,
       mimeType: baixado.mimeType,
-      mensagemId: midia.id,
+      mensagemId: midia.mensagemId,
       recebidoEm: new Date(),
     })
     .onConflictDoNothing({ target: arquivosDoFechamento.mensagemId })
@@ -255,7 +202,7 @@ async function registrarArquivoRecebido(
     const [existente] = await db
       .select({ ...arquivoColumns, chave: arquivosDoFechamento.chave })
       .from(arquivosDoFechamento)
-      .where(eq(arquivosDoFechamento.mensagemId, midia.id));
+      .where(eq(arquivosDoFechamento.mensagemId, midia.mensagemId));
     if (!existente) return null;
     const { chave: chaveExistente, ...arquivo } = existente;
     return { arquivo, chave: chaveExistente, novo: false };
