@@ -1,18 +1,20 @@
 import { instanteEmBrasilia, partesEmBrasilia, somarDias } from "@/lib/fuso";
-import { dentroDaJanelaDeAvisos } from "./pendencias";
 
 // Cadência do follow-up e janela de envio (spec → Horário e Follow-up;
-// ticket 15). Funções puras: recebem o instante, nunca leem o relógio. Os
-// lembretes das etapas finais (tickets 16/18) podem reaproveitar
-// `proximaJanelaDeEnvio` e `naJanelaDeEnvio`.
+// ticket 15). Funções puras: recebem o instante, nunca leem o relógio.
+// `naJanelaDeEnvio` é a única janela de envio do sistema: follow-ups,
+// lembretes (visita, coleta, etapas finais) e avisos de pendência.
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
 // Silêncio máximo: depois disso o negócio fica "silencioso" e nada mais sai.
 export const SILENCIO_MAXIMO_DIAS = 90;
 
-// 8h–20h, segunda a sábado, horário de Brasília.
-export const naJanelaDeEnvio = dentroDaJanelaDeAvisos;
+// 8h–20h, segunda a sábado, horário de Brasília (spec → Horário).
+export function naJanelaDeEnvio(instante: Date): boolean {
+  const { hora, diaDaSemana } = partesEmBrasilia(instante);
+  return diaDaSemana !== 0 && hora >= 8 && hora < 20;
+}
 
 // O primeiro instante dentro da janela a partir de `instante` (ele mesmo,
 // se já está dentro).

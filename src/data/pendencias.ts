@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/schema";
 import { env } from "@/lib/env";
 import * as whatsapp from "@/lib/whatsapp";
+import { naJanelaDeEnvio } from "./cadencia";
 import { requireCorretor, type Session } from "./session";
 
 // Pendências (GLOSSARY → Pendência): o que o assistente não resolve sozinho e
@@ -189,19 +190,6 @@ export async function resolverPendencia(
 
 // --- Avisos ao corretor ------------------------------------------------------
 
-// 8h–20h, segunda a sábado, horário de Brasília (spec → Horário).
-export function dentroDaJanelaDeAvisos(agora: Date): boolean {
-  const partes = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Sao_Paulo",
-    hour: "numeric",
-    hourCycle: "h23",
-    weekday: "short",
-  }).formatToParts(agora);
-  const hora = Number(partes.find((p) => p.type === "hour")?.value);
-  const dia = partes.find((p) => p.type === "weekday")?.value;
-  return dia !== "Sun" && hora >= 8 && hora < 20;
-}
-
 export function textoDoAviso(pendencia: {
   id: string;
   tipo: TipoDePendencia;
@@ -252,7 +240,7 @@ export async function avisarCorretor(pendenciaId: string): Promise<boolean> {
       ),
     );
   if (!alvo || !alvo.telefone) return false;
-  if (!tiposUrgentes.includes(alvo.tipo) && !dentroDaJanelaDeAvisos(agora)) {
+  if (!tiposUrgentes.includes(alvo.tipo) && !naJanelaDeEnvio(agora)) {
     return false;
   }
 

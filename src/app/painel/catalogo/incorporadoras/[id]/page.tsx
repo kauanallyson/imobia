@@ -13,6 +13,7 @@ import {
 } from "@/data/incorporadoras";
 import { buscarModeloDeProposta, camposDaProposta } from "@/data/propostas";
 import { verificarCorretor } from "@/data/session";
+import { FUSO } from "@/lib/fuso";
 import { editarIncorporadoraAction } from "../../actions";
 import { IncorporadoraForm } from "../../forms";
 import { InstrucoesDePagamentoForm, ModeloDePropostaForm } from "./forms";
@@ -20,7 +21,7 @@ import { InstrucoesDePagamentoForm, ModeloDePropostaForm } from "./forms";
 const formatoData = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
   timeStyle: "short",
-  timeZone: "America/Sao_Paulo",
+  timeZone: FUSO,
 });
 
 export default function IncorporadoraPage({

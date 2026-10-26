@@ -1,4 +1,5 @@
 import type { Etapa } from "@/lib/db/schema";
+import { FUSO } from "@/lib/fuso";
 
 // Rótulos das etapas fixas (GLOSSARY.md → Etapa) para a interface.
 export const rotuloDaEtapa: Record<Etapa, string> = {
@@ -21,5 +22,5 @@ export function formatarTelefone(telefone: string) {
 export const formatoDataHora = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
   timeStyle: "short",
-  timeZone: "America/Sao_Paulo",
+  timeZone: FUSO,
 });

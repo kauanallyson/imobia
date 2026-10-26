@@ -1,6 +1,7 @@
 import "server-only";
 import { type calendar_v3, google } from "googleapis";
 import { env } from "@/lib/env";
+import { FUSO } from "@/lib/fuso";
 
 // Único módulo que conhece o Google Calendar (spec → Integrações). O resto
 // do sistema só vê estas funções; em testes o módulo inteiro é trocado por
@@ -45,7 +46,6 @@ const ESCOPOS = [
   "https://www.googleapis.com/auth/calendar.events",
   "https://www.googleapis.com/auth/calendar.freebusy",
 ];
-const FUSO = "America/Sao_Paulo";
 
 export function googleConfigurado() {
   return Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
