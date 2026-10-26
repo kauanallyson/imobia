@@ -5,6 +5,7 @@ import Divider from '@mui/material/Divider'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { useState } from 'react'
 import { authClient } from '#/auth/client'
 
 export function AuthCard(props: {
@@ -15,11 +16,18 @@ export function AuthCard(props: {
   footer: React.ReactNode
   children: React.ReactNode
 }) {
-  function signInWithGoogle() {
-    authClient.signIn.social({
+  const [googleError, setGoogleError] = useState<string | null>(null)
+  const error = props.error ?? googleError
+
+  async function signInWithGoogle() {
+    setGoogleError(null)
+    const result = await authClient.signIn.social({
       provider: 'google',
       callbackURL: props.redirect ?? '/',
     })
+    if (result.error) {
+      setGoogleError('Não foi possível entrar com o Google. Tente novamente.')
+    }
   }
 
   return (
@@ -29,7 +37,7 @@ export function AuthCard(props: {
           <Typography variant="h5" component="h1">
             {props.title}
           </Typography>
-          {props.error && <Alert severity="error">{props.error}</Alert>}
+          {error && <Alert severity="error">{error}</Alert>}
           {props.children}
           {props.google && (
             <>

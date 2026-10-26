@@ -35,7 +35,7 @@ function SignUp() {
     validators: { onBlur: schema, onSubmit: schema },
     onSubmit: async ({ value }) => {
       setError(null)
-      const result = await authClient.signUp.email(value)
+      const result = await authClient.signUp.email(schema.parse(value))
       if (result.error) {
         setError(
           result.error.status === 422
