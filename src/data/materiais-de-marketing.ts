@@ -98,7 +98,7 @@ export async function enviarMaterialDeMarketing(
       tamanho,
       enviadoEm: new Date(),
     })
-    .onConflictDoNothing({ target: materiaisDeMarketing.id })
+    .onConflictDoNothing() // id e chave (derivada do id) são únicos: qualquer um pode acusar o reenvio
     .returning(columns);
   if (!created) return buscarMaterialDeMarketing(session, id);
 
