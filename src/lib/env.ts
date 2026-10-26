@@ -32,6 +32,10 @@ const envSchema = z
     R2_ACCESS_KEY_ID: z.string().min(1),
     R2_SECRET_ACCESS_KEY: z.string().min(1),
     R2_BUCKET: z.string().min(1),
+    // Google Calendar (ticket 14), opcional: sem as duas, o corretor usa só
+    // a disponibilidade do CRM. Callback OAuth: APP_URL/api/google/callback.
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   })
   .refine((e) => e.R2_ENDPOINT || e.R2_ACCOUNT_ID, {
     message: "Informe R2_ENDPOINT ou R2_ACCOUNT_ID",

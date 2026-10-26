@@ -24,6 +24,7 @@ import {
   somarDias,
 } from "@/lib/fuso";
 import * as whatsapp from "@/lib/whatsapp";
+import { ocupadosNoGoogle, refletirVisitaNoGoogle } from "./google-calendar";
 import { mudarEtapa } from "./negocios";
 import { requireCorretor, type Session } from "./session";
 
@@ -74,7 +75,7 @@ const sobrepoe = (a: Date, b: Date) => a < fim(b) && b < fim(a);
 
 // Encaixes livres do corretor da sessão, do instante `aPartirDe` por `dias`
 // dias civis: janelas da semana, menos datas bloqueadas, menos visitas
-// ativas, só no futuro.
+// ativas, menos compromissos do Google Calendar (se conectado), só no futuro.
 export async function horariosLivres(
   session: Session,
   input: { aPartirDe: Date; dias: number },
@@ -87,7 +88,7 @@ export async function horariosLivres(
   const inicio = partesDeInicio.data;
   const limite = instanteEmBrasilia(somarDias(inicio, dias), "00:00");
 
-  const [janelas, bloqueios, ocupadas] = await Promise.all([
+  const [janelas, bloqueios, ocupadas, noGoogle] = await Promise.all([
     db
       .select({
         diaDaSemana: disponibilidades.diaDaSemana,
@@ -101,6 +102,7 @@ export async function horariosLivres(
       .from(datasBloqueadas)
       .where(eq(datasBloqueadas.corretorId, corretorId)),
     visitasAtivasEntre(corretorId, input.aPartirDe, limite),
+    ocupadosNoGoogle(corretorId, input.aPartirDe, limite),
   ]);
   if (janelas.length === 0) return [];
   const bloqueadas = new Set(bloqueios.map((b) => b.data));
@@ -123,6 +125,9 @@ export async function horariosLivres(
         const encaixe = instanteEmBrasilia(data, horario);
         if (encaixe <= input.aPartirDe) continue;
         if (ocupadas.some((v) => sobrepoe(encaixe, v.dataHora))) continue;
+        if (noGoogle.some((b) => encaixe < b.fim && b.inicio < fim(encaixe))) {
+          continue;
+        }
         livres.push(encaixe);
       }
     }
@@ -283,6 +288,7 @@ export async function agendarVisita(
     throw error;
   }
   if (!criada) return input.id ? buscarVisita(session, input.id) : null;
+  criada.eventoCalendarId = await refletirVisitaNoGoogle(criada.id);
 
   await mudarEtapa(session, negocio.id, "visita_agendada", {
     autor: input.autor ?? "corretor",
@@ -395,6 +401,7 @@ export async function remarcarVisita(
     throw error;
   }
   if (!alterada) return null;
+  alterada.eventoCalendarId = await refletirVisitaNoGoogle(alterada.id);
   if (input.notificarCliente) {
     await notificarCliente(session, alterada, "remarcada");
   }
@@ -414,6 +421,7 @@ export async function cancelarVisita(
     .set({ estado: "cancelada", atualizadaEm: new Date() })
     .where(eq(visitas.id, atual.id))
     .returning(columns);
+  if (alterada) await refletirVisitaNoGoogle(alterada.id);
   return alterada ?? null;
 }
 
@@ -438,6 +446,7 @@ export async function alterarLocalDaVisita(
     })
     .where(eq(visitas.id, atual.id))
     .returning(columns);
+  if (alterada) await refletirVisitaNoGoogle(alterada.id);
   return alterada ?? null;
 }
 

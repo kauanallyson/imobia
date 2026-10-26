@@ -306,3 +306,15 @@ export async function criarLotesEPlanosDaAna(session: Session) {
   );
   return { incorporadora, empreendimento, lotes, plano60, plano120 };
 }
+
+// Ticket 14: conecta o Google Calendar do corretor da sessão pelo fluxo
+// OAuth (Calendar falso).
+export async function conectarGoogle(session: Session) {
+  const { iniciarConexaoGoogle, concluirConexaoGoogle } = await import(
+    "@/data/google-calendar"
+  );
+  const url = await iniciarConexaoGoogle(session);
+  const state = ok(new URL(url).searchParams.get("state"), "state");
+  if (!(await concluirConexaoGoogle(session, { code: "codigo-valido", state })))
+    throw new Error("conectarGoogle: falhou");
+}

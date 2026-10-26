@@ -1,4 +1,5 @@
 import { beforeEach, mock } from "bun:test";
+import * as calendar from "./calendar";
 import * as llm from "./llm";
 import * as storage from "./storage";
 import * as whatsapp from "./whatsapp";
@@ -8,11 +9,13 @@ import * as whatsapp from "./whatsapp";
 mock.module("@/lib/whatsapp", () => whatsapp);
 mock.module("@/lib/llm", () => llm);
 mock.module("@/lib/storage", () => storage);
+mock.module("@/lib/calendar", () => calendar);
 
 export function limparFakes() {
   whatsapp.limpar();
   llm.limpar();
   storage.limpar();
+  calendar.limpar();
 }
 
 beforeEach(() => {

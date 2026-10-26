@@ -719,3 +719,36 @@ export const lembretesDeVisita = pgTable(
   },
   (t) => [unique("lembretes_de_visita_visita_tipo").on(t.visitaId, t.tipo)],
 );
+
+// ---- ticket 14: Google Calendar do corretor -----------------------------------
+// Uma conexão por corretor. O `estadoOauth` liga o callback do OAuth ao
+// corretor que pediu a conexão (expira em 10 minutos); os tokens só existem
+// depois do callback. `syncToken` é a posição da sincronização incremental.
+export const googleCalendarConexoes = pgTable(
+  "google_calendar_conexoes",
+  {
+    corretorId: uuid("corretor_id")
+      .primaryKey()
+      .references(() => users.id),
+    imobiliariaId: uuid("imobiliaria_id")
+      .notNull()
+      .references(() => imobiliarias.id),
+    estadoOauth: text("estado_oauth").unique(),
+    estadoOauthExpiraEm: timestamp("estado_oauth_expira_em", {
+      withTimezone: true,
+    }),
+    refreshToken: text("refresh_token"),
+    accessToken: text("access_token"),
+    tokenExpiraEm: timestamp("token_expira_em", { withTimezone: true }),
+    calendarId: text("calendar_id").notNull().default("primary"),
+    syncToken: text("sync_token"),
+    conectadaEm: timestamp("conectada_em", { withTimezone: true }),
+    atualizadaEm: timestamp("atualizada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("google_calendar_conexoes_imobiliaria_id_idx").on(t.imobiliariaId),
+  ],
+);
+// ---- fim ticket 14
