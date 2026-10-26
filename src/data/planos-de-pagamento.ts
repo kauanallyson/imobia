@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { empreendimentos, planosDePagamento } from "@/lib/db/schema";
 import { buscarEmpreendimento } from "./empreendimentos";
+import { isForeignKeyViolation } from "./errors";
 import { buscarLote } from "./lotes";
 import { buscarModeloDeCasa } from "./modelos-de-casa";
 import { requireCorretor, type Session } from "./session";
@@ -158,16 +159,32 @@ export async function editarPlanoDePagamento(
   return edited ?? null;
 }
 
+// Plano escolhido num negócio ou usado numa proposta: fica no histórico.
+export class PlanoEmUsoError extends Error {
+  override name = "PlanoEmUsoError";
+}
+
 // true se removeu agora; false se já não existia (ou está fora do escopo).
+// Plano em uso (negócio ou proposta) → PlanoEmUsoError; as chaves
+// estrangeiras decidem, sem corrida entre checar e apagar.
 export async function removerPlanoDePagamento(
   session: Session,
   id: string,
 ): Promise<boolean> {
   const plano = await buscarPlanoDePagamento(session, id);
   if (!plano) return false;
-  const removed = await db
-    .delete(planosDePagamento)
-    .where(eq(planosDePagamento.id, plano.id))
-    .returning({ id: planosDePagamento.id });
-  return removed.length > 0;
+  try {
+    const removed = await db
+      .delete(planosDePagamento)
+      .where(eq(planosDePagamento.id, plano.id))
+      .returning({ id: planosDePagamento.id });
+    return removed.length > 0;
+  } catch (error) {
+    if (isForeignKeyViolation(error)) {
+      throw new PlanoEmUsoError(
+        "Este plano está em uso por um negócio ou uma proposta e não pode ser removido.",
+      );
+    }
+    throw error;
+  }
 }

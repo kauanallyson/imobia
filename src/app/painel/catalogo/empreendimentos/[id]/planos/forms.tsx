@@ -1,9 +1,12 @@
 "use client";
 
 import CalculateIcon from "@mui/icons-material/Calculate";
+import DeleteIcon from "@mui/icons-material/Delete";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import SaveIcon from "@mui/icons-material/Save";
 import Alert from "@mui/material/Alert";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Form from "next/form";
@@ -69,6 +72,42 @@ export function PlanoForm({
       <SubmitButton pending={pending} icon={valores ? SaveIcon : PaymentsIcon}>
         {valores ? "Salvar" : "Criar plano"}
       </SubmitButton>
+    </Stack>
+  );
+}
+
+// Remover o plano: em uso (negócio ou proposta) o motivo aparece no Alert.
+export function RemoverPlanoForm({
+  action,
+  planoId,
+  empreendimentoId,
+}: {
+  action: Action;
+  planoId: string;
+  empreendimentoId: string;
+}) {
+  const [state, formAction, pending] = useActionState(action, {});
+  return (
+    <Stack component="form" action={formAction} spacing={1}>
+      <input type="hidden" name="planoId" value={planoId} />
+      <input type="hidden" name="empreendimentoId" value={empreendimentoId} />
+      {state.erro && <Alert severity="error">{state.erro}</Alert>}
+      <Button
+        type="submit"
+        color="error"
+        variant="outlined"
+        size="large"
+        disabled={pending}
+        startIcon={
+          pending ? (
+            <CircularProgress size={18} color="inherit" />
+          ) : (
+            <DeleteIcon aria-hidden fontSize="small" />
+          )
+        }
+      >
+        Remover plano
+      </Button>
     </Stack>
   );
 }

@@ -1,5 +1,3 @@
-import DeleteIcon from "@mui/icons-material/Delete";
-import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { notFound } from "next/navigation";
@@ -8,7 +6,7 @@ import Link from "@/app/components/link";
 import { buscarPlanoDePagamento } from "@/data/planos-de-pagamento";
 import { verificarCorretor } from "@/data/session";
 import { editarPlanoAction, removerPlanoAction } from "../actions";
-import { PlanoForm } from "../forms";
+import { PlanoForm, RemoverPlanoForm } from "../forms";
 
 type Props =
   PageProps<"/painel/catalogo/empreendimentos/[id]/planos/[planoId]">;
@@ -47,19 +45,11 @@ async function Plano({ params }: Pick<Props, "params">) {
         empreendimentoId={id}
         valores={plano}
       />
-      <Stack component="form" action={removerPlanoAction} spacing={1}>
-        <input type="hidden" name="planoId" value={plano.id} />
-        <input type="hidden" name="empreendimentoId" value={id} />
-        <Button
-          type="submit"
-          color="error"
-          variant="outlined"
-          size="large"
-          startIcon={<DeleteIcon aria-hidden fontSize="small" />}
-        >
-          Remover plano
-        </Button>
-      </Stack>
+      <RemoverPlanoForm
+        action={removerPlanoAction}
+        planoId={plano.id}
+        empreendimentoId={id}
+      />
     </>
   );
 }

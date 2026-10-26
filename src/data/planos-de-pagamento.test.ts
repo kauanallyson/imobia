@@ -2,12 +2,14 @@ import { describe, expect, test } from "bun:test";
 import {
   criarAna,
   criarBruno,
+  criarCenarioDePropostaDaAna,
   criarConcorrente,
   criarEmpreendimentoDaAna,
   criarLoteECasaDaAna,
   ok,
   sessaoDe,
 } from "@/test/fixtures";
+import { buscarNegocio, escolherPlano } from "./negocios";
 import {
   buscarPlanoDePagamento,
   calcularPlano,
@@ -15,8 +17,10 @@ import {
   criarPlanoDePagamento,
   editarPlanoDePagamento,
   listarPlanosDePagamento,
+  PlanoEmUsoError,
   removerPlanoDePagamento,
 } from "./planos-de-pagamento";
+import { gerarProposta } from "./propostas";
 import { ForbiddenError } from "./session";
 
 const entrada20 = {
@@ -137,6 +141,36 @@ describe("planos de pagamento", () => {
     expect(await removerPlanoDePagamento(session, plano.id)).toBe(true);
     expect(await removerPlanoDePagamento(session, plano.id)).toBe(false);
     expect(await buscarPlanoDePagamento(session, plano.id)).toBeNull();
+  });
+
+  test("plano escolhido num negócio não pode ser removido", async () => {
+    const { session, negocio, plano } = await criarCenarioDePropostaDaAna();
+    expect(
+      ok(await buscarNegocio(session, negocio.id)).planoEscolhido?.id,
+    ).toBe(plano.id);
+
+    await expect(
+      removerPlanoDePagamento(session, plano.id),
+    ).rejects.toBeInstanceOf(PlanoEmUsoError);
+    expect(await buscarPlanoDePagamento(session, plano.id)).not.toBeNull();
+  });
+
+  test("plano usado numa proposta não pode ser removido, mesmo fora do negócio", async () => {
+    const { session, negocio, plano, empreendimento } =
+      await criarCenarioDePropostaDaAna();
+    ok(await gerarProposta(session, negocio.id));
+    const outro = ok(
+      await criarPlanoDePagamento(session, {
+        empreendimentoId: empreendimento.id,
+        ...entrada20,
+      }),
+    );
+    ok(await escolherPlano(session, negocio.id, { planoId: outro.id }));
+
+    await expect(
+      removerPlanoDePagamento(session, plano.id),
+    ).rejects.toBeInstanceOf(PlanoEmUsoError);
+    expect(await buscarPlanoDePagamento(session, plano.id)).not.toBeNull();
   });
 
   test("corretor de outra imobiliária não vê nem altera o plano", async () => {

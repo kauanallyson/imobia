@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   criarPlanoDePagamento,
   editarPlanoDePagamento,
+  PlanoEmUsoError,
   removerPlanoDePagamento,
 } from "@/data/planos-de-pagamento";
 import { verificarCorretor } from "@/data/session";
@@ -60,13 +61,21 @@ const removerSchema = z.object({
   empreendimentoId: z.uuid(),
 });
 
-// Botão simples: remover de novo não falha.
-export async function removerPlanoAction(formData: FormData) {
+// Remover de novo não falha; plano em uso volta com o motivo.
+export async function removerPlanoAction(
+  _: FormState,
+  formData: FormData,
+): Promise<FormState> {
   const session = await verificarCorretor();
   const input = removerSchema.safeParse(Object.fromEntries(formData));
-  if (!input.success) return;
+  if (!input.success) return { erro: "Plano não encontrado." };
 
-  await removerPlanoDePagamento(session, input.data.planoId);
+  try {
+    await removerPlanoDePagamento(session, input.data.planoId);
+  } catch (error) {
+    if (error instanceof PlanoEmUsoError) return { erro: error.message };
+    throw error;
+  }
   revalidatePath(paginaDePlanos, "page");
   redirect(
     `/painel/catalogo/empreendimentos/${input.data.empreendimentoId}/planos`,
