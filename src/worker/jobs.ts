@@ -1,3 +1,4 @@
+import { jobDeFollowUps } from "@/data/follow-ups";
 import { jobDoGoogleCalendar } from "@/data/sincronizar-google-calendar";
 import { jobDeLembretesDeVisita } from "@/data/visitas";
 
@@ -9,5 +10,6 @@ export type Job = { nome: string; executar: () => Promise<unknown> };
 
 export const jobs: Job[] = [
   jobDeLembretesDeVisita, // ticket 13
+  jobDeFollowUps, // ticket 15
   jobDoGoogleCalendar, // ticket 14
 ];
