@@ -177,6 +177,7 @@ describe("detalhe do negócio", () => {
 
 describe("mudança de etapa", () => {
   test("mudança manual fica no histórico com autor corretor e atualiza o negócio", async () => {
+    setSystemTime(new Date("2026-10-23T09:00:00-03:00"));
     const { session, negocio } = await criarNegocioDaAna();
     setSystemTime(new Date("2026-10-24T09:00:00-03:00"));
 
