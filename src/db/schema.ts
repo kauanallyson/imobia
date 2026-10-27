@@ -1,93 +1,68 @@
-import { relations } from 'drizzle-orm'
-import { pgTable, text, timestamp, boolean, index } from 'drizzle-orm/pg-core'
+import {
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core'
+import { user } from './auth-schema'
 
-export const user = pgTable('user', {
-  id: text('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').notNull().unique(),
-  emailVerified: boolean('email_verified').default(false).notNull(),
-  image: text('image'),
+export * from './auth-schema'
+
+// Better Auth names the Broker's table `user`; in our code it's the Broker.
+const brokerId = () =>
+  text('broker_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+
+export const businessNumber = pgTable('business_number', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  brokerId: brokerId().unique(),
+  phoneNumberId: text('phone_number_id').notNull().unique(),
+  displayPhoneNumber: text('display_phone_number').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
-    .defaultNow()
-    .$onUpdate(() => /* @__PURE__ */ new Date())
-    .notNull(),
 })
 
-export const session = pgTable(
-  'session',
+export const contact = pgTable('contact', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  brokerId: brokerId(),
+  name: text('name'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+// One Conversation per Contact number; `waId` is that number as WhatsApp reports it.
+export const conversation = pgTable(
+  'conversation',
   {
-    id: text('id').primaryKey(),
-    expiresAt: timestamp('expires_at').notNull(),
-    token: text('token').notNull().unique(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-    ipAddress: text('ip_address'),
-    userAgent: text('user_agent'),
-    userId: text('user_id')
+    id: uuid('id').primaryKey().defaultRandom(),
+    brokerId: brokerId(),
+    contactId: uuid('contact_id')
       .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
+      .references(() => contact.id, { onDelete: 'cascade' }),
+    waId: text('wa_id').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [index('session_userId_idx').on(table.userId)],
+  (table) => [unique().on(table.brokerId, table.waId)],
 )
 
-export const account = pgTable(
-  'account',
+export const messageDirection = pgEnum('message_direction', ['in', 'out'])
+
+export const message = pgTable(
+  'message',
   {
-    id: text('id').primaryKey(),
-    accountId: text('account_id').notNull(),
-    providerId: text('provider_id').notNull(),
-    userId: text('user_id')
+    id: uuid('id').primaryKey().defaultRandom(),
+    brokerId: brokerId(),
+    conversationId: uuid('conversation_id')
       .notNull()
-      .references(() => user.id, { onDelete: 'cascade' }),
-    accessToken: text('access_token'),
-    refreshToken: text('refresh_token'),
-    idToken: text('id_token'),
-    accessTokenExpiresAt: timestamp('access_token_expires_at'),
-    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
-    scope: text('scope'),
-    password: text('password'),
+      .references(() => conversation.id, { onDelete: 'cascade' }),
+    // WhatsApp's message id; unique per Broker so a webhook Meta retries is stored once.
+    wamid: text('wamid').notNull(),
+    direction: messageDirection('direction').notNull(),
+    type: text('type').notNull(),
+    text: text('text'),
+    sentAt: timestamp('sent_at').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
   },
-  (table) => [index('account_userId_idx').on(table.userId)],
+  (table) => [unique().on(table.brokerId, table.wamid)],
 )
-
-export const verification = pgTable(
-  'verification',
-  {
-    id: text('id').primaryKey(),
-    identifier: text('identifier').notNull(),
-    value: text('value').notNull(),
-    expiresAt: timestamp('expires_at').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-    updatedAt: timestamp('updated_at')
-      .defaultNow()
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-  },
-  (table) => [index('verification_identifier_idx').on(table.identifier)],
-)
-
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-}))
-
-export const sessionRelations = relations(session, ({ one }) => ({
-  user: one(user, {
-    fields: [session.userId],
-    references: [user.id],
-  }),
-}))
-
-export const accountRelations = relations(account, ({ one }) => ({
-  user: one(user, {
-    fields: [account.userId],
-    references: [user.id],
-  }),
-}))

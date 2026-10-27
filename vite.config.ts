@@ -8,7 +8,14 @@ import viteReact from '@vitejs/plugin-react'
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
   ssr: { noExternal: ['@mui/*'] },
-  plugins: [devtools(), tanstackStart(), viteReact()],
+  // Lets Meta reach the dev server through `bun run tunnel`.
+  server: { allowedHosts: ['.trycloudflare.com'] },
+  plugins: [
+    // Console piping sends server logs to the browser and back, which loops forever.
+    devtools({ consolePiping: { enabled: false } }),
+    tanstackStart(),
+    viteReact(),
+  ],
 })
 
 export default config

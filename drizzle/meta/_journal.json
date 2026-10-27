@@ -8,6 +8,20 @@
       "when": 1793041901751,
       "tag": "0000_secret_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793058414968,
+      "tag": "0001_quiet_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793060257575,
+      "tag": "0002_great_chat",
+      "breakpoints": true
     }
   ]
 }

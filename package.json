@@ -14,7 +14,9 @@
     "lint": "oxlint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "auth:schema": "auth generate --config src/auth/server.ts --output src/db/schema.ts --yes"
+    "auth:schema": "auth generate --config src/auth/server.ts --output src/db/auth-schema.ts --yes",
+    "whatsapp:link": "bun scripts/whatsapp-link.ts",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -45,6 +47,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "auth": "1.7.13",
+    "cloudflared": "^0.7.3",
     "drizzle-kit": "^0.31.11",
     "oxlint": "^1.89.0",
     "typescript": "^6.0.2",
