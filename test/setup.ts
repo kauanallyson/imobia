@@ -16,6 +16,13 @@ const quiet = postgres(env.DATABASE_URL, { onnotice: () => {} })
 await migrate(drizzle(quiet), { migrationsFolder: './drizzle' })
 await quiet.end()
 
+const tables = await db.execute<{ tablename: string }>(
+  sql`select tablename from pg_tables where schemaname = 'public'`,
+)
+const truncateAll = sql.raw(
+  `truncate table ${tables.map((t) => `"${t.tablename}"`).join(', ')}`,
+)
+
 beforeEach(async () => {
-  await db.execute(sql`truncate table "user", session, account, verification`)
+  await db.execute(truncateAll)
 })

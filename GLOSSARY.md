@@ -38,6 +38,10 @@ _Avoid_: Inventory, catalog, stock
 The AI that answers Contacts on the Broker's WhatsApp, on the Broker's behalf.
 _Avoid_: Agent, bot, Imobia (the product)
 
+**Business Number** ("Número do corretor"):
+The Broker's own WhatsApp number, connected to Imobia, that Contacts write to. A Broker has one.
+_Avoid_: Line, channel, phone number (ambiguous with a Contact's)
+
 **Conversation** ("Conversa"):
 The WhatsApp chat between a Broker and one of a Contact's numbers. A Contact has one Conversation per number, however many Deals they have.
 _Avoid_: Chat, thread, ticket
