@@ -14,6 +14,9 @@ export const developmentInput = z.object({
   paymentTerms: optionalText(),
 })
 
+// What an edit may change: everything but the kind, which its Properties depend on.
+export const developmentEdit = developmentInput.omit({ kind: true })
+
 // Blank form fields are stored as null, not as empty strings.
 function optionalText() {
   return z
@@ -69,11 +72,11 @@ export async function listDevelopments(brokerId: string) {
 export async function updateDevelopment(
   brokerId: string,
   id: string,
-  input: z.input<typeof developmentInput>,
+  input: z.input<typeof developmentEdit>,
 ) {
   const [updated] = await db
     .update(development)
-    .set(developmentInput.parse(input))
+    .set(developmentEdit.parse(input))
     .where(and(eq(development.id, id), eq(development.brokerId, brokerId)))
     .returning()
   if (!updated) throw new NotFoundError('Development')

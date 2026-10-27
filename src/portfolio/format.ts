@@ -8,11 +8,14 @@ export function formatPrice(cents: number) {
 }
 
 // Accepts what a Broker types: "150.000,50", "150000,50", "150000.50" or "R$ 150.000".
+// Without a comma, dots splitting groups of three digits are thousands ("1.200" is 1200).
 export function parseDecimal(text: string) {
   const cleaned = text.replace(/R\$|\s/g, '')
   const normalized = cleaned.includes(',')
     ? cleaned.replace(/\./g, '').replace(',', '.')
-    : cleaned
+    : /^\d{1,3}(\.\d{3})+$/.test(cleaned)
+      ? cleaned.replace(/\./g, '')
+      : cleaned
   return normalized === '' ? Number.NaN : Number(normalized)
 }
 

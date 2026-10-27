@@ -6,6 +6,7 @@ import {
   NotFoundError,
   addProperty,
   createDevelopment,
+  developmentEdit,
   developmentInput,
   getDevelopment,
   listDevelopments,
@@ -40,7 +41,7 @@ export const createDevelopmentFn = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => createDevelopment(await currentBrokerId(), data))
 
 export const updateDevelopmentFn = createServerFn({ method: 'POST' })
-  .validator(z.object({ id, development: developmentInput }))
+  .validator(z.object({ id, development: developmentEdit }))
   .handler(async ({ data }) =>
     updateDevelopment(await currentBrokerId(), data.id, data.development),
   )

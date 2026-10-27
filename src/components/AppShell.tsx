@@ -5,6 +5,7 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { authClient } from '#/auth/client'
@@ -15,6 +16,7 @@ export function AppShell(props: {
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
 
   async function signOut() {
@@ -24,6 +26,9 @@ export function AppShell(props: {
       setError('Não foi possível sair. Tente novamente.')
       return
     }
+    // Query keys aren't per Broker, so the next one to sign in on this tab
+    // must not see this Broker's cached data.
+    queryClient.clear()
     await router.invalidate()
   }
 

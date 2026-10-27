@@ -197,4 +197,16 @@ describe('Portfolio', () => {
     const [listed] = await listDevelopments(broker.id)
     expect(listed.units).toEqual({ available: 1, reserved: 1, sold: 1 })
   })
+
+  test('editing a Development never changes its kind', async () => {
+    const broker = await createBroker()
+    const vila = await createDevelopment(broker.id, vilaNova)
+
+    // What a request sent straight to the endpoint could carry.
+    const tampered = { ...vilaNova, kind: 'lot' }
+    await updateDevelopment(broker.id, vila.id, tampered as never)
+
+    const [edited] = await listDevelopments(broker.id)
+    expect(edited.kind).toBe('off_plan_house')
+  })
 })
