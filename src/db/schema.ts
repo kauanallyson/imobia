@@ -48,16 +48,21 @@ export const conversation = pgTable(
 
 export const messageDirection = pgEnum('message_direction', ['in', 'out'])
 
-export const message = pgTable('message', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  conversationId: uuid('conversation_id')
-    .notNull()
-    .references(() => conversation.id, { onDelete: 'cascade' }),
-  // WhatsApp's message id; unique so a webhook retried by Meta is stored once.
-  wamid: text('wamid').notNull().unique(),
-  direction: messageDirection('direction').notNull(),
-  type: text('type').notNull(),
-  text: text('text'),
-  sentAt: timestamp('sent_at').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-})
+export const message = pgTable(
+  'message',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    brokerId: brokerId(),
+    conversationId: uuid('conversation_id')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' }),
+    // WhatsApp's message id; unique per Broker so a webhook Meta retries is stored once.
+    wamid: text('wamid').notNull(),
+    direction: messageDirection('direction').notNull(),
+    type: text('type').notNull(),
+    text: text('text'),
+    sentAt: timestamp('sent_at').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [unique().on(table.brokerId, table.wamid)],
+)

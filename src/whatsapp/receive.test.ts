@@ -126,4 +126,46 @@ describe('receiveWebhook', () => {
     expect(withAna?.messages.map((m) => m.text)).toEqual(['Oi Ana'])
     expect(withBia?.messages.map((m) => m.text)).toEqual(['Oi Bia'])
   })
+
+  test('messages from a new number arriving at once still make one Contact', async () => {
+    const broker = await brokerWithNumber()
+    const from = '5588999990000'
+    const texts = Array.from({ length: 20 }, (_, i) => `mensagem ${i}`)
+
+    await Promise.all(
+      texts.map((text, i) =>
+        receiveWebhook(
+          textMessageWebhook({
+            phoneNumberId: 'pn-1',
+            from,
+            wamid: `w${i}`,
+            text,
+            timestamp: 100 + i,
+          }),
+        ),
+      ),
+    )
+
+    const conversation = await getConversation(broker.id, from)
+    expect(conversation?.messages.map((m) => m.text)).toEqual(texts)
+  })
+
+  test('messages are stored even when the delivery also carries other kinds of changes', async () => {
+    const broker = await brokerWithNumber()
+    const webhook = textMessageWebhook({
+      phoneNumberId: 'pn-1',
+      from: '5588999990000',
+      wamid: 'w1',
+      text: 'Oi',
+    })
+    webhook.entry[0].changes.unshift({
+      field: 'account_update',
+      value: { event: 'VERIFIED_ACCOUNT' },
+    } as never)
+
+    await receiveWebhook(webhook)
+
+    const conversation = await getConversation(broker.id, '5588999990000')
+    expect(conversation?.messages.map((m) => m.text)).toEqual(['Oi'])
+  })
 })
