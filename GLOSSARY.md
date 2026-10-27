@@ -13,7 +13,7 @@ A person who talks to a Broker over WhatsApp about buying a Property. Someone wh
 _Avoid_: Client, lead, customer
 
 **Development** ("Empreendimento"):
-A developer's project that the Broker sells units of: a subdivision of Lots ("loteamento") or a launch of Off-plan Houses. It holds what all its Properties share, such as location, amenities and payment terms.
+A developer's project that the Broker sells units of: either a subdivision of Lots ("loteamento") or a launch of Off-plan Houses, never both. It holds what all its Properties share, such as location, amenities and payment terms.
 _Avoid_: Project, launch, subdivision, condominium
 
 **Property** ("Imóvel"):
@@ -28,9 +28,9 @@ _Avoid_: Plot, land, terreno (in code)
 A Property that is a house sold before it is built or finished.
 _Avoid_: Pre-construction, new build, launch
 
-**Portfolio** ("Carteira"):
-All the Properties a Broker has to offer. The Assistant answers and makes suggestions only from the Portfolio.
-_Avoid_: Inventory, catalog, stock
+**Portfolio** (shown as "Empreendimentos"):
+All the Properties a Broker has to offer, grouped by Development. The Assistant answers and makes suggestions only from the Portfolio. Brazilian brokers don't say "carteira" for this; the app names the page after what it lists.
+_Avoid_: Inventory, catalog, stock, carteira
 
 ## Conversations
 
@@ -90,9 +90,9 @@ _Avoid_: Loss note, cancellation reason
 A Property that can still be offered to Contacts.
 
 **Reserved** ("Reservado"):
-A Property with at least one Deal in Proposal or later. Several Deals may compete for it. The Assistant stops offering it; it becomes Available again once all those Deals are Lost.
+A Property with at least one Deal in Proposal or later, or one the Broker marked Reserved by hand. Several Deals may compete for it. The Assistant stops offering it; it becomes Available again once all those Deals are Lost.
 _Avoid_: On hold, blocked
 
 **Sold** ("Vendido"):
-A Property whose Deal is Won. Other open Deals on it are flagged for the Broker to resolve.
+A Property whose Deal is Won, or one the Broker marked Sold by hand because it was sold outside Imobia (by the developer or another broker). Other open Deals on it are flagged for the Broker to resolve.
 _Avoid_: Closed, unavailable

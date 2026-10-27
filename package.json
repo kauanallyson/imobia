@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && bun fmt drizzle",
     "db:migrate": "drizzle-kit migrate",
     "auth:schema": "auth generate --config src/auth/server.ts --output src/db/auth-schema.ts --yes",
     "whatsapp:link": "bun scripts/whatsapp-link.ts",

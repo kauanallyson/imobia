@@ -13,8 +13,12 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedEmpreendimentosIndexRouteImport } from './routes/_authed/empreendimentos/index'
+import { Route as AuthedEmpreendimentosNovoRouteImport } from './routes/_authed/empreendimentos/novo'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiWhatsappWebhookRouteImport } from './routes/api/whatsapp/webhook'
+import { Route as AuthedEmpreendimentosDevelopmentIdIndexRouteImport } from './routes/_authed/empreendimentos/$developmentId/index'
+import { Route as AuthedEmpreendimentosDevelopmentIdEditarRouteImport } from './routes/_authed/empreendimentos/$developmentId/editar'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -35,6 +39,18 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedEmpreendimentosIndexRoute =
+  AuthedEmpreendimentosIndexRouteImport.update({
+    id: '/empreendimentos/',
+    path: '/empreendimentos/',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedEmpreendimentosNovoRoute =
+  AuthedEmpreendimentosNovoRouteImport.update({
+    id: '/empreendimentos/novo',
+    path: '/empreendimentos/novo',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -45,20 +61,40 @@ const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
   path: '/api/whatsapp/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedEmpreendimentosDevelopmentIdIndexRoute =
+  AuthedEmpreendimentosDevelopmentIdIndexRouteImport.update({
+    id: '/empreendimentos/$developmentId/',
+    path: '/empreendimentos/$developmentId/',
+    getParentRoute: () => AuthedRoute,
+  } as any)
+const AuthedEmpreendimentosDevelopmentIdEditarRoute =
+  AuthedEmpreendimentosDevelopmentIdEditarRouteImport.update({
+    id: '/empreendimentos/$developmentId/editar',
+    path: '/empreendimentos/$developmentId/editar',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
+  '/empreendimentos/novo': typeof AuthedEmpreendimentosNovoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
+  '/empreendimentos/': typeof AuthedEmpreendimentosIndexRoute
+  '/empreendimentos/$developmentId/editar': typeof AuthedEmpreendimentosDevelopmentIdEditarRoute
+  '/empreendimentos/$developmentId/': typeof AuthedEmpreendimentosDevelopmentIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/': typeof AuthedIndexRoute
+  '/empreendimentos/novo': typeof AuthedEmpreendimentosNovoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
+  '/empreendimentos': typeof AuthedEmpreendimentosIndexRoute
+  '/empreendimentos/$developmentId/editar': typeof AuthedEmpreendimentosDevelopmentIdEditarRoute
+  '/empreendimentos/$developmentId': typeof AuthedEmpreendimentosDevelopmentIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,23 +102,48 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
   '/_authed/': typeof AuthedIndexRoute
+  '/_authed/empreendimentos/novo': typeof AuthedEmpreendimentosNovoRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
+  '/_authed/empreendimentos/': typeof AuthedEmpreendimentosIndexRoute
+  '/_authed/empreendimentos/$developmentId/editar': typeof AuthedEmpreendimentosDevelopmentIdEditarRoute
+  '/_authed/empreendimentos/$developmentId/': typeof AuthedEmpreendimentosDevelopmentIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/cadastro' | '/login' | '/api/auth/$' | '/api/whatsapp/webhook'
+    | '/'
+    | '/cadastro'
+    | '/login'
+    | '/empreendimentos/novo'
+    | '/api/auth/$'
+    | '/api/whatsapp/webhook'
+    | '/empreendimentos/'
+    | '/empreendimentos/$developmentId/editar'
+    | '/empreendimentos/$developmentId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/cadastro' | '/login' | '/' | '/api/auth/$' | '/api/whatsapp/webhook'
+  to:
+    | '/cadastro'
+    | '/login'
+    | '/'
+    | '/empreendimentos/novo'
+    | '/api/auth/$'
+    | '/api/whatsapp/webhook'
+    | '/empreendimentos'
+    | '/empreendimentos/$developmentId/editar'
+    | '/empreendimentos/$developmentId'
   id:
     | '__root__'
     | '/_authed'
     | '/cadastro'
     | '/login'
     | '/_authed/'
+    | '/_authed/empreendimentos/novo'
     | '/api/auth/$'
     | '/api/whatsapp/webhook'
+    | '/_authed/empreendimentos/'
+    | '/_authed/empreendimentos/$developmentId/editar'
+    | '/_authed/empreendimentos/$developmentId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -123,6 +184,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/empreendimentos/': {
+      id: '/_authed/empreendimentos/'
+      path: '/empreendimentos'
+      fullPath: '/empreendimentos/'
+      preLoaderRoute: typeof AuthedEmpreendimentosIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/empreendimentos/novo': {
+      id: '/_authed/empreendimentos/novo'
+      path: '/empreendimentos/novo'
+      fullPath: '/empreendimentos/novo'
+      preLoaderRoute: typeof AuthedEmpreendimentosNovoRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -137,15 +212,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/empreendimentos/$developmentId/': {
+      id: '/_authed/empreendimentos/$developmentId/'
+      path: '/empreendimentos/$developmentId'
+      fullPath: '/empreendimentos/$developmentId/'
+      preLoaderRoute: typeof AuthedEmpreendimentosDevelopmentIdIndexRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/empreendimentos/$developmentId/editar': {
+      id: '/_authed/empreendimentos/$developmentId/editar'
+      path: '/empreendimentos/$developmentId/editar'
+      fullPath: '/empreendimentos/$developmentId/editar'
+      preLoaderRoute: typeof AuthedEmpreendimentosDevelopmentIdEditarRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
 interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedEmpreendimentosNovoRoute: typeof AuthedEmpreendimentosNovoRoute
+  AuthedEmpreendimentosIndexRoute: typeof AuthedEmpreendimentosIndexRoute
+  AuthedEmpreendimentosDevelopmentIdEditarRoute: typeof AuthedEmpreendimentosDevelopmentIdEditarRoute
+  AuthedEmpreendimentosDevelopmentIdIndexRoute: typeof AuthedEmpreendimentosDevelopmentIdIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedEmpreendimentosNovoRoute: AuthedEmpreendimentosNovoRoute,
+  AuthedEmpreendimentosIndexRoute: AuthedEmpreendimentosIndexRoute,
+  AuthedEmpreendimentosDevelopmentIdEditarRoute:
+    AuthedEmpreendimentosDevelopmentIdEditarRoute,
+  AuthedEmpreendimentosDevelopmentIdIndexRoute:
+    AuthedEmpreendimentosDevelopmentIdIndexRoute,
 }
 
 const AuthedRouteWithChildren =
