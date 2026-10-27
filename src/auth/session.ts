@@ -16,3 +16,10 @@ export const getSession = createServerFn().handler(() =>
 export const getAuthProviders = createServerFn().handler(() => ({
   google: googleEnabled,
 }))
+
+// For server function handlers: the signed-in Broker, or an error if nobody is.
+export async function currentBrokerId() {
+  const session = await auth.api.getSession({ headers: getRequestHeaders() })
+  if (!session) throw new Error('Not signed in')
+  return session.user.id
+}
